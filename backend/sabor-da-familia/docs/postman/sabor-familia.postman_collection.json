@@ -1,0 +1,1131 @@
+{
+  "info": {
+    "name": "Sabor Família API",
+    "description": "Collection da API Sabor Família.\n\n- Base URL: {{baseUrl}} (ex.: http://localhost:8080/api/sabor-familia)\n- Header X-User-Id: {{userId}} onde indicado (deve existir perfil.usuario_id correspondente)\n- Catálogo de personalização: /personalizacao/categorias, /personalizacao, /personalizacao/perfil e /personalizacao/receita.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/sabor-familia"
+    },
+    {
+      "key": "userId",
+      "value": "41"
+    },
+    {
+      "key": "perfilId",
+      "value": "41",
+      "description": "ID em perfil.id (massa de dados: costuma alinhar com userId 1 → perfil 1)"
+    },
+    {
+      "key": "receitaId",
+      "value": "1",
+      "description": "Preencha com o id retornado ao criar receita ou um id existente"
+    },
+    {
+      "key": "personalizacaoCodigo",
+      "value": "RAPIDA",
+      "description": "Código em personalizacao.codigo (catálogo: GET /personalizacao ou listas planas /personalizacao/perfil | /receita)"
+    },
+    {
+      "key": "nextBefore",
+      "value": "",
+      "description": "Cursor para paginação de mensagens (menor ID do lote anterior)"
+    },
+    {
+      "key": "restricaoCodigo",
+      "value": "GLUTEN",
+      "description": "Código em restricao_alimentar.codigo (GET /restricao-alimentar/{codigo})"
+    }
+  ],
+  "item": [
+    {
+      "name": "Receita",
+      "item": [
+        {
+          "name": "Feed - Receitas do usuário e seguidos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/feed?page=0&size=20&sort=dataCadastro,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "feed"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "dataCadastro,desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Explorar receitas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/explorar?page=0&size=20&sort=dataCadastro,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "explorar"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "dataCadastro,desc"
+                }
+              ]
+            },
+            "description": "Explora receitas com filtros opcionais por tipo de refeição e título. A listagem prioriza receitas com mais aderência às preferências de personalização do usuário e, em empate, traz as mais recentes primeiro."
+          }
+        },
+        {
+          "name": "Buscar receita por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text",
+                "disabled": false
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/{{receitaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "{{receitaId}}"
+              ]
+            },
+            "description": "Retorna os detalhes completos da receita, incluindo autor, informações de preparo, estatísticas, restrições, personalizações e data de cadastro."
+          }
+        },
+        {
+          "name": "Listar receitas de um perfil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/perfil/{{perfilId}}?page=0&size=20&sort=dataCadastro,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "perfil",
+                "{{perfilId}}"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "dataCadastro,desc"
+                }
+              ]
+            },
+            "description": "Lista receitas de um perfil em formato resumido, com paginação. Quando o usuário é informado, também indica se cada receita é restrita para ele."
+          }
+        },
+        {
+          "name": "Criar receita",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Bolo de chocolate\",\n  \"tipoRefeicao\": \"SOBREMESA\",\n  \"ingredientes\": \"Farinha, ovos, chocolate, açúcar\",\n  \"modoPreparo\": \"Misturar tudo e assar por 40 minutos\",\n  \"historia\": \"Receita da vovó\",\n  \"tempoPreparoMin\": 60,\n  \"qtdPorcoes\": 8,\n  \"restricoesAlimentares\": [\n    \"GLUTEN\",\n    \"LACTOSE\"\n  ],\n  \"personalizacoes\": [\n    \"RAPIDA\",\n    \"CONFORTO\",\n    \"USO_FORNO\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/receita",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita"
+              ]
+            },
+            "description": "Use personalizações com códigos ativos do catálogo. As restrições alimentares continuam no campo específico de restrições."
+          }
+        },
+        {
+          "name": "Atualizar receita",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"titulo\": \"Bolo de Capim\",\n  \"tipoRefeicao\": \"SOBREMESA\",\n  \"ingredientes\": \"Farinha, ovos, capim, açúcar e manteiga\",\n  \"modoPreparo\": \"Junte o campim em um campo de futebol ou pasto, misturar tudo e assar por 45 minutos\",\n  \"historia\": \"Era uma vez um bolo de capim\",\n  \"tempoPreparoMin\": 70,\n  \"qtdPorcoes\": 10,\n  \"restricoesAlimentares\": [\n    \"GLUTEN\"\n  ],\n  \"personalizacoes\": [\n    \"ECONOMICA\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/receita/{{receitaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "{{receitaId}}"
+              ]
+            },
+            "description": "Mesmo shape do POST **Criar receita** (campos na raiz)."
+          }
+        },
+        {
+          "name": "Remover receita",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/{{receitaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "{{receitaId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Perfil",
+      "item": [
+        {
+          "name": "Buscar perfil do usuário autenticado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil"
+              ]
+            },
+            "description": "Retorna o perfil do usuário autenticado, com detalhes, estatísticas, restrições e personalizações."
+          }
+        },
+        {
+          "name": "Buscar perfil público",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/{{perfilId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "{{perfilId}}"
+              ]
+            },
+            "description": "Retorna o perfil público informado com contexto de visualização do usuário autenticado, incluindo indicadores de próprio perfil e seguimento."
+          }
+        },
+        {
+          "name": "Criar perfil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Chuck Norris\",\n  \"email\": \"chuck.norris@email.com\",\n  \"dataNascimento\": \"10/03/1940\",\n  \"bio\": \"Apaixonado por culinária e ação\",\n  \"fotoPerfilUrl\": \"https://exemplo.com/foto.jpg\",\n  \"restricoesAlimentares\": [\"GLUTEN\", \"LACTOSE\"],\n  \"personalizacoes\": [\"RAPIDA\", \"PARA_FAMILIA\", \"USO_AIR_FRYER\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil"
+              ]
+            },
+            "description": "As listas de restrições alimentares e personalizações são opcionais e devem usar códigos ativos dos respectivos catálogos."
+          }
+        },
+        {
+          "name": "Atualizar perfil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"Nova bio atualizada\",\n  \"fotoPerfilUrl\": \"https://exemplo.com/nova-foto.jpg\",\n  \"restricoesAlimentares\": [\"GLUTEN\", \"SODIO\"],\n  \"personalizacoes\": [\"RAPIDA\"]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil"
+              ]
+            },
+            "description": "Atualiza bio, foto de perfil, restrições alimentares e personalizações. Os vínculos informados substituem os anteriores."
+          }
+        },
+        {
+          "name": "Listar seguidores do perfil",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/perfil/{{perfilId}}/seguidores?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "{{perfilId}}",
+                "seguidores"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar quem o perfil segue",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/perfil/{{perfilId}}/seguindo?page=0&size=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "{{perfilId}}",
+                "seguindo"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Favorito",
+      "item": [
+        {
+          "name": "Listar receitas favoritas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/favoritos?page=0&size=20&sort=dataCadastro,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "favoritos"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "dataCadastro,desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Favoritar receita",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/1/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "1",
+                "favoritos"
+              ]
+            },
+            "description": "Marca a receita como favorita e retorna o resultado da operação."
+          }
+        },
+        {
+          "name": "Desfavoritar receita",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/1/favoritos",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "1",
+                "favoritos"
+              ]
+            },
+            "description": "Remove a receita dos favoritos e retorna o resultado da operação."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Curtida",
+      "item": [
+        {
+          "name": "Curtir receita",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/1/curtidas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "1",
+                "curtidas"
+              ]
+            },
+            "description": "Registra curtida na receita e retorna o resultado da operação."
+          }
+        },
+        {
+          "name": "Remover curtida",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/1/curtidas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "1",
+                "curtidas"
+              ]
+            },
+            "description": "Remove a curtida da receita e retorna o resultado da operação."
+          }
+        },
+        {
+          "name": "Listar perfis que curtiram uma receita",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/receita/1/curtidas",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "1",
+                "curtidas"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comentário",
+      "item": [
+        {
+          "name": "Adicionar comentário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"comentario\": \"Receita deliciosa! Parabéns!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/receita/1/comentarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "1",
+                "comentarios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar comentários de uma receita",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/receita/1/comentarios",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "1",
+                "comentarios"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remover comentário",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/receita/1/comentarios/1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "receita",
+                "1",
+                "comentarios",
+                "1"
+              ]
+            },
+            "description": "Remove o comentário informado e retorna o resultado da operação."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seguindo",
+      "item": [
+        {
+          "name": "Seguir perfil",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/{{perfilId}}/seguir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "{{perfilId}}",
+                "seguir"
+              ]
+            },
+            "description": "Passa a seguir o perfil informado e retorna o resultado da operação."
+          }
+        },
+        {
+          "name": "Deixar de seguir perfil",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/perfil/{{perfilId}}/seguir",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "perfil",
+                "{{perfilId}}",
+                "seguir"
+              ]
+            },
+            "description": "Deixa de seguir o perfil informado e retorna o resultado da operação."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Personalização (catálogo)",
+      "item": [
+        {
+          "name": "Listar categorias (metadados)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/personalizacao/categorias",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "personalizacao",
+                "categorias"
+              ]
+            },
+            "description": "Lista as categorias de personalização disponíveis."
+          }
+        },
+        {
+          "name": "Listar catálogo de personalização",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/personalizacao",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "personalizacao"
+              ]
+            },
+            "description": "Lista o catálogo de personalização agrupado por categoria, exibindo apenas opções ativas."
+          }
+        },
+        {
+          "name": "Listar personalizações (contexto perfil)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/personalizacao/perfil",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "personalizacao",
+                "perfil"
+              ]
+            },
+            "description": "Lista opções ativas de personalização no contexto de perfil."
+          }
+        },
+        {
+          "name": "Listar personalizações (contexto receita)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/personalizacao/receita",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "personalizacao",
+                "receita"
+              ]
+            },
+            "description": "Lista opções ativas de personalização no contexto de receita."
+          }
+        },
+        {
+          "name": "Ativar opção por código",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/personalizacao/ativar/{{personalizacaoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "personalizacao",
+                "ativar",
+                "{{personalizacaoCodigo}}"
+              ]
+            },
+            "description": "Ativa uma opção de personalização pelo código. Operação idempotente."
+          }
+        },
+        {
+          "name": "Editar opção por código",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"labelPerfil\": \"Rótulo no contexto perfil\",\n  \"labelReceita\": \"Rótulo no contexto receita\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/personalizacao/{{personalizacaoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "personalizacao",
+                "{{personalizacaoCodigo}}"
+              ]
+            },
+            "description": "Atualiza os textos de exibição da personalização para perfil e receita."
+          }
+        },
+        {
+          "name": "Inativar opção por código",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/personalizacao/inativar/{{personalizacaoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "personalizacao",
+                "inativar",
+                "{{personalizacaoCodigo}}"
+              ]
+            },
+            "description": "Inativa uma opção de personalização pelo código. Operação idempotente."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restrição alimentar",
+      "item": [
+        {
+          "name": "Listar restrições alimentares",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/restricao-alimentar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restricao-alimentar"
+              ]
+            },
+            "description": "Lista restrições alimentares ativas disponíveis no catálogo."
+          }
+        },
+        {
+          "name": "Buscar por código",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/restricao-alimentar/{{restricaoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restricao-alimentar",
+                "{{restricaoCodigo}}"
+              ]
+            },
+            "description": "Busca uma restrição alimentar ativa pelo código."
+          }
+        },
+        {
+          "name": "Editar opção por código",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"labelPerfil\": \"Rótulo no contexto perfil\",\n  \"labelReceita\": \"Rótulo no contexto receita\",\n  \"exemplos\": \"Exemplos ilustrativos\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/restricao-alimentar/{{restricaoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restricao-alimentar",
+                "{{restricaoCodigo}}"
+              ]
+            },
+            "description": "Atualiza os textos e exemplos de uma restrição alimentar."
+          }
+        },
+        {
+          "name": "Ativar por código",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restricao-alimentar/ativar/{{restricaoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restricao-alimentar",
+                "ativar",
+                "{{restricaoCodigo}}"
+              ]
+            },
+            "description": "Ativa uma restrição alimentar pelo código. Operação idempotente."
+          }
+        },
+        {
+          "name": "Inativar por código",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/restricao-alimentar/inativar/{{restricaoCodigo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "restricao-alimentar",
+                "inativar",
+                "{{restricaoCodigo}}"
+              ]
+            },
+            "description": "Inativa uma restrição alimentar pelo código. Operação idempotente."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversa",
+      "item": [
+        {
+          "name": "Listar conversas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversa?page=0&size=20&sort=dataEnvioUltimaMensagem,desc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversa"
+              ],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "sort",
+                  "value": "dataEnvioUltimaMensagem,desc"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar mensagens da conversa (últimas)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversa/1/mensagens?limit=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversa",
+                "1",
+                "mensagens"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            },
+            "description": "Retorna as últimas mensagens em ordem cronológica. Resposta: items, hasMore, nextBefore. Use nextBefore na próxima chamada para carregar histórico (mensagens mais antigas)."
+          }
+        },
+        {
+          "name": "Listar mensagens anteriores (histórico)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversa/1/mensagens?limit=20&before={{nextBefore}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversa",
+                "1",
+                "mensagens"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "20"
+                },
+                {
+                  "key": "before",
+                  "value": "{{nextBefore}}"
+                }
+              ]
+            },
+            "description": "Use o valor de nextBefore retornado na chamada anterior. Retorna mensagens mais antigas que o ID informado. Adicione a variável nextBefore na collection (ex.: valor do último nextBefore recebido)."
+          }
+        },
+        {
+          "name": "Enviar mensagem",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "X-User-Id",
+                "value": "{{userId}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"destinatarioId\": 2,\n  \"mensagem\": \"Olá! Essa receita ficou ótima!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/conversa/mensagens",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversa",
+                "mensagens"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,256 @@
+Project SaborFamilia {
+  database_type: 'PostgreSQL'
+  Note: 'Sabor Família'
+}
+
+// ---------------------------------------------------------------------------
+// Perfil e personalizacao generica
+// ---------------------------------------------------------------------------
+
+Table perfil {
+  id bigint [pk, increment]
+  usuario_id bigint [not null]
+  nome varchar(255) [not null]
+  email varchar(255) [not null, unique]
+  bio varchar(255)
+  data_nascimento date [not null]
+  foto_perfil_url varchar(255)
+  data_cadastro timestamp [not null]
+  ultima_atualizacao timestamp [not null]
+
+  Note: 'PerfilEntity — data_nascimento obrigatória; personalizacoes via personalizacao_perfil. API: ao criar/editar perfil, restricoes e personalizacoes (codigos) sao validadas antes de save/sync.'
+}
+
+Table restricao_alimentar {
+  id bigint [pk, increment]
+  codigo varchar(80) [not null, unique, note: 'uk_restricao_alimentar_codigo']
+  label_perfil varchar(500) [not null, note: 'Texto UI ao declarar restrição no perfil']
+  label_receita varchar(500) [not null, note: 'Texto UI ao descrever a receita (ex.: contém / adequada)']
+  exemplos varchar(1000) [note: 'Exemplos ilustrativos']
+  status varchar(16) [not null, note: 'ATIVO|INATIVO']
+  data_cadastro timestamp [not null]
+  ultima_atualizacao timestamp [not null]
+
+  indexes {
+    status [name: 'idx_restricao_alimentar_status']
+  }
+
+  Note: 'Catálogo. GET lista e GET por código expõem só ATIVO; PATCH ativar/inativar/{codigo} como personalização. Vínculos perfil/receita só aceitam opções ATIVAS na validação.'
+}
+
+Table personalizacao {
+  id bigint [pk, increment]
+  categoria varchar(80) [not null, note: 'Codigo logico do grupo (ex.: TEMPO_E_ESFORCO, UTENSILIOS_E_EQUIPAMENTOS); compartilhado perfil/receita']
+  codigo varchar(120) [not null, unique, note: 'uk_personalizacao_codigo']
+  label_perfil varchar(255) [not null, note: 'Texto para UI de preferências do perfil']
+  label_receita varchar(255) [not null, note: 'Texto para UI de características da receita']
+  status varchar(16) [not null, note: 'ATIVO|INATIVO']
+  data_cadastro timestamp [not null]
+  ultima_atualizacao timestamp [not null]
+
+  indexes {
+    categoria [name: 'idx_personalizacao_categoria']
+    status [name: 'idx_personalizacao_status']
+  }
+
+  Note: 'Opcao do catalogo compartilhado. Em JPA, categoria mapeia para CategoriaPersonalizacaoEnum (STRING). Sem coluna label generica: apenas label_perfil e label_receita.'
+}
+
+// ---------------------------------------------------------------------------
+// N:N perfil ↔ restrição
+// ---------------------------------------------------------------------------
+
+Table perfil_restricao_alimentar {
+  id bigint [pk, increment]
+  perfil_id bigint [not null, ref: > perfil.id]
+  restricao_alimentar_id bigint [not null, ref: > restricao_alimentar.id]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    perfil_id [name: 'idx_perfil_restricao_perfil_id']
+    (perfil_id, restricao_alimentar_id) [name: 'uk_perfil_restricao_perfil_restricao', unique]
+  }
+
+  Note: 'PerfilRestricaoAlimentarEntity — ON DELETE CASCADE na FK restricao_alimentar_id (@OnDelete).'
+}
+
+Table personalizacao_perfil {
+  id bigint [pk, increment]
+  perfil_id bigint [not null, ref: > perfil.id]
+  personalizacao_id bigint [not null, ref: > personalizacao.id]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    perfil_id [name: 'idx_personalizacao_perfil_perfil_id']
+    personalizacao_id [name: 'idx_personalizacao_perfil_personalizacao_id']
+    (perfil_id, personalizacao_id) [name: 'uk_personalizacao_perfil', unique]
+  }
+
+  Note: 'Vinculo N:N perfil x personalizacao. Leitura na API: PersonalizacaoPerfilRepository.findByPerfilId via JPQL JOIN FETCH personalizacao (evita N+1). Sincronizacao: delete por perfil + saveAll dos novos vinculos.'
+}
+
+// ---------------------------------------------------------------------------
+// Receita e vínculos
+// ---------------------------------------------------------------------------
+
+Table receita {
+  id bigint [pk, increment]
+  perfil_id bigint [not null, ref: > perfil.id]
+  titulo varchar(255) [not null, note: 'Entidade sem length explícito — default Hibernate comum']
+  tipo_refeicao varchar(50) [note: 'TipoRefeicaoEnum como string']
+  ingredientes text [not null]
+  modo_preparo text [not null]
+  historia text
+  tempo_preparo_min integer
+  qtd_porcoes integer
+  count_curtidas integer [not null, default: 0]
+  count_comentarios integer [not null, default: 0]
+  data_cadastro timestamp [not null]
+  ultima_atualizacao timestamp [not null]
+
+  indexes {
+    perfil_id [name: 'idx_receita_perfil_id']
+  }
+
+  Note: 'ReceitaEntity — restricoes e personalizacoes via tabelas N:N separadas. API: validacao de codigos de catálogo antes de persistir receita e vínculos.'
+}
+
+Table receita_restricao_alimentar {
+  id bigint [pk, increment]
+  receita_id bigint [not null, ref: > receita.id]
+  restricao_alimentar_id bigint [not null, ref: > restricao_alimentar.id]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    receita_id [name: 'idx_receita_restricao_receita_id']
+    restricao_alimentar_id [name: 'idx_receita_restricao_restricao_id']
+    (receita_id, restricao_alimentar_id) [name: 'uk_receita_restricao_receita_restricao', unique]
+  }
+
+  Note: 'ReceitaRestricaoAlimentarEntity — ON DELETE CASCADE na FK restricao_alimentar_id.'
+}
+
+Table personalizacao_receita {
+  id bigint [pk, increment]
+  receita_id bigint [not null, ref: > receita.id]
+  personalizacao_id bigint [not null, ref: > personalizacao.id]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    receita_id [name: 'idx_personalizacao_receita_receita_id']
+    personalizacao_id [name: 'idx_personalizacao_receita_personalizacao_id']
+    (receita_id, personalizacao_id) [name: 'uk_personalizacao_receita', unique]
+  }
+
+  Note: 'Vinculo N:N receita x personalizacao. Leitura: findByReceitaId / findByReceitaIdIn com JOIN FETCH personalizacao; lote do feed usa uma query IN. Sincronizacao: delete por receita + saveAll.'
+}
+
+// ---------------------------------------------------------------------------
+// Interações sociais
+// ---------------------------------------------------------------------------
+
+Table curtida_receita {
+  id bigint [pk, increment]
+  receita_id bigint [not null, ref: > receita.id]
+  perfil_id bigint [not null, ref: > perfil.id]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    receita_id [name: 'idx_curtida_receita_receita_id']
+    perfil_id [name: 'idx_curtida_receita_perfil_id']
+    (receita_id, perfil_id) [unique]
+  }
+
+  Note: 'Curtidas de perfis em receitas'
+}
+
+Table comentario_receita {
+  id bigint [pk, increment]
+  receita_id bigint [not null, ref: > receita.id]
+  perfil_id bigint [not null, ref: > perfil.id]
+  texto varchar(500) [not null]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    receita_id [name: 'idx_comentario_receita_receita_id']
+    perfil_id [name: 'idx_comentario_receita_perfil_id']
+  }
+
+  Note: 'Comentários de perfis em receitas'
+}
+
+Table favorito_receita {
+  id bigint [pk, increment]
+  receita_id bigint [not null, ref: > receita.id]
+  perfil_id bigint [not null, ref: > perfil.id]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    receita_id [name: 'idx_favorito_receita_receita_id']
+    perfil_id [name: 'idx_favorito_receita_perfil_id']
+    (receita_id, perfil_id) [unique]
+  }
+
+  Note: 'Receitas favoritadas pelos perfis'
+}
+
+Table feed_perfil_receita {
+  id bigint [pk, increment]
+  perfil_id bigint [not null, ref: > perfil.id]
+  receita_id bigint [not null, ref: > receita.id]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    (perfil_id, data_cadastro) [name: 'idx_feed_perfil_receita_perfil_data']
+    receita_id [name: 'idx_feed_perfil_receita_receita_id']
+    (perfil_id, receita_id) [unique]
+  }
+
+  Note: 'Feed por perfil: receitas visíveis (autor + seguidos).'
+}
+
+Table seguindo {
+  id bigint [pk, increment]
+  seguidor_id bigint [not null, ref: > perfil.id]
+  seguido_id bigint [not null, ref: > perfil.id]
+  data_cadastro timestamp [not null]
+
+  indexes {
+    seguidor_id [name: 'idx_seguindo_seguidor_id']
+    seguido_id [name: 'idx_seguindo_seguido_id']
+    (seguidor_id, seguido_id) [unique]
+  }
+
+  Note: 'Relacionamento de seguir entre perfis'
+}
+
+Table conversa {
+  id bigint [pk, increment]
+  primeiro_participante bigint [not null, ref: > perfil.id]
+  segundo_participante bigint [not null, ref: > perfil.id]
+  data_envio_ultima_mensagem timestamp
+  conteudo_ultima_mensagem varchar(255)
+
+  indexes {
+    (primeiro_participante, segundo_participante) [name: 'uk_conversa_participantes', unique]
+  }
+
+  Note: 'Par ordenado na aplicação (primeiro < segundo). Unique uk_conversa_participantes.'
+}
+
+Table mensagem {
+  id bigint [pk, increment]
+  conversa_id bigint [not null, ref: > conversa.id]
+  remetente_id bigint [not null, ref: > perfil.id]
+  destinatario_id bigint [not null, ref: > perfil.id]
+  texto text [not null]
+  data_envio timestamp [not null]
+
+  indexes {
+    conversa_id [name: 'idx_mensagem_conversa_id']
+    remetente_id [name: 'idx_mensagem_remetente_id']
+    destinatario_id [name: 'idx_mensagem_destinatario_id']
+  }
+
+  Note: 'MensagemEntity — texto TEXT.'
+}

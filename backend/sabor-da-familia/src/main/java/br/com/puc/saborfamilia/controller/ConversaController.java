@@ -1,0 +1,75 @@
+package br.com.puc.saborfamilia.controller;
+
+import br.com.puc.saborfamilia.service.mensagem.MensagemService;
+import br.com.puc.saborfamilia.service.mensagem.dto.request.EnviarMensagemRequest;
+import br.com.puc.saborfamilia.service.mensagem.dto.response.ConversaResponse;
+import br.com.puc.saborfamilia.service.mensagem.dto.response.EnviarMensagemResponse;
+import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemCursorResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@AllArgsConstructor
+@RequestMapping(value = "/conversa")
+@Tag(name = "Conversa", description = "Serviços para conversas e mensagens entre perfis.")
+public class ConversaController {
+
+  private final MensagemService mensagemService;
+
+  @GetMapping
+  @Operation(
+    summary = "Listar conversas",
+    description = "Retorna a lista de conversas do usuário de forma paginada."
+  )
+  public ResponseEntity<Page<ConversaResponse>> buscarConversas(
+    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @PageableDefault(sort = "dataEnvioUltimaMensagem", direction = Sort.Direction.DESC) Pageable pageable
+  ) {
+    Page<ConversaResponse> response = mensagemService.buscarConversas(usuarioId, pageable);
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping(value = "/{conversaId}/mensagens")
+  @Operation(
+    summary = "Listar mensagens da conversa",
+    description = "Retorna o histórico de mensagens da conversa de forma paginada."
+  )
+  public ResponseEntity<MensagemCursorResponse> buscarMensagensConversa(
+    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @PathVariable Long conversaId,
+    @RequestParam(required = false) Integer limit,
+    @RequestParam(required = false) Long before
+  ) {
+    MensagemCursorResponse response = mensagemService.buscarMensagensConversa(usuarioId, conversaId, limit, before);
+    return ResponseEntity.ok(response);
+  }
+
+  @PostMapping(value = "/mensagens")
+  @Operation(
+    summary = "Enviar mensagem",
+    description = "Envia uma mensagem para o destinatário."
+  )
+  public ResponseEntity<EnviarMensagemResponse> enviarMensagem(
+    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @Valid @RequestBody EnviarMensagemRequest request
+  ) {
+    EnviarMensagemResponse response = mensagemService.enviarMensagem(usuarioId, request);
+    return ResponseEntity.ok(response);
+  }
+
+}

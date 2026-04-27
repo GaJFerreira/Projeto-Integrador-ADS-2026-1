@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: sabor-familia
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  servlet:
+    context-path: /api/sabor-familia
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
