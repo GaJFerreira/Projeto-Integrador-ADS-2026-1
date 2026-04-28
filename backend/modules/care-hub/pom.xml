@@ -7,13 +7,13 @@
 		<groupId>br.pucgo.ads</groupId>
 		<artifactId>projeto-integrador</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
+		<relativePath>../../../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>dose-certa</artifactId>
+	<artifactId>care-hub</artifactId>
 	<packaging>jar</packaging>
-	<name>dose-certa</name>
-	<description>Módulo Dose Certa - Controle de medicamentos para idosos</description>
+	<name>care-hub</name>
+	<description>Módulo Care Hub - Central de cuidados integrados</description>
 
 	<dependencies>
 		<dependency>

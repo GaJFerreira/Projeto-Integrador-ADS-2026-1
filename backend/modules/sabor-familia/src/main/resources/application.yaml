@@ -14,10 +14,6 @@ spring:
     open-in-view: false
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
-server:
-  servlet:
-    context-path: /api/sabor-familia
-
 springdoc:
   swagger-ui:
     path: /swagger-ui.html

@@ -7,13 +7,13 @@
 		<groupId>br.pucgo.ads</groupId>
 		<artifactId>projeto-integrador</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
+		<relativePath>../../../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>care-keeper</artifactId>
+	<artifactId>elden-care</artifactId>
 	<packaging>jar</packaging>
-	<name>care-keeper</name>
-	<description>Módulo Care Keeper - Cuidados e monitoramento do idoso</description>
+	<name>elden-care</name>
+	<description>Módulo Elden Care - Cuidados avançados para idosos</description>
 
 	<dependencies>
 		<dependency>

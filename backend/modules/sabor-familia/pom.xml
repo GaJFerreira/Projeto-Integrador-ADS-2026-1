@@ -16,19 +16,7 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>sabor-familia</name>
   <description>sabor-familia</description>
-  <url/>
-  <licenses>
-    <license/>
-  </licenses>
-  <developers>
-    <developer/>
-  </developers>
-  <scm>
-    <connection/>
-    <developerConnection/>
-    <tag/>
-    <url/>
-  </scm>
+
   <properties>
     <java.version>21</java.version>
   </properties>
@@ -81,6 +69,9 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <skip>true</skip>
+        </configuration>
       </plugin>
     </plugins>
   </build>
