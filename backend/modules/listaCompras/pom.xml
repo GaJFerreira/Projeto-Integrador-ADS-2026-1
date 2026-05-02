@@ -7,26 +7,36 @@
 		<groupId>br.pucgo.ads</groupId>
 		<artifactId>projeto-integrador</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../../pom.xml</relativePath>
+		<relativePath>../../../pom.xml</relativePath>
 	</parent>
 
-	<artifactId>plataforma</artifactId>
+	<artifactId>listaCompras</artifactId>
 	<packaging>jar</packaging>
-	<name>plataforma</name>
-	<description>Módulo central da plataforma - hub de segurança e autenticação</description>
+	<name>listaCompras</name>
+	<description>Módulo listaCompras</description>
+
+	<dependencies>
+		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>plataforma</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Swagger / OpenAPI (usado nos controllers com @Tag, @Operation, etc.) -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.8.16</version>
+		</dependency>
+	</dependencies>
 
 	<build>
 		<plugins>
+			<!-- Desativa o repackage do Spring Boot: este módulo é uma biblioteca, não um app standalone -->
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<!--
-					  plataforma é uma biblioteca pura — o Spring Boot não deve
-					  reempacotar como fat JAR (BOOT-INF), pois outros módulos
-					  precisam acessar suas classes como dependência Maven.
-					  O ponto de entrada é o módulo launcher.
-					-->
 					<skip>true</skip>
 				</configuration>
 			</plugin>

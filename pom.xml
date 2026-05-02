@@ -36,13 +36,19 @@
 	<!-- Módulos filhos (Monolito Modular Maven Multi-module)   -->
 	<!-- ===================================================== -->
 	<modules>
+		<module>backend/launcher</module>
 		<module>backend/plataforma</module>
 		<module>backend/modules/remember</module>
 		<module>backend/modules/care-keeper</module>
 		<module>backend/modules/care-hub</module>
 		<module>backend/modules/elden-care</module>
 		<module>backend/modules/dose-certa</module>
-		<module>backend/modules/sabor-familia</module>
+		<module>backend/modules/listaCompras</module>
+		<!--
+		  sabor-familia não está listado aqui pois tem parent próprio
+		  (spring-boot-starter-parent). Construa-o separadamente:
+		  cd backend/modules/sabor-familia && mvnw.cmd install -DskipTests
+		-->
 	</modules>
 
 	<properties>
@@ -138,6 +144,7 @@
 			<artifactId>sabor-familia</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
+
 
 	</dependencies>
 
