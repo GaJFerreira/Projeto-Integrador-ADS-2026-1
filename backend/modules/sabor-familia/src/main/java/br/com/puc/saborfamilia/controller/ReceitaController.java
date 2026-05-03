@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/receita")
+@RequestMapping(value = "/api/sabor-familia/receita")
 @Tag(name = "Receita", description = "Serviços para gerenciamento de receitas da aplicação.")
 public class ReceitaController {
 

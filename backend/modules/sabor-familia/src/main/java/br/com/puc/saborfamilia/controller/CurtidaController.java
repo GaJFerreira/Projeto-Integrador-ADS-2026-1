@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/receita")
+@RequestMapping(value = "/api/sabor-familia/receita")
 @Tag(name = "Curtida", description = "Serviços para gerenciar curtidas das receitas.")
 public class CurtidaController {
 

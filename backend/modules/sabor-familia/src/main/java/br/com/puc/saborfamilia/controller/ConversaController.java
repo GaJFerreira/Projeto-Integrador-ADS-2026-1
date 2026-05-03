@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/conversa")
+@RequestMapping(value = "/api/sabor-familia/conversa")
 @Tag(name = "Conversa", description = "Serviços para conversas e mensagens entre perfis.")
 public class ConversaController {
 

@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/receita")
+@RequestMapping(value = "/api/sabor-familia/receita")
 @Tag(name = "Favorito", description = "Serviços para favoritar receitas e listar favoritos do usuário.")
 public class FavoritoController {
 

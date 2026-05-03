@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/restricao-alimentar")
+@RequestMapping(value = "/api/sabor-familia/restricao-alimentar")
 @Tag(name = "Restrição alimentar", description = "Catálogo de restrições alimentares, edição e alteração de status.")
 public class RestricaoAlimentarController {
 

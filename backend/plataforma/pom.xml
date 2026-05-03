@@ -15,6 +15,18 @@
 	<name>plataforma</name>
 	<description>Módulo central da plataforma - hub de segurança e autenticação</description>
 
+	<dependencies>
+
+		<!--	MODULES	-->
+
+		<dependency>
+			<groupId>br.com.puc</groupId>
+			<artifactId>sabor-familia</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>

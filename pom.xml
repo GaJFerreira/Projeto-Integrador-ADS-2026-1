@@ -36,13 +36,13 @@
 	<!-- Módulos filhos (Monolito Modular Maven Multi-module)   -->
 	<!-- ===================================================== -->
 	<modules>
+		<module>backend/modules/sabor-familia</module>
 		<module>backend/plataforma</module>
 		<module>backend/modules/remember</module>
 		<module>backend/modules/care-keeper</module>
 		<module>backend/modules/care-hub</module>
 		<module>backend/modules/elden-care</module>
 		<module>backend/modules/dose-certa</module>
-		<module>backend/modules/sabor-familia</module>
 	</modules>
 
 	<properties>
@@ -129,14 +129,6 @@
 			<artifactId>jjwt-jackson</artifactId>
 			<version>0.12.3</version>
 			<scope>runtime</scope>
-		</dependency>
-
-		<!--	MODULES	-->
-
-		<dependency>
-			<groupId>br.com.puc</groupId>
-			<artifactId>sabor-familia</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
 
 	</dependencies>

@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/personalizacao")
+@RequestMapping(value = "/api/sabor-familia/personalizacao")
 @Tag(name = "Catálogo de Personalização", description = "Serviços de gerenciamento de personalizações.")
 public class PersonalizacaoController {
 

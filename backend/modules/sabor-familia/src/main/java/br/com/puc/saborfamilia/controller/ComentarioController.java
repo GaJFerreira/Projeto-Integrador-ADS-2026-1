@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/receita")
+@RequestMapping(value = "/api/sabor-familia/receita")
 @Tag(name = "Comentário", description = "Serviços para gerenciar comentários das receitas.")
 public class ComentarioController {
 

@@ -21,6 +21,7 @@ import lombok.Setter;
 @Entity
 @Table(
   name = "mensagem",
+  schema = "sabor_familia",
   indexes = {
     @Index(name = "idx_mensagem_conversa_id", columnList = "conversa_id"),
     @Index(name = "idx_mensagem_remetente_id", columnList = "remetente_id"),

@@ -23,6 +23,7 @@ import lombok.Setter;
 @Entity
 @Table(
   name = "receita_restricao_alimentar",
+  schema = "sabor_familia",
   indexes = {
     @Index(name = "idx_receita_restricao_receita_id", columnList = "receita_id"),
     @Index(name = "idx_receita_restricao_restricao_id", columnList = "restricao_alimentar_id")

@@ -24,7 +24,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "receita", indexes = @Index(name = "idx_receita_perfil_id", columnList = "perfil_id"))
+@Table(
+  name = "receita",
+  schema = "sabor_familia",
+  indexes = @Index(name = "idx_receita_perfil_id", columnList = "perfil_id")
+)
 @Getter
 @Setter
 @NoArgsConstructor

@@ -23,6 +23,7 @@ import lombok.Setter;
 @Entity
 @Table(
   name = "perfil_restricao_alimentar",
+  schema = "sabor_familia",
   indexes = @Index(name = "idx_perfil_restricao_perfil_id", columnList = "perfil_id"),
   uniqueConstraints = @UniqueConstraint(
     name = "uk_perfil_restricao_perfil_restricao",

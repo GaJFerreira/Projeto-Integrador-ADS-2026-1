@@ -20,6 +20,7 @@ import lombok.Setter;
 @Entity
 @Table(
   name = "conversa",
+  schema = "sabor_familia",
   uniqueConstraints = @UniqueConstraint(
     name = "uk_conversa_participantes",
     columnNames = {"primeiro_participante", "segundo_participante"}

@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping(value = "/perfil")
+@RequestMapping(value = "/api/sabor-familia/perfil")
 @Tag(name = "Perfil", description = "Serviços para gerenciamento de perfis da aplicação.")
 public class PerfilController {
 

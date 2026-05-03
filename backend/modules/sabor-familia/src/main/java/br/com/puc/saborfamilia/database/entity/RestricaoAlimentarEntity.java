@@ -21,6 +21,7 @@ import lombok.Setter;
 @Entity
 @Table(
   name = "restricao_alimentar",
+  schema = "sabor_familia",
   indexes = @Index(name = "idx_restricao_alimentar_status", columnList = "status"),
   uniqueConstraints = @UniqueConstraint(name = "uk_restricao_alimentar_codigo", columnNames = "codigo")
 )

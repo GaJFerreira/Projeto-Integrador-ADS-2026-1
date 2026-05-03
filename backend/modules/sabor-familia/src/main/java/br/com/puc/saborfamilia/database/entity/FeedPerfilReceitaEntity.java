@@ -21,6 +21,7 @@ import lombok.Setter;
 @Entity
 @Table(
   name = "feed_perfil_receita",
+  schema = "sabor_familia",
   indexes = {
     @Index(name = "idx_feed_perfil_receita_perfil_data", columnList = "perfil_id, data_cadastro"),
     @Index(name = "idx_feed_perfil_receita_receita_id", columnList = "receita_id")
