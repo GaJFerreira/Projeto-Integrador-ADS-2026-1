@@ -1,3 +1,4 @@
+/*
 package br.pucgo.ads.projetointegrador;
 
 import org.springframework.boot.SpringApplication;
@@ -30,3 +31,4 @@ public class ProjetointegradorApplication {
 	}
 
 }
+*/

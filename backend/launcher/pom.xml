@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>br.pucgo.ads</groupId>
+		<artifactId>projeto-integrador</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../../pom.xml</relativePath>
+	</parent>
+
+	<artifactId>launcher</artifactId>
+	<packaging>jar</packaging>
+	<name>launcher</name>
+	<description>
+		Ponto de entrada da aplicação Spring Boot.
+		Este módulo declara todos os módulos internos como dependências,
+		permitindo que o Spring escaneie e registre todos os beans.
+		Não contém lógica de negócio — apenas o @SpringBootApplication.
+	</description>
+
+	<dependencies>
+
+		<!-- ===================================================== -->
+		<!-- Plataforma Core (segurança, autenticação, User, JWT)  -->
+		<!-- ===================================================== -->
+		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>plataforma</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- ===================================================== -->
+		<!-- Módulos internos (adicione novos módulos aqui)        -->
+		<!-- ===================================================== -->
+		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>remember</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>care-keeper</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>care-hub</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>dose-certa</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>elden-care</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- sabor-familia é herdado via root pom (groupId diferente, parent próprio) -->
+
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>br.pucgo.ads.projetointegrador.ProjetointegradorApplication</mainClass>
+					<excludes>
+						<exclude>
+							<groupId>org.projectlombok</groupId>
+							<artifactId>lombok</artifactId>
+						</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

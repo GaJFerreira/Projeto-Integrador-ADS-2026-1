@@ -36,6 +36,7 @@
 	<!-- Módulos filhos (Monolito Modular Maven Multi-module)   -->
 	<!-- ===================================================== -->
 	<modules>
+		<module>backend/launcher</module>
 		<module>backend/modules/sabor-familia</module>
 		<module>backend/plataforma</module>
 		<module>backend/modules/remember</module>

@@ -67,7 +67,7 @@ Antes de começar, certifique-se de ter instalado:
 
 ## ⚙️ Executando o Backend
 
-Como o backend é modular, você precisará rodar os serviços essenciais separadamente.
+O backend utiliza o padrão de Monolito Modular e possui um ponto de entrada único através do módulo `launcher`. O `launcher` carrega todos os módulos ao mesmo tempo e resolve problemas de dependências, não sendo necessário rodá-los separadamente.
 
 ### 1. Clone o repositório
 
@@ -97,31 +97,28 @@ spring.datasource.password
 
 ---
 
-### 3. Iniciando a Plataforma (Serviço Core)
+### 3. Iniciando o Backend Integrado (Launcher)
+
+Use o módulo `launcher` para rodar o backend. Ele carrega automaticamente a plataforma e todos os módulos de uma só vez.
+
+Na raiz do projeto, execute:
 
 ```bash
-cd backend/plataforma
-./mvnw spring-boot:run
+./mvnw spring-boot:run --projects backend/launcher
 ```
-
----
-
-### 4. Iniciando um Módulo (ex: Sabor da Família)
-
-Abra um novo terminal e execute:
-
+Ou entre na pasta do launcher e execute:
 ```bash
-cd backend/sabor-da-familia
-./mvnw spring-boot:run
+cd backend/launcher
+../mvnw spring-boot:run
 ```
 
-As APIs geralmente estarão disponíveis em:
+As APIs estarão disponíveis de forma centralizada em:
 
 ```
 http://localhost:8080
 ```
 
-(ou em portas definidas nos arquivos `.properties`)
+Todas as rotas e módulos responderão na mesma porta unificada.
 
 ---
 
@@ -181,9 +178,12 @@ Este README inclui:
 * Guia completo de execução local
 * Integração com ferramentas de teste (Postman)
 
-* ## 📌 Observações
+## Integração de novos módulos
 
-...
+📘 Guia básico:
+[Guia de integração de novos módulos](./GUIA_INTEGRACAO_MODULOS.md)
+
+---
 
 ## 🤝 Colaboração e Versionamento
 
@@ -191,3 +191,4 @@ Este README inclui:
 
 📘 Guia completo:
 [Guia de Versionamento e Colaboração](./GUIA_VERSIONAMENTO.md)
+

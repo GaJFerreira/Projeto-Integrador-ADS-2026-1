@@ -6,7 +6,9 @@ Este documento define o padrão para acoplar novos módulos ao projeto sem quebr
 
 ## 1) Princípio de arquitetura
 
-- A aplicação executável do backend é **somente** `plataforma`.
+- A aplicação executável do backend é **somente** o módulo `launcher`. 
+- **Por que o `launcher` existe e quando usá-lo?** Ele atua apenas como o ponto de entrada (`@SpringBootApplication`) e agregador final do projeto. Sua existência resolve **problemas de dependências circulares** (loops de dependência) ao evitar que módulos precisem depender uns dos outros para inicializar a aplicação. Você deve usá-lo **sempre que for rodar o projeto inteiro** localmente ou em produção.
+- O módulo `plataforma` agora atua como o **core** (segurança, JWT, autenticação), sendo importado como biblioteca.
 - Cada novo módulo é uma **biblioteca interna** (JAR comum), sem classe `main`.
 - O módulo pode ter controllers, services, repositories e entities próprios.
 - Todos os módulos compartilham o mesmo banco físico, preferencialmente com separação lógica por schema.
@@ -49,15 +51,15 @@ Pacotes recomendados:
 ### 3.2 `pom.xml` raiz
 
 - Adicione o módulo em `<modules>`.
-- Liste o módulo **antes** de `backend/plataforma` (ordem de build).
+- O módulo `backend/launcher` também deve estar configurado nesta lista para ser compilado no build geral.
 
-### 3.3 `backend/plataforma/pom.xml`
+### 3.3 `backend/launcher/pom.xml`
 
-- Adicione dependência do novo módulo para que ele entre no classpath da aplicação executável.
+- Adicione a dependência do novo módulo no `pom.xml` do `launcher` para que ele entre no classpath e seja compilado junto com a aplicação final.
 
 ## 4) Registro no Spring da aplicação central
 
-No `ProjetointegradorApplication` da `plataforma`, incluir o pacote do novo módulo em:
+No `ProjetointegradorApplication` do `launcher`, incluir o pacote do novo módulo em:
 
 - `scanBasePackages` (controllers/services/configs)
 - `@EntityScan` (entities)
@@ -94,8 +96,8 @@ Exemplo:
 
 ## 8) Checklist de validação antes do merge
 
-- [ ] O módulo compila no reactor Maven.
-- [ ] `plataforma` sobe sozinha e carrega o novo módulo.
+- [ ] O módulo compila no reactor Maven na raiz do projeto (`mvn clean install`).
+- [ ] O `launcher` sobe corretamente e carrega todos os submódulos, incluindo o seu.
 - [ ] Endpoints do módulo respondem com URL padronizada.
 - [ ] Endpoint protegido retorna 401 sem token e sucesso com token válido.
 - [ ] Não há erro de JPA (`Not a managed type`) no startup.
