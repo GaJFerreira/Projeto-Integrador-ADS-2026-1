@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.controller;
 
+import br.com.puc.saborfamilia.utils.JwtClaimsUtils;
 import br.com.puc.saborfamilia.service.mensagem.MensagemService;
 import br.com.puc.saborfamilia.service.mensagem.dto.request.EnviarMensagemRequest;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.ConversaResponse;
@@ -37,9 +38,10 @@ public class ConversaController {
     description = "Retorna a lista de conversas do usuário de forma paginada."
   )
   public ResponseEntity<Page<ConversaResponse>> buscarConversas(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PageableDefault(sort = "dataEnvioUltimaMensagem", direction = Sort.Direction.DESC) Pageable pageable
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     Page<ConversaResponse> response = mensagemService.buscarConversas(usuarioId, pageable);
     return ResponseEntity.ok(response);
   }
@@ -50,11 +52,12 @@ public class ConversaController {
     description = "Retorna o histórico de mensagens da conversa de forma paginada."
   )
   public ResponseEntity<MensagemCursorResponse> buscarMensagensConversa(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long conversaId,
     @RequestParam(required = false) Integer limit,
     @RequestParam(required = false) Long before
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     MensagemCursorResponse response = mensagemService.buscarMensagensConversa(usuarioId, conversaId, limit, before);
     return ResponseEntity.ok(response);
   }
@@ -65,9 +68,10 @@ public class ConversaController {
     description = "Envia uma mensagem para o destinatário."
   )
   public ResponseEntity<EnviarMensagemResponse> enviarMensagem(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @Valid @RequestBody EnviarMensagemRequest request
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     EnviarMensagemResponse response = mensagemService.enviarMensagem(usuarioId, request);
     return ResponseEntity.ok(response);
   }

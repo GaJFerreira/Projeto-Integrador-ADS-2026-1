@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.controller;
 
+import br.com.puc.saborfamilia.utils.JwtClaimsUtils;
 import br.com.puc.saborfamilia.service.curtida.CurtidaService;
 import br.com.puc.saborfamilia.service.curtida.dto.CurtidaResponse;
 import br.com.puc.saborfamilia.service.receita.dto.response.PerfilCurtidaResponse;
@@ -42,9 +43,10 @@ public class CurtidaController {
     description = "Registra uma curtida do perfil do usuário na receita informada."
   )
   public ResponseEntity<CurtidaResponse> adicionarCurtidaReceita(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long receitaId
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     CurtidaResponse response = curtidaService.adicionarCurtidaReceita(usuarioId, receitaId);
     return ResponseEntity.ok(response);
   }
@@ -55,9 +57,10 @@ public class CurtidaController {
     description = "Remove a curtida do perfil do usuário na receita informada, caso exista."
   )
   public ResponseEntity<CurtidaResponse> removerCurtidaReceita(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long receitaId
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     CurtidaResponse response = curtidaService.removerCurtidaReceita(usuarioId, receitaId);
     return ResponseEntity.ok(response);
   }

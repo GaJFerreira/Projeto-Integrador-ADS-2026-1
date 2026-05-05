@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Sabor Família API",
-    "description": "Collection da API Sabor Família.\n\n- Base URL: {{baseUrl}} (ex.: http://localhost:8080/api/sabor-familia)\n- Header X-User-Id: {{userId}} onde indicado (deve existir perfil.usuario_id correspondente)\n- Catálogo de personalização: /personalizacao/categorias, /personalizacao, /personalizacao/perfil e /personalizacao/receita.",
+    "description": "Collection da API Sabor Família.\n\n- Base URL: {{baseUrl}} (ex.: http://localhost:8080/api/sabor-familia)\n- Autenticação: header Authorization: Bearer {{accessToken}} nas rotas que exigem usuário (JWT emitido pela plataforma; claim userId usada pelo módulo)\n- Preencha {{accessToken}} após login em /api/auth (plataforma)\n- Catálogo de personalização: /personalizacao/categorias, /personalizacao, /personalizacao/perfil e /personalizacao/receita.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -10,13 +10,14 @@
       "value": "http://localhost:8080/api/sabor-familia"
     },
     {
-      "key": "userId",
-      "value": "41"
+      "key": "accessToken",
+      "value": "",
+      "description": "JWT retornado pelo login da plataforma (ex.: POST /api/auth/login). O módulo lê a claim userId do token."
     },
     {
       "key": "perfilId",
       "value": "41",
-      "description": "ID em perfil.id (massa de dados: costuma alinhar com userId 1 → perfil 1)"
+      "description": "ID em perfil.id (massa de dados: costuma alinhar com o usuário da claim userId no token → perfil 1)"
     },
     {
       "key": "receitaId",
@@ -49,8 +50,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -86,8 +87,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -124,8 +125,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text",
                 "disabled": false
               }
@@ -149,8 +150,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -188,8 +189,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               },
               {
@@ -220,8 +221,8 @@
             "method": "PUT",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               },
               {
@@ -253,8 +254,8 @@
             "method": "DELETE",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -281,8 +282,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -304,8 +305,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -328,8 +329,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               },
               {
@@ -360,8 +361,8 @@
             "method": "PUT",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               },
               {
@@ -451,8 +452,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -488,8 +489,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -513,8 +514,8 @@
             "method": "DELETE",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -543,8 +544,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -568,8 +569,8 @@
             "method": "DELETE",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -615,8 +616,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               },
               {
@@ -665,8 +666,8 @@
             "method": "DELETE",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -696,8 +697,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -721,8 +722,8 @@
             "method": "DELETE",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -997,8 +998,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -1033,8 +1034,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -1064,8 +1065,8 @@
             "method": "GET",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               }
             ],
@@ -1099,8 +1100,8 @@
             "method": "POST",
             "header": [
               {
-                "key": "X-User-Id",
-                "value": "{{userId}}",
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
                 "type": "text"
               },
               {

@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.controller;
 
+import br.com.puc.saborfamilia.utils.JwtClaimsUtils;
 import br.com.puc.saborfamilia.service.receita.ReceitaService;
 import br.com.puc.saborfamilia.service.receita.dto.request.ReceitaRequest;
 import br.com.puc.saborfamilia.service.receita.dto.response.ReceitaResponse;
@@ -41,9 +42,10 @@ public class ReceitaController {
     description = "Retorna receitas do usuário e dos perfis que ele segue."
   )
   public ResponseEntity<Page<ReceitaResponse>> feedPersonalizado(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PageableDefault(sort = "dataCadastro", direction = Sort.Direction.DESC) Pageable pageable
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     Page<ReceitaResponse> response = receitaService.feedPersonalizado(usuarioId, pageable);
     return ResponseEntity.ok(response);
   }
@@ -54,11 +56,12 @@ public class ReceitaController {
     description = "Retorna receitas em formato resumido de forma paginada."
   )
   public ResponseEntity<Page<ReceitaResumoResponse>> explorarReceitas(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @RequestParam(value = "titulo", required = false) String titulo,
     @RequestParam(value = "tipoRefeicao", required = false) String tipoRefeicao,
     Pageable pageable
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
     Page<ReceitaResumoResponse> response = receitaService.explorarReceitas(usuarioId, titulo, tipoRefeicao, pageable);
     return ResponseEntity.ok(response);
@@ -70,10 +73,11 @@ public class ReceitaController {
     description = "Retorna as receitas publicadas pelo perfil informado de forma paginada."
   )
   public ResponseEntity<Page<ReceitaResumoResponse>> buscarReceitasPerfil(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long perfilId,
     @PageableDefault(sort = "dataCadastro", direction = Sort.Direction.DESC) Pageable pageable
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     Page<ReceitaResumoResponse> response = receitaService.buscarReceitasPerfil(usuarioId, perfilId, pageable);
     return ResponseEntity.ok(response);
   }
@@ -84,9 +88,10 @@ public class ReceitaController {
     description = "Busca uma determinada receita específica pelo ID."
   )
   public ResponseEntity<ReceitaResponse> buscarReceita(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long id
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     ReceitaResponse response = receitaService.buscarReceita(usuarioId, id);
     return ResponseEntity.ok(response);
   }
@@ -97,9 +102,10 @@ public class ReceitaController {
     description = "Cria uma nova receita para o perfil associado ao usuário."
   )
   public ResponseEntity<ReceitaResponse> criarReceita(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @Valid @RequestBody ReceitaRequest request
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     ReceitaResponse response = receitaService.criarReceita(usuarioId, request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
@@ -110,10 +116,11 @@ public class ReceitaController {
     description = "Editar os dados de uma receita já cadastrada."
   )
   public ResponseEntity<ReceitaResponse> editarReceita(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long id,
     @Valid @RequestBody ReceitaRequest request
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     ReceitaResponse response = receitaService.editarReceita(usuarioId, id, request);
     return ResponseEntity.ok(response);
   }
@@ -124,9 +131,10 @@ public class ReceitaController {
     description = "Remove uma receita existente do usuário autor."
   )
   public ResponseEntity<RemoverReceitaResponse> removerReceita(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long id
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     RemoverReceitaResponse response = receitaService.removerReceita(usuarioId, id);
     return ResponseEntity.ok(response);
   }

@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.controller;
 
+import br.com.puc.saborfamilia.utils.JwtClaimsUtils;
 import br.com.puc.saborfamilia.service.favorito.FavoritoService;
 import br.com.puc.saborfamilia.service.favorito.dto.FavoritoResponse;
 import br.com.puc.saborfamilia.service.receita.ReceitaService;
@@ -35,9 +36,10 @@ public class FavoritoController {
     description = "Retorna as receitas que o perfil do usuário tem como favorita."
   )
   public ResponseEntity<Page<ReceitaResponse>> buscarReceitasFavoritas(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PageableDefault(size = 20, sort = "dataCadastro", direction = Sort.Direction.DESC) Pageable pageable
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     Page<ReceitaResponse> response = receitaService.buscarReceitasFavoritas(usuarioId, pageable);
     return ResponseEntity.ok(response);
   }
@@ -48,9 +50,10 @@ public class FavoritoController {
     description = "Adiciona a receita à lista de favoritos do perfil do usuário."
   )
   public ResponseEntity<FavoritoResponse> adicionarReceitaFavoritar(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long receitaId
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     FavoritoResponse response = favoritoService.adicionarReceitaFavoritar(usuarioId, receitaId);
     return ResponseEntity.ok(response);
   }
@@ -61,9 +64,10 @@ public class FavoritoController {
     description = "Remove a receita da lista de favoritos do perfil do usuário."
   )
   public ResponseEntity<FavoritoResponse> removerReceitaFavorita(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long receitaId
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     FavoritoResponse response = favoritoService.removerReceitaFavorita(usuarioId, receitaId);
     return ResponseEntity.ok(response);
   }

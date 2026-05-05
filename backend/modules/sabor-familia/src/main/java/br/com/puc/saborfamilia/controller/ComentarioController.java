@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.controller;
 
+import br.com.puc.saborfamilia.utils.JwtClaimsUtils;
 import br.com.puc.saborfamilia.service.comentario.ComentarioService;
 import br.com.puc.saborfamilia.service.comentario.dto.request.ComentarioRequest;
 import br.com.puc.saborfamilia.service.comentario.dto.response.ComentarioResponse;
@@ -45,10 +46,11 @@ public class ComentarioController {
     description = "Cria um novo comentário na receita para o perfil do usuário informado."
   )
   public ResponseEntity<ComentarioResponse> adicionarComentario(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long receitaId,
     @Valid @RequestBody ComentarioRequest request
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     ComentarioResponse response = comentarioService.adicionarComentario(usuarioId, receitaId, request);
     return ResponseEntity.ok(response);
   }
@@ -59,10 +61,11 @@ public class ComentarioController {
     description = "Remove um comentário da receita. Apenas o autor do comentário pode removê-lo."
   )
   public ResponseEntity<RemoverComentarioResponse> removerComentario(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long receitaId,
     @PathVariable Long comentarioId
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     RemoverComentarioResponse response = comentarioService.removerComentario(usuarioId, receitaId, comentarioId);
     return ResponseEntity.ok(response);
   }

@@ -5,6 +5,7 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import br.pucgo.ads.projetointegrador.plataforma.entity.User;
 import br.pucgo.ads.projetointegrador.plataforma.exception.ApiException;
+import java.util.HashMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -37,6 +38,7 @@ public class JwtTokenProvider {
 
         JwtBuilder builder = Jwts.builder()
                 .subject(username)
+                .claim("userId", userDetails.getId())
                 .issuedAt(now)
                 .expiration(expiryDate);
 
