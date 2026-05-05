@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "permissions")
+@Table(name = "permissions", schema = "plataforma")
 public class Permission {
 
     @Id
