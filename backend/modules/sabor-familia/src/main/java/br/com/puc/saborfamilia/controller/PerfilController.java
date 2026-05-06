@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.controller;
 
+import br.com.puc.saborfamilia.utils.JwtClaimsUtils;
 import br.com.puc.saborfamilia.service.perfil.PerfilService;
 import br.com.puc.saborfamilia.service.perfil.dto.request.PerfilRequest;
 import br.com.puc.saborfamilia.service.perfil.dto.request.EditarPerfilRequest;
@@ -41,8 +42,9 @@ public class PerfilController {
     description = "Busca os dados do perfil associado ao usuário informado."
   )
   public ResponseEntity<PerfilResponse> buscarMeuPerfil(
-    @RequestHeader(value = "X-User-Id") Long usuarioId
+    @RequestHeader(value = "Authorization") String authorization
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     PerfilResponse response = perfilService.buscarMeuPerfil(usuarioId);
     return ResponseEntity.ok(response);
   }
@@ -53,9 +55,10 @@ public class PerfilController {
     description = "Busca os dados de um perfil público."
   )
   public ResponseEntity<PerfilResponse> buscarPerfilPublico(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long perfilId
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     PerfilResponse response = perfilService.buscarPerfilPublico(usuarioId, perfilId);
     return ResponseEntity.ok(response);
   }
@@ -66,9 +69,10 @@ public class PerfilController {
     description = "Cria um novo perfil para o usuário informado."
   )
   public ResponseEntity<PerfilResponse> criarPerfil(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @Valid @RequestBody PerfilRequest request
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     PerfilResponse response = perfilService.criarPerfil(usuarioId, request);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
@@ -79,9 +83,10 @@ public class PerfilController {
     description = "Atualizar o perfil existente de um usuário autenticado."
   )
   public ResponseEntity<PerfilResponse> editarPerfil(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @Valid @RequestBody EditarPerfilRequest request
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     PerfilResponse response = perfilService.editarPerfil(usuarioId, request);
     return ResponseEntity.ok(response);
   }
@@ -118,9 +123,10 @@ public class PerfilController {
     description = "Começa a seguir o perfil informado."
   )
   public ResponseEntity<SeguindoResponse> seguirPerfil(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long perfilId
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     SeguindoResponse response = seguindoService.seguirPerfil(usuarioId, perfilId);
     return ResponseEntity.ok(response);
   }
@@ -131,9 +137,10 @@ public class PerfilController {
     description = "Para de seguir o perfil informado."
   )
   public ResponseEntity<SeguindoResponse> deixarSeguirPerfil(
-    @RequestHeader(value = "X-User-Id") Long usuarioId,
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long perfilId
   ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     SeguindoResponse response = seguindoService.deixarSeguirPerfil(usuarioId, perfilId);
     return ResponseEntity.ok(response);
   }
