@@ -1,0 +1,125 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Container, Paper, Typography, Button, TextField,
+  List, ListItemButton, ListItemText, Box,
+} from "@mui/material";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import type { Prescricao, CriarPrescricaoDTO } from "../api/types";
+import http from "@/lib/http";
+
+function PageContainer({ children }: { children: React.ReactNode }) {
+  return <Container maxWidth="sm" sx={{ py: 5 }}>{children}</Container>;
+}
+
+function PageTitle({ children }: { children: React.ReactNode }) {
+  return <Typography variant="h4" mb={3} textAlign="center">{children}</Typography>;
+}
+
+const usuarioApi = {
+  listar: async (): Promise<any[]> => {
+    const token = localStorage.getItem("token");
+    const { data } = await http.get("/api/diario_saude/usuario", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return Array.isArray(data) ? data : [];
+  },
+};
+
+export default function IniciarConsulta() {
+  const navigate = useNavigate();
+
+  const usuario = (() => {
+    try {
+      return (
+        JSON.parse(localStorage.getItem("usuario") || "null") ||
+        JSON.parse(localStorage.getItem("user") || "null")
+      );
+    } catch { return null; }
+  })();
+
+  const token = localStorage.getItem("token");
+  const [search, setSearch] = useState("");
+  const [selectedPaciente, setSelectedPaciente] = useState<any>(null);
+
+  const { data: pacientes = [], error } = useQuery({
+    queryKey: ["pacientes"],
+    queryFn: usuarioApi.listar,
+    enabled: !!token,
+  });
+
+  const filtered = pacientes.filter(p =>
+    p.nome.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const criarPrescricao = useMutation({
+    mutationFn: async (pacienteSelecionado: any) => {
+      const payload: CriarPrescricaoDTO = {
+        id_medico: usuario.userId ?? usuario.id_usuario,
+        id_usuario: pacienteSelecionado.id_usuario,
+        descricao: "Consulta iniciada",
+      };
+      const { data } = await http.post("/api/diario_saude/prescricao", payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return data as Prescricao;
+    },
+    onSuccess: (prescricao, pacienteSelecionado) => {
+      navigate("/atendimento/dashboard", {
+        state: { paciente: pacienteSelecionado, prescricao },
+      });
+    },
+    onError: (err: any) => {
+      console.error("❌ Erro ao criar prescrição:", err);
+      alert(err?.response?.data?.message || "Erro ao iniciar a consulta.");
+    },
+  });
+
+  return (
+    <PageContainer>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 3, textAlign: "center" }}>
+        <PageTitle>Iniciar Consulta</PageTitle>
+
+        {error && (
+          <Typography color="error" mb={2}>Erro ao carregar pacientes</Typography>
+        )}
+
+        <TextField
+          fullWidth
+          label="Buscar Paciente"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+
+        <List>
+          {filtered.map(p => (
+            <ListItemButton
+              key={p.id_usuario}
+              selected={selectedPaciente?.id_usuario === p.id_usuario}
+              onClick={() => setSelectedPaciente(p)}
+            >
+              <ListItemText primary={p.nome} />
+            </ListItemButton>
+          ))}
+          {filtered.length === 0 && (
+            <Typography variant="body2" color="text.secondary">
+              Nenhum paciente encontrado.
+            </Typography>
+          )}
+        </List>
+
+        <Box mt={3}>
+          <Button
+            variant="contained"
+            size="large"
+            disabled={!selectedPaciente || criarPrescricao.isPending}
+            onClick={() => criarPrescricao.mutate(selectedPaciente)}
+          >
+            {criarPrescricao.isPending ? "Iniciando..." : "Iniciar Consulta"}
+          </Button>
+        </Box>
+      </Paper>
+    </PageContainer>
+  );
+}
