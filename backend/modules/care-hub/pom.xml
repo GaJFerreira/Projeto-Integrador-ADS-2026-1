@@ -13,14 +13,26 @@
 	<artifactId>care-hub</artifactId>
 	<packaging>jar</packaging>
 	<name>care-hub</name>
-	<description>Módulo Care Hub - Central de cuidados integrados</description>
+	<description>Módulo Care Hub - Central de cuidados integrados (monolito modular)</description>
 
-	<dependencies>
-		<dependency>
-			<groupId>br.pucgo.ads</groupId>
-			<artifactId>plataforma</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-	</dependencies>
+	<!--
+		Este módulo NÃO tem classe @SpringBootApplication.
+		É uma biblioteca JAR carregada pelo launcher (backend/plataforma).
+		Todas as dependências comuns (Spring Web, JPA, Security, Lombok, JWT, etc.)
+		já são herdadas do pom.xml raiz.
+	-->
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<!-- Módulo não inicia sozinho — o launcher (plataforma) faz isso -->
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 
 </project>

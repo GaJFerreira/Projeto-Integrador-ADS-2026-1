@@ -1,13 +1,13 @@
-# Módulo: [carehub]
+# Módulo: CareHub
 
-Este submódulo é dedicado exclusivamente às regras de negócio do grupo **[Nome do Grupo]**.
+Este submódulo é dedicado exclusivamente às regras de negócio do grupo **CeraRub**.
 
 ## 📦 O que deve conter aqui?
 Para manter a organização e evitar o "vazamento" de código entre grupos, todo o desenvolvimento deve ocorrer dentro do pacote:
-`br.pucgo.ads.projetointegrador.[nomedomodulo]`
+`br.pucgo.ads.projetointegrador.carehub`
 
 ### Estrutura de Pastas Interna:
-- `controller/`: Endpoints da API (ex: `/api/[modulo]/...`).
+- `controller/`: Endpoints da API (ex: `/api/carehub/...`).
 - `service/`: Lógica de negócio e validações.
 - `repository/`: Interfaces de consulta ao banco de dados (Spring Data JPA).
 - `entity/`: Tabelas específicas deste domínio.
