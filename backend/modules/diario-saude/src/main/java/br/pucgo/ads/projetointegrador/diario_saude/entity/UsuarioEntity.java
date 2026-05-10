@@ -55,34 +55,77 @@ public class UsuarioEntity {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (obj == null) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
         UsuarioEntity other = (UsuarioEntity) obj;
         return idUsuario == other.idUsuario;
     }
 
-    public long getId_usuario() { return idUsuario; }
-    public void setId_usuario(long id_usuario) { this.idUsuario = id_usuario; }
+    public Long getId_usuario() {
+        return idUsuario;
+    }
 
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
+    public void setId_usuario(long id_usuario) {
+        this.idUsuario = id_usuario;
+    }
 
-    public int getIdade() { return idade; }
-    public void setIdade(int idade) { this.idade = idade; }
+    public String getNome() {
+        return nome;
+    }
 
-    public float getPeso() { return peso; }
-    public void setPeso(float peso) { this.peso = peso; }
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
 
-    public float getAltura() { return altura; }
-    public void setAltura(float altura) { this.altura = altura; }
+    public int getIdade() {
+        return idade;
+    }
 
-    public Long getPlatformUserId() { return platformUserId; }
-    public void setPlatformUserId(Long platformUserId) { this.platformUserId = platformUserId; }
+    public void setIdade(int idade) {
+        this.idade = idade;
+    }
 
-    public List<PrescricaoMedicaEntity> getPrescricoesMedicas() { return prescricoesMedicas; }
-    public void setPrescricoesMedicas(List<PrescricaoMedicaEntity> prescricoesMedicas) { this.prescricoesMedicas = prescricoesMedicas; }
+    public float getPeso() {
+        return peso;
+    }
 
-    public List<UsuarioDoencasEntity> getUsuarioDoencas() { return usuarioDoencas; }
-    public void setUsuarioDoencas(List<UsuarioDoencasEntity> usuarioDoencas) { this.usuarioDoencas = usuarioDoencas; }
+    public void setPeso(float peso) {
+        this.peso = peso;
+    }
+
+    public float getAltura() {
+        return altura;
+    }
+
+    public void setAltura(float altura) {
+        this.altura = altura;
+    }
+
+    public Long getPlatformUserId() {
+        return platformUserId;
+    }
+
+    public void setPlatformUserId(Long platformUserId) {
+        this.platformUserId = platformUserId;
+    }
+
+    public List<PrescricaoMedicaEntity> getPrescricoesMedicas() {
+        return prescricoesMedicas;
+    }
+
+    public void setPrescricoesMedicas(List<PrescricaoMedicaEntity> prescricoesMedicas) {
+        this.prescricoesMedicas = prescricoesMedicas;
+    }
+
+    public List<UsuarioDoencasEntity> getUsuarioDoencas() {
+        return usuarioDoencas;
+    }
+
+    public void setUsuarioDoencas(List<UsuarioDoencasEntity> usuarioDoencas) {
+        this.usuarioDoencas = usuarioDoencas;
+    }
 }

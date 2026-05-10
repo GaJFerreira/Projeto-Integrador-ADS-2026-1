@@ -28,20 +28,22 @@ export default function DashboardMedico() {
 
     useEffect(() => {
         if (!paciente) return;
-        const id = paciente.id_usuario ?? paciente.id;
+        const id = paciente.platformUserId ?? paciente.id_usuario ?? paciente.id;
+        if (!id) return;
         usuarioApi.porUsuarioId(id)
             .then(setDadosClinicos)
             .catch(() => setDadosClinicos(null));
-    }, [paciente?.id_usuario ?? paciente?.id]);
+    }, [paciente?.platformUserId, paciente?.id_usuario]); // ← dependências separadas
 
     useEffect(() => {
         if (!paciente) return;
-        const id = paciente.id_usuario ?? paciente.id;
+        const id = paciente.platformUserId ?? paciente.id_usuario ?? paciente.id;
+        if (!id) return;
         questionarioApi.obterRespostas(id).then((respostas) => {
             const total = respostas.reduce((acc: number, r: any) => acc + r.peso, 0);
             setPontuacao(total);
         });
-    }, [paciente?.id_usuario ?? paciente?.id]);
+    }, [paciente?.platformUserId, paciente?.id_usuario]); // ← dependências separadas
 
     if (!paciente || !prescricao) return null;
 
@@ -56,9 +58,9 @@ export default function DashboardMedico() {
 
     const dados = dadosClinicos ?? paciente;
     const dadosFormatados = [
-        dados?.idade && `${dados.idade} anos`,
-        dados?.peso && `${dados.peso} kg`,
-        dados?.altura && `${dados.altura} m`,
+        dados?.idade != null && dados.idade > 0 && `${dados.idade} anos`,
+        dados?.peso != null && dados.peso > 0 && `${dados.peso} kg`,
+        dados?.altura != null && dados.altura > 0 && `${dados.altura} m`,
     ].filter(Boolean).join(" • ") || "Dados clínicos não informados";
 
     return (

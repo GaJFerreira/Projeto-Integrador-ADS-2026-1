@@ -17,7 +17,11 @@ public class UsuarioService {
     private UsuarioRepository usuarioRepository;
 
     public List<UsuarioDTO> listarTodos() {
-        return usuarioRepository.findAll().stream().map(UsuarioDTO::new).toList();
+        return usuarioRepository.findAll().stream().map(entity -> {
+            UsuarioDTO dto = new UsuarioDTO(entity);
+            dto.setPlatformUserId(entity.getPlatformUserId()); // ← adiciona isso
+            return dto;
+        }).toList();
     }
 
     public void inserir(UsuarioDTO usuario) {
@@ -52,8 +56,10 @@ public class UsuarioService {
 
     /**
      * Busca ou cria o registro clínico do paciente no módulo diario-saude.
+     * 
      * @param platformUserId ID do usuário na plataforma
-     * @param nome Nome a usar na criação (pode ser null; será preenchido pelo médico depois)
+     * @param nome           Nome a usar na criação (pode ser null; será preenchido
+     *                       pelo médico depois)
      */
     public UsuarioEntity buscarOuCriarPaciente(Long platformUserId, String nome) {
         Optional<UsuarioEntity> existente = usuarioRepository.findByPlatformUserId(platformUserId);

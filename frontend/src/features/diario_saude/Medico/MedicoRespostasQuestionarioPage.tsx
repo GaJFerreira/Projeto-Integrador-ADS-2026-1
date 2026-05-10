@@ -8,12 +8,12 @@ import PersonIcon from "@mui/icons-material/Person";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { questionarioApi } from "../api/questionarioApi";
+import { useEffect } from "react";
 
 export default function MedicoRespostasQuestionarioPage() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // ✅ pega o paciente do state — igual RecomendacaoExerciciosPage
     const paciente = location.state?.paciente;
     const prescricao = location.state?.prescricao;
 
@@ -25,9 +25,9 @@ export default function MedicoRespostasQuestionarioPage() {
     })();
 
     const { data: respostas = [], isLoading, isError } = useQuery({
-        queryKey: ["questionario", "respostas", paciente?.id_usuario],
-        queryFn: () => questionarioApi.obterRespostas(paciente.id_usuario),
-        enabled: !!paciente?.id_usuario,
+        queryKey: ["questionario", "respostas", paciente?.platformUserId ?? paciente?.id_usuario],
+        queryFn: () => questionarioApi.obterRespostas(paciente.platformUserId ?? paciente.id_usuario),
+        enabled: !!(paciente?.platformUserId ?? paciente?.id_usuario),
         refetchOnWindowFocus: false,
     });
 
@@ -42,10 +42,13 @@ export default function MedicoRespostasQuestionarioPage() {
         return { label: "Altamente frágil", color: "#c62828" };
     })();
 
-    if (!paciente) {
-        navigate("/medico");
-        return null;
-    }
+    useEffect(() => {
+        if (!paciente) {
+            navigate("/medico");
+        }
+    }, [paciente, navigate]);
+
+    if (!paciente) return null;
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>

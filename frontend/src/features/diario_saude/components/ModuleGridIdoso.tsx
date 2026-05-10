@@ -18,10 +18,10 @@ export function ModuleGridIdoso() {
 
     const items = [
         {
-            icon: <HistoryIcon sx={{ fontSize: 40 }} color="primary" />,
-            title: 'Histórico de Consultas',
-            desc: 'Veja consultas anteriores.',
-            onClick: () => navigate('/historico_consultas'),
+            icon: <MonitorWeightIcon sx={{ fontSize: 40 }} color="primary" />,
+            title: 'Dados Biométricos',
+            desc: 'Atualize seu peso e altura.',
+            onClick: () => navigate('/dados_biometricos'),
         },
         {
             icon: <CoronavirusIcon sx={{ fontSize: 40 }} color="error" />,
@@ -35,12 +35,7 @@ export function ModuleGridIdoso() {
             desc: 'Responda o questionário de avaliação.',
             onClick: () => navigate('/questionario_saude'),
         },
-        {
-            icon: <MonitorWeightIcon sx={{ fontSize: 40 }} color="primary" />,
-            title: 'Dados Biométricos',
-            desc: 'Atualize seu peso e altura.',
-            onClick: () => navigate('/dados_biometricos'),
-        }
+
 
     ];
 
