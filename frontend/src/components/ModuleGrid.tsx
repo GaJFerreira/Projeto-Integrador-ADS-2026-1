@@ -7,6 +7,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import EscalatorWarningIcon from '@mui/icons-material/EscalatorWarning';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // ✅ Novo ícone
+import FavoriteIcon from '@mui/icons-material/Favorite'; // ✅ CareHub
 import { useNavigate } from 'react-router-dom';
 
 export function ModuleGrid() {
@@ -44,6 +45,14 @@ export function ModuleGrid() {
       title: 'Atendimento Médico',
       desc: 'Registre informações de consultas e diagnósticos.',
       to: '/atendimento',
+    },
+
+    // Novo módulo: CareHub
+    {
+      icon: <FavoriteIcon sx={{ fontSize: 40 }} color="error" />,
+      title: 'CareHub',
+      desc: 'Sistema de acompanhamento de idosos.',
+      to: '/carehub',
     },
 
     {

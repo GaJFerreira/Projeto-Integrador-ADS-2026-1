@@ -12,7 +12,8 @@ import AdminPermissoesPage from '@/features/admin/pages/AdminPermissoesPage';
 import AdminMedicosPage from '@/features/admin/pages/AdminMedicosPage';
 import AdminCuidadoresPage from '@/features/admin/pages/AdminCuidadoresPage';
 import AdminUsuarioCreatePage from '@/features/admin/pages/AdminUsuarioCreatePage';
-import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico'; 
+import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
+import { CareHubRoutes } from '@/features/carehub/routes/CareHubRoutes';
 
 function Home() {
   return (
@@ -53,6 +54,9 @@ export function AppRoutes() {
 
         {/* Nova rota: Atendimento Médico */}
         <Route path="atendimento" element={<AtendimentoMedico />} />
+
+        {/* CareHub */}
+        <Route path="carehub/*" element={<CareHubRoutes />} />
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />
