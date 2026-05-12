@@ -34,7 +34,11 @@ public class Cuidador extends Usuario {
     @Column(length = 2)
     private String estado;
 
+<<<<<<< HEAD
     @Column(nullable = true)
+=======
+    @Column(nullable = false)
+>>>>>>> 0df5844ce5e6a1355fa6246b7cd7a2c1656ea2ea
     private Boolean disponibilidade = true;
 
     @Column(name = "taxa_hora", precision = 10, scale = 2)
