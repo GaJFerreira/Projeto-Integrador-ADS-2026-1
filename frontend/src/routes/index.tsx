@@ -12,7 +12,12 @@ import AdminPermissoesPage from '@/features/admin/pages/AdminPermissoesPage';
 import AdminMedicosPage from '@/features/admin/pages/AdminMedicosPage';
 import AdminCuidadoresPage from '@/features/admin/pages/AdminCuidadoresPage';
 import AdminUsuarioCreatePage from '@/features/admin/pages/AdminUsuarioCreatePage';
-import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico'; 
+import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
+import ListaComprasPage from '@/features/lista-compras/pages/ListaComprasPage';
+import CreateListaPage from '@/features/lista-compras/pages/CreateListaPage';
+import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
+import ViewListaPage from '@/features/lista-compras/pages/ViewListaPage';
+import TemplatesPage from '@/features/lista-compras/pages/TemplatesPage';
 
 function Home() {
   return (
@@ -53,6 +58,13 @@ export function AppRoutes() {
 
         {/* Nova rota: Atendimento Médico */}
         <Route path="atendimento" element={<AtendimentoMedico />} />
+
+        {/* Compre com Saúde (Lista de Compras) */}
+        <Route path="lista-compras" element={<ListaComprasPage />} />
+        <Route path="lista-compras/nova" element={<CreateListaPage />} />
+        <Route path="lista-compras/listas" element={<ViewListaPage />} />
+        <Route path="lista-compras/templates" element={<TemplatesPage />} />
+        <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />

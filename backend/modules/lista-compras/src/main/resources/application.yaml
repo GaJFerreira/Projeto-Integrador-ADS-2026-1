@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: lista-compras
+
+springdoc:
+  swagger-ui:
+    path: api/lista-compras/swagger-ui.html
