@@ -13,6 +13,9 @@ import AdminMedicosPage from '@/features/admin/pages/AdminMedicosPage';
 import AdminCuidadoresPage from '@/features/admin/pages/AdminCuidadoresPage';
 import AdminUsuarioCreatePage from '@/features/admin/pages/AdminUsuarioCreatePage';
 import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
+
+//Diário Saúde
+        
 import InformacoesSaude from '@/features/diario_saude/Idoso/InformacoesSaude';
 import QuestionarioPage from '@/features/diario_saude/Idoso/QuestionarioPage';
 import HistoricoConsultasPage from '@/features/diario_saude/Idoso/HistoricoConsultasPage';
@@ -31,6 +34,14 @@ import MedicoRespostasQuestionarioPage from '@/features/diario_saude/Medico/Medi
 import RegistrarResultadoExamePage from '@/features/diario_saude/Medico/RegistrarResultadoExamePage';
 import GerenciarQuestionarioPage from '@/features/diario_saude/Admin/GerenciarQuestionarioPage';
 import CadastroAlergiaDoencaPage from '@/features/diario_saude/Admin/CadastroAlergiaDoencaPage';
+        
+//Lista Compras     
+        
+import ListaComprasPage from '@/features/lista-compras/pages/ListaComprasPage';
+import CreateListaPage from '@/features/lista-compras/pages/CreateListaPage';
+import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
+import ViewListaPage from '@/features/lista-compras/pages/ViewListaPage';
+import TemplatesPage from '@/features/lista-compras/pages/TemplatesPage';
 
 function Home() {
   return (
@@ -82,6 +93,13 @@ export function AppRoutes() {
         <Route path="medico/respostas-questionario" element={<MedicoRespostasQuestionarioPage />} />
         <Route path="atendimento/dashboard" element={<MedicoDashboard />} />
         <Route path="informacoes_medico" element={<InformacoesMedicoPage />} />
+
+        {/* Compre com Saúde (Lista de Compras) */}
+        <Route path="lista-compras" element={<ListaComprasPage />} />
+        <Route path="lista-compras/nova" element={<CreateListaPage />} />
+        <Route path="lista-compras/listas" element={<ViewListaPage />} />
+        <Route path="lista-compras/templates" element={<TemplatesPage />} />
+        <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />
