@@ -24,7 +24,7 @@ public interface ComentarioReceitaRepository extends JpaRepository<ComentarioRec
   @Query(
     value =
     """
-      SELECT * FROM comentario_receita comentario
+      SELECT * FROM sabor_familia.comentario_receita comentario
       WHERE comentario.perfil_id = :perfilId
       AND comentario.receita_id = :receitaId
       ORDER BY comentario.data_cadastro DESC LIMIT 1
@@ -36,5 +36,3 @@ public interface ComentarioReceitaRepository extends JpaRepository<ComentarioRec
   Optional<ComentarioReceitaEntity> findByIdAndReceitaId(Long comentarioId, Long receitaId);
 
 }
-
-

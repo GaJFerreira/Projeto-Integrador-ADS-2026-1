@@ -28,7 +28,7 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
     value =
       """
         SELECT *
-        FROM receita receita
+        FROM sabor_familia.receita receita
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
         AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
         ORDER BY receita.data_cadastro DESC, receita.id DESC
@@ -36,7 +36,7 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
     countQuery =
       """
         SELECT COUNT(*)
-        FROM receita receita
+        FROM sabor_familia.receita receita
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
         AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
       """,
@@ -52,9 +52,9 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
     value =
       """
         SELECT receita.*
-        FROM receita receita
-        LEFT JOIN personalizacao_receita personalizacao ON personalizacao.receita_id = receita.id
-        LEFT JOIN personalizacao p ON p.id = personalizacao.personalizacao_id
+        FROM sabor_familia.receita receita
+        LEFT JOIN sabor_familia.personalizacao_receita personalizacao ON personalizacao.receita_id = receita.id
+        LEFT JOIN sabor_familia.personalizacao p ON p.id = personalizacao.personalizacao_id
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
         AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
         GROUP BY receita.id
@@ -66,7 +66,7 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
     countQuery =
       """
         SELECT COUNT(*)
-        FROM receita receita
+        FROM sabor_familia.receita receita
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
         AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
       """,
@@ -97,19 +97,19 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
   Page<ReceitaEntity> findByPerfilId(@Param("perfilId") Long perfilId, Pageable pageable);
 
   @Modifying
-  @Query(value = "UPDATE receita SET count_curtidas = count_curtidas + 1 WHERE id = :receitaId", nativeQuery = true)
+  @Query(value = "UPDATE sabor_familia.receita SET count_curtidas = count_curtidas + 1 WHERE id = :receitaId", nativeQuery = true)
   void aumentarContadorCurtidas(@Param("receitaId") Long receitaId);
 
   @Modifying
-  @Query(value = "UPDATE receita SET count_curtidas = GREATEST(0, count_curtidas - 1) WHERE id = :receitaId", nativeQuery = true)
+  @Query(value = "UPDATE sabor_familia.receita SET count_curtidas = GREATEST(0, count_curtidas - 1) WHERE id = :receitaId", nativeQuery = true)
   void reduzirContadorCurtidas(@Param("receitaId") Long receitaId);
 
   @Modifying
-  @Query(value = "UPDATE receita SET count_comentarios = count_comentarios + 1 WHERE id = :receitaId", nativeQuery = true)
+  @Query(value = "UPDATE sabor_familia.receita SET count_comentarios = count_comentarios + 1 WHERE id = :receitaId", nativeQuery = true)
   void aumentarContadorComentarios(@Param("receitaId") Long receitaId);
 
   @Modifying
-  @Query(value = "UPDATE receita SET count_comentarios = GREATEST(0, count_comentarios - 1) WHERE id = :receitaId", nativeQuery = true)
+  @Query(value = "UPDATE sabor_familia.receita SET count_comentarios = GREATEST(0, count_comentarios - 1) WHERE id = :receitaId", nativeQuery = true)
   void reduzirContadorComentarios(@Param("receitaId") Long receitaId);
 
 }

@@ -37,12 +37,14 @@
 	<!-- ===================================================== -->
 	<modules>
 		<module>backend/modules/sabor-familia</module>
+		<module>backend/modules/lista-compras</module>
 		<module>backend/plataforma</module>
 		<module>backend/modules/remember</module>
 		<module>backend/modules/care-keeper</module>
 		<module>backend/modules/care-hub</module>
 		<module>backend/modules/elden-care</module>
 		<module>backend/modules/dose-certa</module>
+		<module>backend/modules/diario-saude</module>
 	</modules>
 
 	<properties>

@@ -15,6 +15,12 @@ export function ModuleGrid() {
 
   const items = [
     {
+      icon: <LocalHospitalIcon sx={{ fontSize: 40 }} color="success" />,
+      title: 'Consultas e Saúde',
+      desc: 'Acesse histórico, atendimentos e outras funções.',
+      to: '/saude',
+    },
+    {
       icon: <MedicationIcon sx={{ fontSize: 40 }} />,
       title: 'Medicamentos',
       desc: 'Monitore horários e doses.',
@@ -28,9 +34,9 @@ export function ModuleGrid() {
     },
     {
       icon: <ShoppingCartIcon sx={{ fontSize: 40 }} />,
-      title: 'Lista de Compras',
-      desc: 'Organize compras do mês.',
-      to: '/grupo3/compras',
+      title: 'Compre com Saúde',
+      desc: 'Gerencie suas listas com recomendações mais saudáveis.',
+      to: '/lista-compras',
     },
     {
       icon: <HistoryIcon sx={{ fontSize: 40 }} />,
