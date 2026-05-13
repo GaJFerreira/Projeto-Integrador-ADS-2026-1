@@ -37,6 +37,7 @@
 	<!-- ===================================================== -->
 	<modules>
 		<module>backend/modules/sabor-familia</module>
+		<module>backend/modules/lista-compras</module>
 		<module>backend/plataforma</module>
 		<module>backend/modules/remember</module>
 		<module>backend/modules/care-keeper</module>
