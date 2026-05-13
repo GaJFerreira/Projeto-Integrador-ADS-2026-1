@@ -53,8 +53,8 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
       """
         SELECT receita.*
         FROM sabor_familia.receita receita
-        LEFT JOIN personalizacao_receita personalizacao ON personalizacao.receita_id = receita.id
-        LEFT JOIN personalizacao p ON p.id = personalizacao.personalizacao_id
+        LEFT JOIN sabor_familia.personalizacao_receita personalizacao ON personalizacao.receita_id = receita.id
+        LEFT JOIN sabor_familia.personalizacao p ON p.id = personalizacao.personalizacao_id
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
         AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
         GROUP BY receita.id
