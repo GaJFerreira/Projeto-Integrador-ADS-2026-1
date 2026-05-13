@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		"br.pucgo.ads.projetointegrador",
 		"br.com.puc.saborfamilia",
 		"br.com.puc.listacompras"
+   //"br.pucgo.ads.projetointegrador.carehub"
 	}
 )
 @EntityScan(basePackages =
@@ -17,6 +18,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		"br.pucgo.ads.projetointegrador.plataforma.entity",
  		"br.com.puc.saborfamilia.database.entity",
 		"br.com.puc.listacompras.database.entity"
+  //"br.pucgo.ads.projetointegrador.carehub.entity"
 	}
 )
 @EnableJpaRepositories(basePackages =
@@ -24,6 +26,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		"br.pucgo.ads.projetointegrador.plataforma.repository",
 		"br.com.puc.saborfamilia.database.repository",
 		"br.com.puc.listacompras.database.repository"
+  //"br.pucgo.ads.projetointegrador.carehub.repository"
 	}
 )
 public class ProjetointegradorApplication {
