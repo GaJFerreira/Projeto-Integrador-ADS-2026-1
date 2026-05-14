@@ -19,6 +19,12 @@ import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
 import ViewListaPage from '@/features/lista-compras/pages/ViewListaPage';
 import TemplatesPage from '@/features/lista-compras/pages/TemplatesPage';
 
+// ✅ Remember — Diário Cognitivo
+import RememberPage from '@/features/remember/pages/RememberPage';
+import AdminConquistasPage from '@/features/remember/pages/AdminConquistasPage';
+import AdminCreateConquistaPage from '@/features/remember/pages/AdminCreateConquistaPage';
+import AdminEditConquistaPage from '@/features/remember/pages/AdminEditConquistaPage';
+
 function Home() {
   return (
     <div>
@@ -65,6 +71,14 @@ export function AppRoutes() {
         <Route path="lista-compras/listas" element={<ViewListaPage />} />
         <Route path="lista-compras/templates" element={<TemplatesPage />} />
         <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
+
+        {/* Diário Cognitivo (Remember) */}
+        <Route path="remember" element={<RememberPage />} />
+
+        {/* Admin: Gestão de Conquistas do Remember */}
+        <Route path="admin/conquistas" element={<AdminConquistasPage />} />
+        <Route path="admin/conquistas/novo" element={<AdminCreateConquistaPage />} />
+        <Route path="admin/conquistas/:id/edit" element={<AdminEditConquistaPage />} />
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />

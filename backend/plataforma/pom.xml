@@ -26,6 +26,12 @@
 		</dependency>
 
 		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>remember</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>br.com.puc</groupId>
 			<artifactId>lista-compras</artifactId>
 			<version>${project.version}</version>
@@ -38,7 +44,6 @@
     		<version>${project.version}</version>
 		</dependency>
     -->
-    
     
 
 	</dependencies>
