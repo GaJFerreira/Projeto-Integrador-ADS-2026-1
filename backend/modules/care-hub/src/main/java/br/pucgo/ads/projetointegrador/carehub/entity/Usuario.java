@@ -23,6 +23,7 @@ import java.time.OffsetDateTime;
  */
 @Entity
 @Table(name = "usuario", schema = "care_hub")
+@Inheritance(strategy = InheritanceType.JOINED)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

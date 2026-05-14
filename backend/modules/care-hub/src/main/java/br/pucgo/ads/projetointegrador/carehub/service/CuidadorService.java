@@ -321,7 +321,7 @@ public class CuidadorService {
             dto.setFotoPerfil(p.getFotoPerfil());
             dto.setAtivo(p.getAtivo());
             dto.setCriadoEm(p.getCreatedAt() == null ? null
-                    : LocalDateTime.ofInstant(p.getCreatedAt().toInstant(), ZoneOffset.UTC));
+                    : LocalDateTime.ofInstant(p.getCreatedAt(), ZoneOffset.UTC));
             return dto;
         }).collect(Collectors.toList());
         List<CuidadorResponseDTO> safeList2 = dtos == null ? new ArrayList<>() : dtos;

@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
  * Estende {@link Usuario} local — sem nenhuma dependência da plataforma.
  */
 @Entity
+@Table(name = "ch_administrador", schema = "care_hub")
+@PrimaryKeyJoinColumn(name = "id")
 @DiscriminatorValue("ADMINISTRADOR")
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -29,6 +31,6 @@ public class Administrador extends Usuario {
     private String nivelAcesso;
 
     /** Indica se possui privilégios de super-administrador */
-    @Column(name = "super_admin", nullable = false)
-    private Boolean superAdmin = false;
+    @Column(name = "super_admin", nullable = false, columnDefinition = "boolean default false")
+    private boolean superAdmin = false;
 }

@@ -20,6 +20,6 @@ public interface CuidadorProjection {
     Integer getTotalAvaliacoes();
     String getBiografia();
     String getFotoPerfil();
-    java.time.OffsetDateTime getCreatedAt();
+    java.time.Instant getCreatedAt();
     Boolean getAtivo();
 }

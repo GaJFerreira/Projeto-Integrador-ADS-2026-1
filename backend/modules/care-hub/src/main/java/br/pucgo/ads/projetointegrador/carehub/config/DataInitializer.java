@@ -32,9 +32,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.core.annotation.Order;
+
 @Configuration("carehubConfig")
-@org.springframework.context.annotation.Profile("dev")
+@DependsOn("initData")
+@Order(1)
 public class DataInitializer {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DataInitializer.class);
 
 	@Bean(name = "carehubDataInitializer")
 	CommandLineRunner seedCarehubData(UsuarioRepository usuarioRepo,
@@ -47,8 +53,12 @@ public class DataInitializer {
 			CareHubMensagemRepository mensagemRepo,
 			RegistroAcompanhamentoRepository registroRepo,
 			EspecialidadeRepository especialidadeRepo,
-			PasswordEncoder encoder) {
+			PasswordEncoder encoder,
+			org.springframework.jdbc.core.JdbcTemplate jdbcTemplate) {
 		return args -> {
+			log.info("VERIFICANDO DADOS: Quantidade de cuidadores: " + cuidadorRepo.count());
+			log.info("VERIFICANDO DADOS: Quantidade de clientes: " + clienteRepo.count());
+			
 			// Role setup removed
 
 			// Criar especialidades de cuidadores
@@ -68,10 +78,12 @@ public class DataInitializer {
 			popularAvaliacoesVariadas(cuidadorRepo, clienteRepo, agendamentoRepo, avaliacaoRepo);
 
 			if (clienteRepo.count() > 0) {
+				System.out.println("[CareHub DataInitializer] O banco já possui clientes. Pulando seeding completo...");
 				// Mesmo com dados existentes, garantir que o agendamento da apresentação existe
 				criarAgendamentoApresentacao(clienteRepo, cuidadorRepo, agendamentoRepo);
 				return;
 			}
+			System.out.println("[CareHub DataInitializer] Iniciando o seeding de dados do CareHub...");
 
 			// Cliente - usando campos da tabela users
 			Cliente cliente = new Cliente();
@@ -79,6 +91,8 @@ public class DataInitializer {
 			cliente.setUsername("maria");
 			cliente.setEmail("maria@example.com");
 			cliente.setPassword(encoder.encode("123456"));
+			Long pIdMaria = syncPlatformUser(jdbcTemplate, "maria", "maria@example.com", "Dona Maria", "123456", "IDOSO", encoder);
+			cliente.setPlatformUserId(pIdMaria);
 			// assign legacy role names as strings and platform Role entity for DB
 			cliente.setRole("CAREHUB_CLIENTE");
 			cliente.setTelefone("62999990000");
@@ -105,6 +119,9 @@ public class DataInitializer {
 			cuidador.setUsername("joao");
 			cuidador.setEmail("joao@example.com");
 			cuidador.setPassword(encoder.encode("123456"));
+			Long pIdJoao = syncPlatformUser(jdbcTemplate, "joao", "joao@example.com", "Joao Cuidador", "123456", "CUIDADOR", encoder);
+			System.out.println("[CareHub DataInitializer] Plataforma ID para Joao Cuidador: " + pIdJoao);
+			cuidador.setPlatformUserId(pIdJoao);
 			cuidador.setRole("CAREHUB_CUIDADOR");
 			cuidador.setTelefone("62911112222");
 			cuidador.setAtivo(true);
@@ -122,6 +139,7 @@ public class DataInitializer {
 			espJoao.add(especialidades.get(9)); // Auxílio à Mobilidade
 			cuidador.setEspecialidades(espJoao);
 			cuidador = cuidadorRepo.save(cuidador);
+			System.out.println("[CareHub DataInitializer] Cuidador Joao salvo com sucesso! ID: " + cuidador.getId());
 
 			// Gildenor - cuidador principal para a apresentação
 			Cuidador gildenor = new Cuidador();
@@ -129,6 +147,8 @@ public class DataInitializer {
 			gildenor.setUsername("gildenor");
 			gildenor.setEmail("gildenor@example.com");
 			gildenor.setPassword(encoder.encode("123456"));
+			Long pIdGildenor = syncPlatformUser(jdbcTemplate, "gildenor", "gildenor@example.com", "Gildenor Souza", "123456", "CUIDADOR", encoder);
+			gildenor.setPlatformUserId(pIdGildenor);
 			gildenor.setRole("CAREHUB_CUIDADOR");
 			gildenor.setTelefone("62933334444");
 			gildenor.setAtivo(true);
@@ -172,6 +192,8 @@ public class DataInitializer {
 				ct.setUsername(uname);
 				ct.setEmail(uname + "@example.com");
 				ct.setPassword(encoder.encode("123456"));
+				Long pIdCt = syncPlatformUser(jdbcTemplate, uname, uname + "@example.com", "Cuidador Teste " + (i + 1), "123456", "CUIDADOR", encoder);
+				ct.setPlatformUserId(pIdCt);
 				ct.setRole("CAREHUB_CUIDADOR");
 				ct.setTelefone("62970000" + (10 + i));
 				ct.setAtivo(true);
@@ -215,6 +237,8 @@ public class DataInitializer {
 					c.setUsername(username);
 					c.setEmail(username + "@example.com");
 					c.setPassword(encoder.encode("123456"));
+					Long pIdC = syncPlatformUser(jdbcTemplate, username, username + "@example.com", "Idoso Teste " + i, "123456", "IDOSO", encoder);
+					c.setPlatformUserId(pIdC);
 					c.setRole("CAREHUB_CLIENTE");
 					c.setTelefone("62990000" + (100 + i));
 					c.setAtivo(true);
@@ -408,6 +432,8 @@ public class DataInitializer {
 				extra1.setUsername("idoso_extra1");
 				extra1.setEmail("idoso_extra1@example.com");
 				extra1.setPassword(encoder.encode("123456"));
+				Long pIdExtra = syncPlatformUser(jdbcTemplate, "idoso_extra1", "idoso_extra1@example.com", "Idoso Extra 1", "123456", "IDOSO", encoder);
+				extra1.setPlatformUserId(pIdExtra);
 				extra1.setRole("CAREHUB_CLIENTE");
 				extra1.setTelefone("62977770001");
 				extra1.setAtivo(true);
@@ -549,6 +575,36 @@ public class DataInitializer {
 	 * Isso garante que clientes já cadastrados tenham um endereço para a
 	 * funcionalidade de busca por proximidade.
 	 */
+	
+	private Long syncPlatformUser(org.springframework.jdbc.core.JdbcTemplate jdbc, String username, String email, String name, String rawPassword, String roleCode, PasswordEncoder encoder) {
+		try {
+			jdbc.execute("CREATE SCHEMA IF NOT EXISTS plataforma");
+			jdbc.execute("CREATE TABLE IF NOT EXISTS plataforma.roles (id BIGSERIAL PRIMARY KEY, name VARCHAR(255), code VARCHAR(255), scope VARCHAR(255))");
+			jdbc.execute("CREATE TABLE IF NOT EXISTS plataforma.users (id BIGSERIAL PRIMARY KEY, username VARCHAR(255) UNIQUE, email VARCHAR(255) UNIQUE, name VARCHAR(255), password_hash VARCHAR(255), role_id BIGINT, status VARCHAR(255), created_at TIMESTAMP, updated_at TIMESTAMP, deleted_at TIMESTAMP)");
+			
+			java.util.List<Long> ids = jdbc.queryForList("SELECT id FROM plataforma.users WHERE username = ?", Long.class, username);
+			if (!ids.isEmpty()) return ids.get(0);
+
+			java.util.List<Long> roleIds = jdbc.queryForList("SELECT id FROM plataforma.roles WHERE name = ?", Long.class, "ROLE_" + roleCode);
+			Long roleId;
+			if (roleIds.isEmpty()) {
+				jdbc.update("INSERT INTO plataforma.roles (name, code, scope) VALUES (?, ?, ?)", "ROLE_" + roleCode, roleCode, "LIMITED");
+				roleId = jdbc.queryForObject("SELECT id FROM plataforma.roles WHERE name = ?", Long.class, "ROLE_" + roleCode);
+			} else {
+				roleId = roleIds.get(0);
+			}
+
+			String encPwd = encoder.encode(rawPassword);
+			jdbc.update("INSERT INTO plataforma.users (username, email, name, password_hash, role_id, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, 'ACTIVE', current_timestamp, current_timestamp)",
+					username, email, name, encPwd, roleId);
+					
+			return jdbc.queryForObject("SELECT id FROM plataforma.users WHERE username = ?", Long.class, username);
+		} catch (Exception e) {
+			System.err.println("Aviso: Falha ao sincronizar usuario com plataforma: " + e.getMessage());
+			return null;
+		}
+	}
+
 	private void atualizarEnderecosClientesExistentes(ClienteRepository clienteRepo) {
 		// Endereços de Goiânia e região para distribuir entre os clientes
 		String[] enderecosPadrao = new String[] {
