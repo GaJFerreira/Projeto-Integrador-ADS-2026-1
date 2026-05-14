@@ -53,7 +53,7 @@ public interface FeedPerfilReceitaRepository extends JpaRepository<FeedPerfilRec
   @Query(
     value =
     """
-      INSERT INTO feed_perfil_receita (perfil_id, receita_id, data_cadastro)
+      INSERT INTO sabor_familia.feed_perfil_receita (perfil_id, receita_id, data_cadastro)
       VALUES (:perfilId, :receitaId, :dataCadastro)
       ON CONFLICT (perfil_id, receita_id) DO NOTHING
     """,

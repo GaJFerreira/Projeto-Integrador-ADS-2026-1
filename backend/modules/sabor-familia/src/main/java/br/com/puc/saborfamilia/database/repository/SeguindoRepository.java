@@ -20,7 +20,7 @@ public interface SeguindoRepository extends JpaRepository<SeguindoEntity, Long> 
   @Query(
     value =
     """
-      INSERT INTO seguindo (seguidor_id, seguido_id, data_cadastro)
+      INSERT INTO sabor_familia.seguindo (seguidor_id, seguido_id, data_cadastro)
       VALUES (:seguidorId, :seguidoId, :dataCadastro)
       ON CONFLICT (seguidor_id, seguido_id) DO NOTHING
     """,
