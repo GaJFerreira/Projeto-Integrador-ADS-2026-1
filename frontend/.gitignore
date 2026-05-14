@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+#Application properties local
+backend/plataforma/src/main/resources/application-local.properties
