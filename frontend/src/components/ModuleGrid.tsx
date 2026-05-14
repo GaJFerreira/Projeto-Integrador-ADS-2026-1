@@ -15,6 +15,12 @@ export function ModuleGrid() {
 
   const items = [
     {
+      icon: <LocalHospitalIcon sx={{ fontSize: 40 }} color="success" />,
+      title: 'Consultas e Saúde',
+      desc: 'Acesse histórico, atendimentos e outras funções.',
+      to: '/saude',
+    },
+    {
       icon: <MedicationIcon sx={{ fontSize: 40 }} />,
       title: 'Medicamentos',
       desc: 'Monitore horários e doses.',

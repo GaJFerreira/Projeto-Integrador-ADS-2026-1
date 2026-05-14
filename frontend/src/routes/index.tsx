@@ -13,6 +13,30 @@ import AdminMedicosPage from '@/features/admin/pages/AdminMedicosPage';
 import AdminCuidadoresPage from '@/features/admin/pages/AdminCuidadoresPage';
 import AdminUsuarioCreatePage from '@/features/admin/pages/AdminUsuarioCreatePage';
 import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
+
+//Diário Saúde
+        
+import InformacoesSaude from '@/features/diario_saude/Idoso/InformacoesSaude';
+import QuestionarioPage from '@/features/diario_saude/Idoso/QuestionarioPage';
+import HistoricoConsultasPage from '@/features/diario_saude/Idoso/HistoricoConsultasPage';
+import DadosBiometricosPage from '@/features/diario_saude/Idoso/DadosBiometricosPage';
+import SaudeMenuPage from '@/features/diario_saude/Idoso/SaudeMenuPage';
+import ReceituarioPage from '@/features/diario_saude/Medico/ReceituarioPage';
+import DiagnosticarDoencaPage from '@/features/diario_saude/Medico/DiagnosticarDoencaPage';
+import IniciarConsulta from '@/features/diario_saude/Medico/IniciarConsultaPage';
+import MedicoDashboard from '@/features/diario_saude/Medico/MedicoDashboard';
+import InformacoesMedicoPage from '@/features/diario_saude/Medico/InformacoesMedicoPage';
+import PedirExamesPage from '@/features/diario_saude/Medico/PedirExamesPage';
+import RecomendacaoExerciciosPage from '@/features/diario_saude/Medico/RecomendacaoExerciciosPage';
+import HistoricoConsultasMedicoPage from '@/features/diario_saude/Medico/HistoricoConsultasMedicoPage';
+import AlergiasPage from '@/features/diario_saude/Medico/AlergiasPage';
+import MedicoRespostasQuestionarioPage from '@/features/diario_saude/Medico/MedicoRespostasQuestionarioPage';
+import RegistrarResultadoExamePage from '@/features/diario_saude/Medico/RegistrarResultadoExamePage';
+import GerenciarQuestionarioPage from '@/features/diario_saude/Admin/GerenciarQuestionarioPage';
+import CadastroAlergiaDoencaPage from '@/features/diario_saude/Admin/CadastroAlergiaDoencaPage';
+        
+//Lista Compras     
+        
 import ListaComprasPage from '@/features/lista-compras/pages/ListaComprasPage';
 import CreateListaPage from '@/features/lista-compras/pages/CreateListaPage';
 import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
@@ -64,6 +88,17 @@ export function AppRoutes() {
 
         {/* Nova rota: Atendimento Médico */}
         <Route path="atendimento" element={<AtendimentoMedico />} />
+        <Route path="atendimento/receituario" element={<ReceituarioPage />} />
+        <Route path="atendimento/exames" element={<PedirExamesPage />} />
+        <Route path="atendimento/exercicios" element={<RecomendacaoExerciciosPage />} />
+        <Route path="atendimento/alergias" element={<AlergiasPage />} />
+        <Route path="atendimento/doencas" element={<DiagnosticarDoencaPage />} />
+        <Route path="atendimento/historico-medico" element={<HistoricoConsultasMedicoPage />} />
+        <Route path="atendimento/resultado-exames" element={<RegistrarResultadoExamePage />} />
+        <Route path="medico" element={<IniciarConsulta />} />
+        <Route path="medico/respostas-questionario" element={<MedicoRespostasQuestionarioPage />} />
+        <Route path="atendimento/dashboard" element={<MedicoDashboard />} />
+        <Route path="informacoes_medico" element={<InformacoesMedicoPage />} />
 
         {/* Compre com Saúde (Lista de Compras) */}
         <Route path="lista-compras" element={<ListaComprasPage />} />
@@ -82,6 +117,18 @@ export function AppRoutes() {
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />
+
+        {/* ── diario-saude: Admin */}
+        <Route path="admin/questionario" element={<GerenciarQuestionarioPage />} />
+        <Route path="admin/cadastro-alergia-doenca" element={<CadastroAlergiaDoencaPage />} />
+
+        {/* ── diario-saude: Idoso */}
+        <Route path="saude" element={<SaudeMenuPage />} />
+        <Route path="historico_consultas" element={<HistoricoConsultasPage />} />
+        <Route path="informacoes_saude" element={<InformacoesSaude />} />
+        <Route path="questionario_saude" element={<QuestionarioPage />} />
+        <Route path="dados_biometricos" element={<DadosBiometricosPage />} />
+
       </Route>
     </Routes>
   );
