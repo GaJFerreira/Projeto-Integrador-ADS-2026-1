@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
     Box,
     Container,
@@ -54,7 +54,16 @@ export default function RememberPage() {
     const [refreshLembrancasKey, setRefreshLembrancasKey] = useState(0);
 
     // ID do Usuário (Simulado ou vindo de Contexto)
-    const usuarioIdLogado = 1;
+    const usuarioIdLogado = useMemo(() => {
+        try {
+            const raw = localStorage.getItem('user');
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed?.userId ?? null;
+        } catch {
+            return null;
+        }
+    }, []);
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
@@ -134,6 +143,7 @@ export default function RememberPage() {
                         startIcon={<AddIcon />}
                         endIcon={<ExpandMoreIcon />}
                         onClick={handleOpenMenu}
+                        disabled={!usuarioIdLogado}
                     >
                         Novo Registro
                     </Button>
@@ -176,21 +186,27 @@ export default function RememberPage() {
 
             {/* 3. CONTEÚDO DA ABA SELECIONADA */}
             <Box sx={{ py: 3 }}>
-                {tabIndex === 0 && (
+                {!usuarioIdLogado && (
+                    <Typography color="text.secondary">
+                        Nao foi possivel identificar o usuario logado. Faca login novamente para acessar o Remember.
+                    </Typography>
+                )}
+
+                {usuarioIdLogado && tabIndex === 0 && (
                     <DiariosPage
                         key={refreshDiariosKey}
                         usuarioId={usuarioIdLogado}
                     />
                 )}
 
-                {tabIndex === 1 && (
+                {usuarioIdLogado && tabIndex === 1 && (
                     <LembrancasPage
                         key={refreshLembrancasKey}
                         usuarioId={usuarioIdLogado}
                     />
                 )}
 
-                {tabIndex === 2 && (
+                {usuarioIdLogado && tabIndex === 2 && (
                     <ConquistasUsuarioPage usuarioId={usuarioIdLogado} />
                 )}
             </Box>
@@ -201,7 +217,7 @@ export default function RememberPage() {
                 open={openDiarioModal}
                 onClose={() => setOpenDiarioModal(false)}
                 onSuccess={handleDiarioSalvo}
-                usuarioId={usuarioIdLogado}
+                usuarioId={usuarioIdLogado ?? 0}
                 onConquistaGanhas={handleMostrarConquista} // Passa o callback
             />
 
@@ -209,7 +225,7 @@ export default function RememberPage() {
                 open={openLembrancaModal}
                 onClose={() => setOpenLembrancaModal(false)}
                 onSuccess={handleLembrancaSalva}
-                usuarioId={usuarioIdLogado}
+                usuarioId={usuarioIdLogado ?? 0}
                 onConquistaGanhas={handleMostrarConquista} // Passa o callback
             />
 

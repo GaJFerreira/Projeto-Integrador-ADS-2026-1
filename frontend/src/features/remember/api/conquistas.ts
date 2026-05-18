@@ -1,5 +1,7 @@
 import http from '@/lib/http';
 
+const REMEMBER_API = '/api/remember';
+
 export interface Conquista {
     identificadorConquista: number;
     nome: string;
@@ -26,7 +28,7 @@ export interface UpdateConquistaPayload {
 
 export const adminConquistasApi = {
     listar: async (): Promise<Conquista[]> => {
-        const { data } = await http.get<Conquista[]>('/api/conquistas', {
+        const { data } = await http.get<Conquista[]>(`${REMEMBER_API}/conquistas`, {
             timeout: 0,
             maxBodyLength: Infinity,
             maxContentLength: Infinity
@@ -34,18 +36,18 @@ export const adminConquistasApi = {
         return data;
     },
     criar: async (payload: CreateConquistaPayload): Promise<Conquista> => {
-        const { data } = await http.post<Conquista>('/api/conquistas', payload);
+        const { data } = await http.post<Conquista>(`${REMEMBER_API}/conquistas`, payload);
         return data;
     },
     porId: async (id: number): Promise<Conquista> => {
-        const { data } = await http.get<Conquista>(`/api/conquistas/${id}`);
+        const { data } = await http.get<Conquista>(`${REMEMBER_API}/conquistas/${id}`);
         return data;
     },
     atualizar: async (id: number, payload: UpdateConquistaPayload): Promise<Conquista> => {
-        const { data } = await http.put<Conquista>(`/api/conquistas/${id}`, payload);
+        const { data } = await http.put<Conquista>(`${REMEMBER_API}/conquistas/${id}`, payload);
         return data;
     },
     remover: async (id: number): Promise<void> => {
-        await http.delete(`/api/conquistas/${id}`);
+        await http.delete(`${REMEMBER_API}/conquistas/${id}`);
     },
 };

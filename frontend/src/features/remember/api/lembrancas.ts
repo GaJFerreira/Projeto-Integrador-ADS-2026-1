@@ -1,6 +1,8 @@
 import http from '@/lib/http';
 import type {Conquista} from "@/features/remember/api/conquistas.ts";
 
+const REMEMBER_API = '/api/remember';
+
 export interface Lembranca {
     identificadorLembranca: number;
     identificadorUsuario: number;
@@ -37,7 +39,7 @@ export interface UpdateLembrancaPayload {
 
 export const lembrancasApi = {
     listarPorUsuario: async (usuarioId: number): Promise<Lembranca[]> => {
-        const { data } = await http.get<Lembranca[]>(`/api/lembrancas/usuario/${usuarioId}`, {
+        const { data } = await http.get<Lembranca[]>(`${REMEMBER_API}/lembrancas/usuario/${usuarioId}`, {
             timeout: 0,
             maxBodyLength: Infinity,
             maxContentLength: Infinity
@@ -45,11 +47,11 @@ export const lembrancasApi = {
         return data;
     },
     porId: async (id: number): Promise<Lembranca> => {
-        const { data } = await http.get<Lembranca>(`/api/lembrancas/${id}`);
+        const { data } = await http.get<Lembranca>(`${REMEMBER_API}/lembrancas/${id}`);
         return data;
     },
     criar: async (payload: CreateLembrancaPayload): Promise<Lembranca> => {
-        const { data } = await http.post<Lembranca>('/api/lembrancas', payload, {
+        const { data } = await http.post<Lembranca>(`${REMEMBER_API}/lembrancas`, payload, {
             timeout: 0,
             maxBodyLength: Infinity,
             maxContentLength: Infinity
@@ -57,10 +59,10 @@ export const lembrancasApi = {
         return data;
     },
     atualizar: async (id: number, payload: UpdateLembrancaPayload): Promise<Lembranca> => {
-        const { data } = await http.put<Lembranca>(`/api/lembrancas/${id}`, payload);
+        const { data } = await http.put<Lembranca>(`${REMEMBER_API}/lembrancas/${id}`, payload);
         return data;
     },
     remover: async (id: number): Promise<void> => {
-        await http.delete(`/api/lembrancas/${id}`);
+        await http.delete(`${REMEMBER_API}/lembrancas/${id}`);
     }
 };

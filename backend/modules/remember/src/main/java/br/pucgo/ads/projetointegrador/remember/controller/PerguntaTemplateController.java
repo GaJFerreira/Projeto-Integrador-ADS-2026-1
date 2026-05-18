@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/pergunta-templates")
+@RequestMapping("/api/remember/pergunta-templates")
 @RequiredArgsConstructor
 public class PerguntaTemplateController {
 

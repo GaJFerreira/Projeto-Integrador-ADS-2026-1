@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -79,9 +80,10 @@ public class DiarioService {
         return response;
     }
 
-    public DiarioResponseDTO buscarDiarioPorId(Long identificador) {
+    public DiarioResponseDTO buscarDiarioPorId(Long identificador, Long identificadorUsuario) {
         Diario diario = diarioRepository.findById(identificador)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Diário não encontrado com o ID: " + identificador));
+        validarDonoDiario(diario, identificadorUsuario);
         return new DiarioResponseDTO(diario);
     }
 
@@ -92,9 +94,10 @@ public class DiarioService {
                 .collect(Collectors.toList());
     }
 
-    public DiarioResponseDTO atualizarDiario(Long identificador, DiarioUpdateDTO diarioUpdateDto) {
+    public DiarioResponseDTO atualizarDiario(Long identificador, DiarioUpdateDTO diarioUpdateDto, Long identificadorUsuario) {
         Diario diarioExistente = diarioRepository.findById(identificador)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Diário não encontrado com o ID: " + identificador));
+        validarDonoDiario(diarioExistente, identificadorUsuario);
 
         diarioExistente.setTitulo(diarioUpdateDto.getTitulo());
         diarioExistente.setConteudo(diarioUpdateDto.getConteudo());
@@ -103,10 +106,16 @@ public class DiarioService {
         return new DiarioResponseDTO(diarioAtualizado);
     }
 
-    public void deletarDiario(Long identificador) {
-        if (!diarioRepository.existsById(identificador)) {
-            throw new RecursoNaoEncontradoException("Diário não encontrado com o ID: " + identificador);
+    public void deletarDiario(Long identificador, Long identificadorUsuario) {
+        Diario diario = diarioRepository.findById(identificador)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Diário não encontrado com o ID: " + identificador));
+        validarDonoDiario(diario, identificadorUsuario);
+        diarioRepository.delete(diario);
+    }
+
+    private void validarDonoDiario(Diario diario, Long identificadorUsuario) {
+        if (!diario.getIdentificadorUsuario().equals(identificadorUsuario)) {
+            throw new AccessDeniedException("Usuário não autorizado a acessar este diário.");
         }
-        diarioRepository.deleteById(identificador);
     }
 }

@@ -1,6 +1,8 @@
 import http from '@/lib/http';
 import type {Conquista} from "@/features/remember/api/conquistas.ts";
 
+const REMEMBER_API = '/api/remember';
+
 export interface Diario {
     identificadorDiario: number;
     identificadorUsuario: number;
@@ -26,18 +28,18 @@ export interface UpdateDiarioPayload {
 
 export const diariosApi = {
     listarPorUsuario: async (usuarioId: number): Promise<Diario[]> => {
-        const { data } = await http.get<Diario[]>(`/api/diarios/usuario/${usuarioId}`);
+        const { data } = await http.get<Diario[]>(`${REMEMBER_API}/diarios/usuario/${usuarioId}`);
         return data;
     },
     criar: async (payload: CreateDiarioPayload): Promise<Diario> => {
-        const { data } = await http.post<Diario>('/api/diarios', payload);
+        const { data } = await http.post<Diario>(`${REMEMBER_API}/diarios`, payload);
         return data;
     },
     atualizar: async (id: number, payload: UpdateDiarioPayload): Promise<Diario> => {
-        const { data } = await http.put<Diario>(`/api/diarios/${id}`, payload);
+        const { data } = await http.put<Diario>(`${REMEMBER_API}/diarios/${id}`, payload);
         return data;
     },
     remover: async (id: number): Promise<void> => {
-        await http.delete(`/api/diarios/${id}`);
+        await http.delete(`${REMEMBER_API}/diarios/${id}`);
     }
 };

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/conquistas")
+@RequestMapping("/api/remember/conquistas")
 public class ConquistaController {
 
     private final ConquistaService conquistaService;

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import br.pucgo.ads.projetointegrador.remember.dto.conquista.ConquistaResponseDTO;
@@ -85,8 +86,11 @@ public class LembrancaService {
      * @param identificador O ID da lembrança.
      * @return Os dados da lembrança encontrada.
      */
-    public LembrancaResponseDTO buscarLembrancaPorId(Long identificador) {
-        return lembrancaRepository.findById(identificador).map(this::prepararDTO).orElse(null);
+    public LembrancaResponseDTO buscarLembrancaPorId(Long identificador, Long identificadorUsuario) {
+        Lembranca lembranca = lembrancaRepository.findById(identificador)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Lembrança não encontrada com o ID: " + identificador));
+        validarDonoLembranca(lembranca, identificadorUsuario);
+        return prepararDTO(lembranca);
     }
 
     /**
@@ -107,9 +111,10 @@ public class LembrancaService {
      * @param lembrancaUpdateDto Os novos dados para a lembrança.
      * @return A lembrança com os dados atualizados.
      */
-    public LembrancaResponseDTO atualizarLembranca(Long identificador, LembrancaUpdateDTO lembrancaUpdateDto) {
+    public LembrancaResponseDTO atualizarLembranca(Long identificador, LembrancaUpdateDTO lembrancaUpdateDto, Long identificadorUsuario) {
         Lembranca lembrancaExistente = lembrancaRepository.findById(identificador)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Lembrança não encontrada com o ID: " + identificador));
+        validarDonoLembranca(lembrancaExistente, identificadorUsuario);
 
         lembrancaExistente.setTitulo(lembrancaUpdateDto.getTitulo());
         lembrancaExistente.setDataAcontecimento(lembrancaUpdateDto.getDataAcontecimento());
@@ -146,11 +151,11 @@ public class LembrancaService {
      * Deleta uma lembrança pelo seu identificador.
      * @param identificador O ID da lembrança a ser deletada.
      */
-    public void deletarLembranca(Long identificador) {
-        if (!lembrancaRepository.existsById(identificador)) {
-            throw new RecursoNaoEncontradoException("Lembrança não encontrada com o ID: " + identificador);
-        }
-        lembrancaRepository.deleteById(identificador);
+    public void deletarLembranca(Long identificador, Long identificadorUsuario) {
+        Lembranca lembranca = lembrancaRepository.findById(identificador)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Lembrança não encontrada com o ID: " + identificador));
+        validarDonoLembranca(lembranca, identificadorUsuario);
+        lembrancaRepository.delete(lembranca);
     }
 
     private String getCaminhoArquivoLembranca(Long IdentificadorUsuario) {
@@ -180,6 +185,12 @@ public class LembrancaService {
         }
 
         return dto;
+    }
+
+    private void validarDonoLembranca(Lembranca lembranca, Long identificadorUsuario) {
+        if (!lembranca.getIdentificadorUsuario().equals(identificadorUsuario)) {
+            throw new AccessDeniedException("Usuário não autorizado a acessar esta lembrança.");
+        }
     }
 
 }
