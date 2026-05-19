@@ -5,6 +5,7 @@ import br.pucgo.ads.projetointegrador.remember.dto.diario.DiarioResponseDTO;
 import br.pucgo.ads.projetointegrador.remember.dto.diario.DiarioUpdateDTO;
 import br.pucgo.ads.projetointegrador.remember.service.DiarioService;
 import br.pucgo.ads.projetointegrador.remember.utils.JwtClaimsUtils;
+import br.pucgo.ads.projetointegrador.remember.utils.JwtClaimsUtils.UsuarioTokenClaims;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,8 +32,9 @@ public class DiarioController {
             @RequestHeader(value = "Authorization") String authorization,
             @Valid @RequestBody DiarioRequestDTO requestDTO
     ) {
-        requestDTO.setIdentificadorUsuario(JwtClaimsUtils.getUserId(authorization));
-        DiarioResponseDTO novoDiario = diarioService.salvarDiario(requestDTO);
+        UsuarioTokenClaims usuarioToken = JwtClaimsUtils.getUsuario(authorization);
+        requestDTO.setIdentificadorUsuario(usuarioToken.userId());
+        DiarioResponseDTO novoDiario = diarioService.salvarDiario(requestDTO, usuarioToken);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoDiario);
     }
 
