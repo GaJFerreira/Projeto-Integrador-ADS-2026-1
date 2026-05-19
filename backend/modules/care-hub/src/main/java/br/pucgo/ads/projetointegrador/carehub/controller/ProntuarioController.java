@@ -37,7 +37,11 @@ public class ProntuarioController {
             Principal principal,
             @Valid @RequestBody ProntuarioRequestDTO dto
     ) {
-        Long cuidadorId = Long.parseLong(principal.getName());
+        if (principal == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
+        }
+        Long cuidadorId = agendamentoService.getUserIdByUsernameOrEmail(principal.getName());
         
         // Buscar prontuário para obter o clienteId
         ProntuarioResponseDTO prontuarioAtual = prontuarioService.buscarPorId(id);
@@ -71,7 +75,11 @@ public class ProntuarioController {
             @PathVariable Long clienteId,
             Principal principal
     ) {
-        Long cuidadorId = Long.parseLong(principal.getName());
+        if (principal == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
+        }
+        Long cuidadorId = agendamentoService.getUserIdByUsernameOrEmail(principal.getName());
         boolean podeEditar = agendamentoService.podeEditarProntuario(cuidadorId, clienteId);
         return ResponseEntity.ok(podeEditar);
     }

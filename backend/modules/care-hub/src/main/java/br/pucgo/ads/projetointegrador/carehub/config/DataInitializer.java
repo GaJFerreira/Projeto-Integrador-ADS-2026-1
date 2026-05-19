@@ -18,7 +18,7 @@ import br.pucgo.ads.projetointegrador.carehub.repository.EspecialidadeRepository
 import br.pucgo.ads.projetointegrador.carehub.repository.CareHubMensagemRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.ProntuarioRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.RegistroAcompanhamentoRepository;
-import br.pucgo.ads.projetointegrador.carehub.repository.UsuarioRepository;
+import br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository;
 // no local RoleType enum used; prefer platform Role names
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -32,18 +32,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.annotation.Order;
+
 
 @Configuration("carehubConfig")
-@DependsOn("initData")
-@Order(1)
 public class DataInitializer {
 
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(DataInitializer.class);
 
 	@Bean(name = "carehubDataInitializer")
-	CommandLineRunner seedCarehubData(UsuarioRepository usuarioRepo,
+	CommandLineRunner seedCarehubData(CareHubUsuarioRepository usuarioRepo,
 			ClienteRepository clienteRepo,
 			CuidadorRepository cuidadorRepo,
 			// AdministradorRepository removed: carehub should not seed admin users

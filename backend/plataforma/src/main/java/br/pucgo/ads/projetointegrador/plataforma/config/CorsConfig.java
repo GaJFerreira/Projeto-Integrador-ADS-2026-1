@@ -35,13 +35,18 @@ public class CorsConfig {
             "Content-Type",
             "Accept",
             "Origin",
-            "X-Requested-With"
+            "X-Requested-With",
+            "X-User-Id",
+            "x-user-id"
         ));
         
         // Expor headers na resposta
         configuration.setExposedHeaders(Arrays.asList(
             "Authorization",
-            "Content-Type"
+            "Content-Type",
+            "Content-Disposition",
+            "X-User-Id",
+            "x-user-id"
         ));
         
         // Permitir credenciais (cookies, authorization headers)

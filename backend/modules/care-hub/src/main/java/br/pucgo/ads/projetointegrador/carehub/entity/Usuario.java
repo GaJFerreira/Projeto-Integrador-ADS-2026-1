@@ -49,6 +49,7 @@ public class Usuario {
     @Column(name = "password_hash")
     private String password;
 
+    @Column(columnDefinition = "VARCHAR(255)")
     private String name;
 
     private String phone;

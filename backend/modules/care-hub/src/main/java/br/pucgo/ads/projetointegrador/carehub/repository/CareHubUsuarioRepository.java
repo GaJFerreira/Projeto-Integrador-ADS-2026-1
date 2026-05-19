@@ -6,19 +6,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
- * Repositório local de Usuários do módulo CareHub.
- *
- * <p><strong>Mudança de arquitetura:</strong> anteriormente operava sobre
- * {@code plataforma.entity.User}. Agora opera exclusivamente sobre
- * {@link Usuario} local (schema {@code care_hub}).
- *
- * <p>A sincronização entre {@code plataforma.users} e {@code care_hub.usuario}
- * é feita nos services (ClienteService / CuidadorService) via espelhamento
- * automático no momento da criação do perfil.
- */
 @Repository
-public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+public interface CareHubUsuarioRepository extends JpaRepository<Usuario, Long> {
 
     Optional<Usuario> findByEmail(String email);
 

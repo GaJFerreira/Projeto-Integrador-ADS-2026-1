@@ -20,15 +20,31 @@ public class AvaliacaoController {
     @Autowired
     private AvaliacaoService avaliacaoService;
 
+    @Autowired
+    private br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository careHubUsuarioRepository;
+
+    private Long obterIdLocal(Long platformUserId) {
+        if (platformUserId == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "X-User-Id header é obrigatório");
+        }
+        return careHubUsuarioRepository.findByPlatformUserId(platformUserId)
+                .map(br.pucgo.ads.projetointegrador.carehub.entity.Usuario::getId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, 
+                        "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId));
+    }
+
     @PostMapping
     public ResponseEntity<AvaliacaoResponseDTO> criarAvaliacao(
             @RequestHeader("X-User-Id") Long clienteId,
             @Valid @RequestBody AvaliacaoRequestDTO dto
     ) {
+        Long localClienteId = obterIdLocal(clienteId);
         log.info("Criando avaliação: clienteId={}, cuidadorId={}, nota={}", 
-            clienteId, dto.getCuidadorId(), dto.getNota());
+            localClienteId, dto.getCuidadorId(), dto.getNota());
         
-        AvaliacaoResponseDTO avaliacao = avaliacaoService.criarAvaliacao(clienteId, dto);
+        AvaliacaoResponseDTO avaliacao = avaliacaoService.criarAvaliacao(localClienteId, dto);
         
         log.info("Avaliação criada com sucesso: id={}, cuidadorId={}, nota={}", 
             avaliacao.getId(), avaliacao.getCuidadorId(), avaliacao.getNota());

@@ -31,21 +31,19 @@
 			<version>${project.version}</version>
 		</dependency>
     
-    <!--
     <dependency>
         <groupId>br.pucgo.ads</groupId>
     		<artifactId>care-hub</artifactId>
     		<version>${project.version}</version>
 		</dependency>
-    -->
-    
-    
 
+<!--
 		<dependency>
 			<groupId>br.pucgo.ads</groupId>
 			<artifactId>diario-saude</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+-->
 
 	</dependencies>
 

@@ -8,7 +8,7 @@ import br.pucgo.ads.projetointegrador.carehub.entity.Usuario;
 import br.pucgo.ads.projetointegrador.carehub.exception.OperacaoNaoPermitidaException;
 import br.pucgo.ads.projetointegrador.carehub.repository.AgendamentoRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.CareHubMensagemRepository;
-import br.pucgo.ads.projetointegrador.carehub.repository.UsuarioRepository;
+import br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 public class MensagemService {
 
     private final CareHubMensagemRepository mensagemRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final CareHubUsuarioRepository careHubUsuarioRepository;
     private final AgendamentoRepository agendamentoRepository;
 
     // ── Enviar mensagem ───────────────────────────────────────────────────────
@@ -52,9 +52,9 @@ public class MensagemService {
         Long destinatarioId = Objects.requireNonNull(dto.getDestinatarioId(), "Destinatário ID não pode ser nulo");
 
         // Garantir que ambos os usuários existem localmente
-        usuarioRepository.findById(remetenteId)
+        careHubUsuarioRepository.findById(remetenteId)
                 .orElseThrow(() -> new RuntimeException("Remetente não encontrado: " + remetenteId));
-        usuarioRepository.findById(destinatarioId)
+        careHubUsuarioRepository.findById(destinatarioId)
                 .orElseThrow(() -> new RuntimeException("Destinatário não encontrado: " + destinatarioId));
 
         // Regra de negócio: só pode trocar mensagens se existir atendimento entre as
@@ -113,7 +113,7 @@ public class MensagemService {
     public List<MensagemResponseDTO> buscarMensagensNaoLidas(Long usuarioId) {
         Objects.requireNonNull(usuarioId, "Usuario ID não pode ser nulo");
         // Verificar que o usuário existe localmente
-        usuarioRepository.findById(usuarioId)
+        careHubUsuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + usuarioId));
 
         // Refatorado: usa destinatarioId (Long) em vez de objeto User
@@ -152,7 +152,7 @@ public class MensagemService {
             return List.of();
         }
 
-        return usuarioRepository.findAllById(contatoIds).stream()
+        return careHubUsuarioRepository.findAllById(contatoIds).stream()
                 .map(usuario -> {
                     ContatoDTO dto = new ContatoDTO();
                     dto.setId(usuario.getId());
@@ -236,7 +236,7 @@ public class MensagemService {
     private String resolverNome(Long usuarioId) {
         if (usuarioId == null)
             return "Desconhecido";
-        return usuarioRepository.findById(usuarioId)
+        return careHubUsuarioRepository.findById(usuarioId)
                 .map(Usuario::getName)
                 .orElse("Usuário desconhecido");
     }

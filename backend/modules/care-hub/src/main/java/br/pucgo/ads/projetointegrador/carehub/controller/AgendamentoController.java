@@ -16,6 +16,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.access.AccessDeniedException;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/carehub/agendamentos")
@@ -24,12 +26,39 @@ public class AgendamentoController {
     @Autowired
     private AgendamentoService agendamentoService;
 
+    @Autowired
+    private br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository careHubUsuarioRepository;
+
+    private Long obterIdLocal(Long platformUserId) {
+        if (platformUserId == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "X-User-Id/User ID é obrigatório");
+        }
+        return careHubUsuarioRepository.findByPlatformUserId(platformUserId)
+                .map(br.pucgo.ads.projetointegrador.carehub.entity.Usuario::getId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND, 
+                        "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId));
+    }
+
+    private String getUsername(Principal principal) {
+        if (principal == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
+        }
+        return principal.getName();
+    }
+
     @PostMapping
     public ResponseEntity<AgendamentoResponseDTO> criarAgendamento(
             @Valid @RequestBody AgendamentoRequestDTO dto
     ) {
         log.info("Criando agendamento: clienteId={}, cuidadorId={}, data={}", 
             dto.getClienteId(), dto.getCuidadorId(), dto.getDataHoraInicio());
+        
+        // Resolve platform user id to local id for client
+        Long localClienteId = obterIdLocal(dto.getClienteId());
+        dto.setClienteId(localClienteId);
         
         AgendamentoResponseDTO agendamento = agendamentoService.criarAgendamento(dto);
         
@@ -67,13 +96,15 @@ public class AgendamentoController {
 
     @GetMapping("/cuidador/{cuidadorId}")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarPorCuidador(@PathVariable Long cuidadorId) {
-        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCuidador(cuidadorId);
+        Long localCuidadorId = obterIdLocal(cuidadorId);
+        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCuidador(localCuidadorId);
         return ResponseEntity.ok(agendamentos);
     }
 
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarPorCliente(@PathVariable Long clienteId) {
-        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCliente(clienteId);
+        Long localClienteId = obterIdLocal(clienteId);
+        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCliente(localClienteId);
         return ResponseEntity.ok(agendamentos);
     }
 
@@ -89,8 +120,18 @@ public class AgendamentoController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim
     ) {
-        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCuidadorEPeriodo(cuidadorId, inicio, fim);
+        Long localCuidadorId = obterIdLocal(cuidadorId);
+        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCuidadorEPeriodo(localCuidadorId, inicio, fim);
         return ResponseEntity.ok(agendamentos);
+    }
+
+    private Long obterUserIdSeguro(String usernameOrEmail) {
+        try {
+            return agendamentoService.getUserIdByUsernameOrEmail(usernameOrEmail);
+        } catch (Exception e) {
+            log.warn("Usuário não cadastrado no módulo CareHub (pode ser admin): {}", usernameOrEmail);
+            return null;
+        }
     }
 
     @GetMapping("/proximos")
@@ -99,9 +140,12 @@ public class AgendamentoController {
             @RequestParam(defaultValue = "7") int dias
     ) {
         // Principal.getName() retorna email ou username, não o ID
-        String usernameOrEmail = principal.getName();
-        Long userId = agendamentoService.getUserIdByUsernameOrEmail(usernameOrEmail);
-        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarProximos(userId, dias);
+        String usernameOrEmail = getUsername(principal);
+        Long userId = obterUserIdSeguro(usernameOrEmail);
+        List<AgendamentoResponseDTO> agendamentos = List.of();
+        if (userId != null) {
+            agendamentos = agendamentoService.listarProximos(userId, dias);
+        }
         return ResponseEntity.ok(agendamentos);
     }
 
@@ -135,11 +179,14 @@ public class AgendamentoController {
     public ResponseEntity<List<AgendamentoResponseDTO>> listarAvaliacoesPendentes(
             Principal principal
     ) {
-        String usernameOrEmail = principal.getName();
-        Long clienteId = agendamentoService.getUserIdByUsernameOrEmail(usernameOrEmail);
+        String usernameOrEmail = getUsername(principal);
+        Long clienteId = obterUserIdSeguro(usernameOrEmail);
         log.info("Listando avaliações pendentes: clienteId={}", clienteId);
         
-        List<AgendamentoResponseDTO> pendentes = agendamentoService.listarAvaliacoesPendentes(clienteId);
+        List<AgendamentoResponseDTO> pendentes = List.of();
+        if (clienteId != null) {
+            pendentes = agendamentoService.listarAvaliacoesPendentes(clienteId);
+        }
         log.info("Avaliações pendentes encontradas: {}", pendentes.size());
         
         return ResponseEntity.ok(pendentes);
@@ -153,10 +200,13 @@ public class AgendamentoController {
     public ResponseEntity<Map<String, Long>> contarAvaliacoesPendentes(
             Principal principal
     ) {
-        String usernameOrEmail = principal.getName();
-        Long clienteId = agendamentoService.getUserIdByUsernameOrEmail(usernameOrEmail);
+        String usernameOrEmail = getUsername(principal);
+        Long clienteId = obterUserIdSeguro(usernameOrEmail);
         
-        long count = agendamentoService.contarAvaliacoesPendentes(clienteId);
+        long count = 0;
+        if (clienteId != null) {
+            count = agendamentoService.contarAvaliacoesPendentes(clienteId);
+        }
         
         return ResponseEntity.ok(Map.of("count", count));
     }
@@ -167,10 +217,13 @@ public class AgendamentoController {
      */
     @GetMapping("/pendentes-cuidador/count")
     public ResponseEntity<Map<String, Long>> contarPendentesCuidador(Principal principal) {
-        String usernameOrEmail = principal.getName();
-        Long cuidadorId = agendamentoService.getUserIdByUsernameOrEmail(usernameOrEmail);
+        String usernameOrEmail = getUsername(principal);
+        Long cuidadorId = obterUserIdSeguro(usernameOrEmail);
         
-        long count = agendamentoService.contarPendentesCuidador(cuidadorId);
+        long count = 0;
+        if (cuidadorId != null) {
+            count = agendamentoService.contarPendentesCuidador(cuidadorId);
+        }
         log.info("Agendamentos pendentes para cuidador {}: {}", cuidadorId, count);
         
         return ResponseEntity.ok(Map.of("count", count));
@@ -182,10 +235,13 @@ public class AgendamentoController {
      */
     @GetMapping("/reagendados-cliente/count")
     public ResponseEntity<Map<String, Long>> contarReagendadosCliente(Principal principal) {
-        String usernameOrEmail = principal.getName();
-        Long clienteId = agendamentoService.getUserIdByUsernameOrEmail(usernameOrEmail);
+        String usernameOrEmail = getUsername(principal);
+        Long clienteId = obterUserIdSeguro(usernameOrEmail);
         
-        long count = agendamentoService.contarReagendadosCliente(clienteId);
+        long count = 0;
+        if (clienteId != null) {
+            count = agendamentoService.contarReagendadosCliente(clienteId);
+        }
         log.info("Agendamentos reagendados para cliente {}: {}", clienteId, count);
         
         return ResponseEntity.ok(Map.of("count", count));

@@ -5,7 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.pucgo.ads.projetointegrador.carehub.entity.Usuario;
-import br.pucgo.ads.projetointegrador.carehub.repository.UsuarioRepository;
+import br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,15 +14,15 @@ import java.util.Objects;
 public class AdminService {
 
     @Autowired
-    private UsuarioRepository usuarioRepository;
+    private CareHubUsuarioRepository careHubUsuarioRepository;
 
     public List<Usuario> listarTodosUsuarios() {
-        return usuarioRepository.findAll();
+        return careHubUsuarioRepository.findAll();
     }
 
     public Usuario buscarUsuarioPorId(Long id) {
         Objects.requireNonNull(id, "id não pode ser nulo");
-        return usuarioRepository.findById(id)
+        return careHubUsuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
@@ -30,7 +30,7 @@ public class AdminService {
     public Usuario alterarStatusUsuario(Long id, Boolean ativo) {
         Objects.requireNonNull(id, "id não pode ser nulo");
         Objects.requireNonNull(ativo, "ativo não pode ser nulo");
-        Usuario usuario = usuarioRepository.findById(id)
+        Usuario usuario = careHubUsuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         // Use local Usuario fields: setStatus / setAtivo / setDeletedAt
         usuario.setStatus(ativo ? "ACTIVE" : "INACTIVE");
@@ -40,14 +40,14 @@ public class AdminService {
         } else {
             usuario.setDeletedAt(null);
         }
-        return usuarioRepository.save(Objects.requireNonNull(usuario));
+        return careHubUsuarioRepository.save(Objects.requireNonNull(usuario));
     }
 
     @Transactional
     public void deletarUsuario(Long id) {
         Objects.requireNonNull(id, "id não pode ser nulo");
-        Usuario usuario = usuarioRepository.findById(id)
+        Usuario usuario = careHubUsuarioRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        usuarioRepository.delete(Objects.requireNonNull(usuario));
+        careHubUsuarioRepository.delete(Objects.requireNonNull(usuario));
     }
 }

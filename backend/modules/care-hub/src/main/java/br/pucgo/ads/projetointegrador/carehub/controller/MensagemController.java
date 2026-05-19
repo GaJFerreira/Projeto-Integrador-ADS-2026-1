@@ -28,33 +28,74 @@ public class MensagemController {
     @Autowired
     private br.pucgo.ads.projetointegrador.carehub.repository.MessageMediaRepository messageMediaRepository;
 
+    @Autowired
+    private br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository careHubUsuarioRepository;
+
+    private Long obterIdLocal(Long platformUserId) {
+        if (platformUserId == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "X-User-Id header é obrigatório");
+        }
+        return careHubUsuarioRepository.findByPlatformUserId(platformUserId)
+                .map(br.pucgo.ads.projetointegrador.carehub.entity.Usuario::getId)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.NOT_FOUND,
+                        "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId));
+    }
+
+    private Long obterIdPlataforma(Long localUserId) {
+        if (localUserId == null)
+            return null;
+        return careHubUsuarioRepository.findById(localUserId)
+                .map(br.pucgo.ads.projetointegrador.carehub.entity.Usuario::getPlatformUserId)
+                .orElse(localUserId);
+    }
+
+    private MensagemResponseDTO converterParaPlataforma(MensagemResponseDTO dto) {
+        if (dto == null)
+            return null;
+        dto.setRemetenteId(obterIdPlataforma(dto.getRemetenteId()));
+        dto.setDestinatarioId(obterIdPlataforma(dto.getDestinatarioId()));
+        return dto;
+    }
+
+    private List<MensagemResponseDTO> converterListaParaPlataforma(List<MensagemResponseDTO> lista) {
+        if (lista == null)
+            return null;
+        lista.forEach(this::converterParaPlataforma);
+        return lista;
+    }
+
     @PostMapping
     public ResponseEntity<MensagemResponseDTO> enviarMensagem(
             @RequestHeader("X-User-Id") Long remetenteId,
             @RequestBody Map<String, Object> dtoMap) {
-        // Construir DTO manualmente para evitar carregar a classe durante a
-        // introspecção
-        Long destinatarioId = dtoMap.get("destinatarioId") == null ? null
+        Long localRemetenteId = obterIdLocal(remetenteId);
+        Long platformDestinatarioId = dtoMap.get("destinatarioId") == null ? null
                 : Long.valueOf(dtoMap.get("destinatarioId").toString());
+        Long localDestinatarioId = obterIdLocal(platformDestinatarioId);
         String conteudo = dtoMap.get("conteudo") == null ? null : dtoMap.get("conteudo").toString();
-        MensagemRequestDTO dto = new MensagemRequestDTO(destinatarioId, conteudo, null, null);
-        MensagemResponseDTO mensagem = mensagemService.enviarMensagem(remetenteId, dto);
-        return ResponseEntity.ok(mensagem);
+        MensagemRequestDTO dto = new MensagemRequestDTO(localDestinatarioId, conteudo, null, null);
+        MensagemResponseDTO mensagem = mensagemService.enviarMensagem(localRemetenteId, dto);
+        return ResponseEntity.ok(converterParaPlataforma(mensagem));
     }
 
     @GetMapping
     public ResponseEntity<List<MensagemResponseDTO>> listarMensagens(
             @RequestHeader("X-User-Id") Long usuarioId) {
-        List<MensagemResponseDTO> mensagens = mensagemService.listarMensagens(usuarioId);
-        return ResponseEntity.ok(mensagens);
+        Long localUsuarioId = obterIdLocal(usuarioId);
+        List<MensagemResponseDTO> mensagens = mensagemService.listarMensagens(localUsuarioId);
+        return ResponseEntity.ok(converterListaParaPlataforma(mensagens));
     }
 
     @GetMapping("/conversa/{usuarioId}")
     public ResponseEntity<List<MensagemResponseDTO>> buscarConversa(
             @RequestHeader("X-User-Id") Long usuarioAutenticadoId,
             @PathVariable Long usuarioId) {
-        List<MensagemResponseDTO> mensagens = mensagemService.buscarConversa(usuarioAutenticadoId, usuarioId);
-        return ResponseEntity.ok(mensagens);
+        Long localUsuarioAutenticadoId = obterIdLocal(usuarioAutenticadoId);
+        Long localUsuarioId = obterIdLocal(usuarioId);
+        List<MensagemResponseDTO> mensagens = mensagemService.buscarConversa(localUsuarioAutenticadoId, localUsuarioId);
+        return ResponseEntity.ok(converterListaParaPlataforma(mensagens));
     }
 
     @PostMapping("/media")
@@ -62,6 +103,8 @@ public class MensagemController {
             @RequestHeader("X-User-Id") Long remetenteId,
             @RequestParam("destinatarioId") Long destinatarioId,
             @RequestParam("file") MultipartFile file) throws Exception {
+        Long localRemetenteId = obterIdLocal(remetenteId);
+        Long localDestinatarioId = obterIdLocal(destinatarioId);
         // read bytes and store in DB as blob
         byte[] data = file.getBytes();
         String storageKey = java.util.UUID.randomUUID().toString();
@@ -69,8 +112,8 @@ public class MensagemController {
 
         // create message using existing service (persist message with mediaUrl, no text
         // content for audio)
-        MensagemResponseDTO mensagem = mensagemService.enviarMensagem(remetenteId,
-                new br.pucgo.ads.projetointegrador.carehub.dto.mensagem.MensagemRequestDTO(destinatarioId, null,
+        MensagemResponseDTO mensagem = mensagemService.enviarMensagem(localRemetenteId,
+                new br.pucgo.ads.projetointegrador.carehub.dto.mensagem.MensagemRequestDTO(localDestinatarioId, null,
                         mediaUrl, file.getContentType()));
 
         // Persist media blob in DB
@@ -87,13 +130,14 @@ public class MensagemController {
             System.err.println("Warning: failed to save media blob: " + ex.getMessage());
         }
 
-        return ResponseEntity.ok(mensagem);
+        return ResponseEntity.ok(converterParaPlataforma(mensagem));
     }
 
     @GetMapping("/media/{filename:.+}")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<Resource> serveMedia(@RequestHeader("X-User-Id") Long usuarioId,
             @PathVariable String filename) throws Exception {
+        Long localUsuarioId = obterIdLocal(usuarioId);
         // Look up media in DB by storageKey
         br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = messageMediaRepository
                 .findByStorageKey(filename);
@@ -112,7 +156,7 @@ public class MensagemController {
         mensagem = java.util.Objects.requireNonNull(mensagem);
         Long remetenteId = mensagem.getRemetenteId();
         Long destinatarioId = mensagem.getDestinatarioId();
-        if (!usuarioId.equals(remetenteId) && !usuarioId.equals(destinatarioId)) {
+        if (!localUsuarioId.equals(remetenteId) && !localUsuarioId.equals(destinatarioId)) {
             return ResponseEntity.status(403).build();
         }
 
@@ -135,8 +179,9 @@ public class MensagemController {
     @GetMapping("/nao-lidas")
     public ResponseEntity<List<MensagemResponseDTO>> buscarNaoLidas(
             @RequestHeader("X-User-Id") Long destinatarioId) {
-        List<MensagemResponseDTO> mensagens = mensagemService.buscarMensagensNaoLidas(destinatarioId);
-        return ResponseEntity.ok(mensagens);
+        Long localDestinatarioId = obterIdLocal(destinatarioId);
+        List<MensagemResponseDTO> mensagens = mensagemService.buscarMensagensNaoLidas(localDestinatarioId);
+        return ResponseEntity.ok(converterListaParaPlataforma(mensagens));
     }
 
     @PutMapping("/{id}/lida")
@@ -147,13 +192,16 @@ public class MensagemController {
 
     @GetMapping("/contador-nao-lidas")
     public ResponseEntity<Long> contarNaoLidas(@RequestHeader("X-User-Id") Long usuarioId) {
-        long count = mensagemService.contarMensagensNaoLidas(usuarioId);
+        Long localUsuarioId = obterIdLocal(usuarioId);
+        long count = mensagemService.contarMensagensNaoLidas(localUsuarioId);
         return ResponseEntity.ok(count);
     }
 
     @GetMapping("/contatos")
     public ResponseEntity<List<ContatoDTO>> listarContatos(@RequestHeader("X-User-Id") Long usuarioId) {
-        List<ContatoDTO> contatos = mensagemService.listarContatos(usuarioId);
+        Long localUsuarioId = obterIdLocal(usuarioId);
+        List<ContatoDTO> contatos = mensagemService.listarContatos(localUsuarioId);
+        contatos.forEach(c -> c.setId(obterIdPlataforma(c.getId())));
         return ResponseEntity.ok(contatos);
     }
 
@@ -161,7 +209,9 @@ public class MensagemController {
     public ResponseEntity<Void> marcarConversaComoLida(
             @PathVariable Long remetenteId,
             @RequestHeader("X-User-Id") Long usuarioId) {
-        mensagemService.marcarConversaComoLida(usuarioId, remetenteId);
+        Long localUsuarioId = obterIdLocal(usuarioId);
+        Long localRemetenteId = obterIdLocal(remetenteId);
+        mensagemService.marcarConversaComoLida(localUsuarioId, localRemetenteId);
         return ResponseEntity.noContent().build();
     }
 }
