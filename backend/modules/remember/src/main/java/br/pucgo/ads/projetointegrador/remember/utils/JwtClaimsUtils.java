@@ -37,7 +37,8 @@ public class JwtClaimsUtils {
         String nome = getTextClaim(claims, "name");
 
         if (nome == null) {
-            nome = email;
+            log.error("Claim de nome nao identificada no token.");
+            throw new AccessDeniedException("Claim de nome nao identificada no token.");
         }
 
         return new UsuarioTokenClaims(userId, nome, email);
