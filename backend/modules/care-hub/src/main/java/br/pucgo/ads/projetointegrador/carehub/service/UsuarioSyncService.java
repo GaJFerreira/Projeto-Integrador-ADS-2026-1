@@ -5,8 +5,6 @@ import br.pucgo.ads.projetointegrador.carehub.dto.perfil.PerfilResponseDTO;
 import br.pucgo.ads.projetointegrador.carehub.entity.Cliente;
 import br.pucgo.ads.projetointegrador.carehub.entity.Cuidador;
 import br.pucgo.ads.projetointegrador.carehub.entity.Especialidade;
-import br.pucgo.ads.projetointegrador.carehub.entity.Usuario;
-import br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.EspecialidadeRepository;
@@ -25,30 +23,26 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UsuarioSyncService {
 
-    private final CareHubUsuarioRepository careHubUsuarioRepository;
     private final ClienteRepository clienteRepository;
     private final CuidadorRepository cuidadorRepository;
     private final EspecialidadeRepository especialidadeRepository;
 
     @Transactional
-    public Usuario sincronizarOuCriar(Long platformUserId, String username, String email, String name, String platformRole) {
+    public Object sincronizarOuCriar(Long platformUserId, String username, String email, String name, String platformRole) {
         if (platformUserId == null) {
             throw new IllegalArgumentException("platformUserId não pode ser nulo para sincronização");
         }
-
-        // 1. Verifica se já existe um registro local usando o platformUserId
-        Optional<Usuario> usuarioExistente = careHubUsuarioRepository.findByPlatformUserId(platformUserId);
-        if (usuarioExistente.isPresent()) {
-            log.info("Usuário já sincronizado localmente: username={}, platformUserId={}", username, platformUserId);
-            return usuarioExistente.get();
-        }
-
-        log.info("Sincronizando novo usuário da plataforma: username={}, email={}, role={}", username, email, platformRole);
 
         boolean isCuidador = platformRole != null && 
                 (platformRole.toUpperCase().contains("CUIDADOR"));
 
         if (isCuidador) {
+            Optional<Cuidador> cuidadorExistente = cuidadorRepository.findByPlatformUserId(platformUserId);
+            if (cuidadorExistente.isPresent()) {
+                log.info("Cuidador já sincronizado localmente: username={}, platformUserId={}", username, platformUserId);
+                return cuidadorExistente.get();
+            }
+            log.info("Sincronizando novo cuidador da plataforma: username={}, email={}, role={}", username, email, platformRole);
             Cuidador cuidador = new Cuidador();
             cuidador.setPlatformUserId(platformUserId);
             cuidador.setUsername(username);
@@ -59,6 +53,12 @@ public class UsuarioSyncService {
             cuidador.setStatus("ACTIVE");
             return cuidadorRepository.save(cuidador);
         } else {
+            Optional<Cliente> clienteExistente = clienteRepository.findByPlatformUserId(platformUserId);
+            if (clienteExistente.isPresent()) {
+                log.info("Cliente já sincronizado localmente: username={}, platformUserId={}", username, platformUserId);
+                return clienteExistente.get();
+            }
+            log.info("Sincronizando novo cliente da plataforma: username={}, email={}, role={}", username, email, platformRole);
             Cliente cliente = new Cliente();
             cliente.setPlatformUserId(platformUserId);
             cliente.setUsername(username);
@@ -78,25 +78,20 @@ public class UsuarioSyncService {
     }
 
     @Transactional(readOnly = true)
-    public PerfilResponseDTO obterPerfilCompleto(Usuario usuario) {
-        if ("CAREHUB_CUIDADOR".equals(usuario.getRole())) {
-            Cuidador cuidador = cuidadorRepository.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Cuidador não encontrado com ID: " + usuario.getId()));
-            return toResponseDTO(cuidador);
-        } else if ("CAREHUB_CLIENTE".equals(usuario.getRole())) {
-            Cliente cliente = clienteRepository.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado com ID: " + usuario.getId()));
-            return toResponseDTO(cliente);
+    public PerfilResponseDTO obterPerfilCompleto(Object usuarioLocal) {
+        if (usuarioLocal instanceof Cuidador) {
+            return toResponseDTO((Cuidador) usuarioLocal);
+        } else if (usuarioLocal instanceof Cliente) {
+            return toResponseDTO((Cliente) usuarioLocal);
         } else {
-            return toResponseDTO(usuario);
+            throw new RuntimeException("Tipo de usuário local desconhecido");
         }
     }
 
     @Transactional
-    public PerfilResponseDTO completarOuAtualizarPerfil(Usuario usuario, PerfilRequestDTO dto) {
-        if ("CAREHUB_CUIDADOR".equals(usuario.getRole())) {
-            Cuidador cuidador = cuidadorRepository.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Cuidador não encontrado com ID: " + usuario.getId()));
+    public PerfilResponseDTO completarOuAtualizarPerfil(Object usuarioLocal, PerfilRequestDTO dto) {
+        if (usuarioLocal instanceof Cuidador) {
+            Cuidador cuidador = (Cuidador) usuarioLocal;
             
             if (dto.getName() != null) cuidador.setName(dto.getName());
             if (dto.getEmail() != null) cuidador.setEmail(dto.getEmail());
@@ -124,9 +119,8 @@ public class UsuarioSyncService {
             
             Cuidador salvo = cuidadorRepository.save(cuidador);
             return toResponseDTO(salvo);
-        } else {
-            Cliente cliente = clienteRepository.findById(usuario.getId())
-                    .orElseThrow(() -> new RuntimeException("Cliente não encontrado com ID: " + usuario.getId()));
+        } else if (usuarioLocal instanceof Cliente) {
+            Cliente cliente = (Cliente) usuarioLocal;
             
             if (dto.getName() != null) cliente.setName(dto.getName());
             if (dto.getEmail() != null) cliente.setEmail(dto.getEmail());
@@ -138,6 +132,8 @@ public class UsuarioSyncService {
             
             Cliente salvo = clienteRepository.save(cliente);
             return toResponseDTO(salvo);
+        } else {
+             throw new RuntimeException("Tipo de usuário local desconhecido");
         }
     }
 
@@ -186,20 +182,6 @@ public class UsuarioSyncService {
         dto.setNecessidades(cliente.getNecessidades());
         dto.setContatoEmergencia(cliente.getContatoEmergencia());
         dto.setTipoCliente(cliente.getTipoCliente());
-        return dto;
-    }
-
-    private PerfilResponseDTO toResponseDTO(Usuario usuario) {
-        PerfilResponseDTO dto = new PerfilResponseDTO();
-        dto.setId(usuario.getId());
-        dto.setPlatformUserId(usuario.getPlatformUserId());
-        dto.setUsername(usuario.getUsername());
-        dto.setEmail(usuario.getEmail());
-        dto.setName(usuario.getName());
-        dto.setRole(usuario.getRole());
-        dto.setPhone(usuario.getPhone());
-        dto.setAtivo(usuario.getAtivo());
-        dto.setStatus(usuario.getStatus());
         return dto;
     }
 }

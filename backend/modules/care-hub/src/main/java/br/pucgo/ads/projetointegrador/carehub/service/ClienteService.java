@@ -46,7 +46,6 @@ public class ClienteService {
 
         if (dto.getNome() != null) cliente.setName(dto.getNome());
         if (dto.getEmail() != null) cliente.setEmail(dto.getEmail());
-        if (dto.getSenha() != null) cliente.setPassword(passwordEncoder.encode(dto.getSenha()));
         if (dto.getTelefone() != null) cliente.setTelefone(dto.getTelefone());
         if (dto.getNecessidades() != null) cliente.setNecessidades(dto.getNecessidades());
         if (dto.getEndereco() != null) cliente.setEndereco(dto.getEndereco());
@@ -79,7 +78,7 @@ public class ClienteService {
         dto.setContatoEmergencia(cliente.getContatoEmergencia());
         dto.setTipoCliente(cliente.getTipoCliente());
         dto.setAtivo(cliente.getAtivo());
-        dto.setCriadoEm(cliente.getCriadoEm());
+        dto.setCriadoEm(cliente.getCreatedAt() == null ? null : cliente.getCreatedAt().toLocalDateTime());
         return dto;
     }
 }

@@ -29,26 +29,37 @@ public class MensagemController {
     private br.pucgo.ads.projetointegrador.carehub.repository.MessageMediaRepository messageMediaRepository;
 
     @Autowired
-    private br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository careHubUsuarioRepository;
+    private br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository cuidadorRepository;
+
+    @Autowired
+    private br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository clienteRepository;
 
     private Long obterIdLocal(Long platformUserId) {
         if (platformUserId == null) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST, "X-User-Id header é obrigatório");
         }
-        return careHubUsuarioRepository.findByPlatformUserId(platformUserId)
-                .map(br.pucgo.ads.projetointegrador.carehub.entity.Usuario::getId)
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.NOT_FOUND,
-                        "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId));
+        var c = cuidadorRepository.findByPlatformUserId(platformUserId);
+        if (c.isPresent()) return c.get().getId();
+        
+        var cli = clienteRepository.findByPlatformUserId(platformUserId);
+        if (cli.isPresent()) return cli.get().getId();
+        
+        throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId);
     }
 
     private Long obterIdPlataforma(Long localUserId) {
         if (localUserId == null)
             return null;
-        return careHubUsuarioRepository.findById(localUserId)
-                .map(br.pucgo.ads.projetointegrador.carehub.entity.Usuario::getPlatformUserId)
-                .orElse(localUserId);
+        var c = cuidadorRepository.findById(localUserId);
+        if (c.isPresent() && c.get().getPlatformUserId() != null) return c.get().getPlatformUserId();
+        
+        var cli = clienteRepository.findById(localUserId);
+        if (cli.isPresent() && cli.get().getPlatformUserId() != null) return cli.get().getPlatformUserId();
+        
+        return localUserId;
     }
 
     private MensagemResponseDTO converterParaPlataforma(MensagemResponseDTO dto) {

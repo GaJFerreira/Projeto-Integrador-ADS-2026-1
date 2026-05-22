@@ -13,7 +13,6 @@ import br.pucgo.ads.projetointegrador.carehub.repository.AgendamentoRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.RegistroAcompanhamentoRepository;
-import br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -42,12 +41,6 @@ public class AgendamentoService {
     private final ClienteRepository clienteRepository;
     private final RegistroAcompanhamentoRepository registroRepository;
 
-    /**
-     * Repositório local — substitui o plataforma.repository.UserRepository.
-     * Consulta {@code care_hub.usuario} para resolver o ID pelo username/email.
-     */
-    private final CareHubUsuarioRepository careHubUsuarioRepository;
-
     // ── Helper: resolve ID do usuário pelo principal (JWT) ───────────────────
 
     /**
@@ -57,10 +50,11 @@ public class AgendamentoService {
      * <p>Todos os services que recebem {@code Principal} usam este método.
      */
     public Long getUserIdByUsernameOrEmail(String usernameOrEmail) {
-        return careHubUsuarioRepository
-                .findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
-                .map(u -> u.getId())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + usernameOrEmail));
+        return cuidadorRepository.findByUsername(usernameOrEmail)
+                .map(Cuidador::getId)
+                .orElseGet(() -> clienteRepository.findByUsername(usernameOrEmail)
+                        .map(Cliente::getId)
+                        .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + usernameOrEmail)));
     }
 
     // ── Criar agendamento ─────────────────────────────────────────────────────

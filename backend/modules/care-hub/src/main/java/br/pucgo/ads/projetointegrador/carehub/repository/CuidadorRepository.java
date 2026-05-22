@@ -32,6 +32,8 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
 
     Optional<Cuidador> findByUsername(String username);
 
+    Optional<Cuidador> findByPlatformUserId(Long platformUserId);
+
     // ── JPQL Filters ─────────────────────────────────────────────────────────
 
     @Query("SELECT c FROM Cuidador c " +
@@ -50,22 +52,20 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
 
     // ── Native Queries (schema care_hub explícito) ────────────────────────────
 
-    @Query(value = "SELECT DISTINCT ON (u.id) u.*, c.* " +
-            "FROM care_hub.usuario u " +
-            "JOIN care_hub.ch_cuidador c ON u.id = c.id " +
+    @Query(value = "SELECT DISTINCT ON (c.id) c.* " +
+            "FROM care_hub.ch_cuidador c " +
             "LEFT JOIN care_hub.ch_cuidador_especialidade ce ON c.id = ce.cuidador_id " +
             "LEFT JOIN care_hub.ch_especialidade es ON ce.especialidade_id = es.id " +
-            "WHERE u.deleted_at IS NULL " +
-            "AND (:nome IS NULL OR u.name ILIKE '%'||:nome||'%') " +
+            "WHERE c.deleted_at IS NULL " +
+            "AND (:nome IS NULL OR c.name ILIKE '%'||:nome||'%') " +
             "AND (:localizacao IS NULL OR (c.estado = :localizacao) OR (c.cidade ILIKE '%'||:localizacao||'%')) " +
             "AND (:especialidade IS NULL OR es.nome ILIKE '%'||:especialidade||'%') " +
             "AND (:disponibilidade IS NULL OR c.disponibilidade = :disponibilidade) " +
-            "ORDER BY u.id", countQuery = "SELECT count(DISTINCT c.id) FROM care_hub.ch_cuidador c " +
-                    "JOIN care_hub.usuario u ON u.id = c.id " +
+            "ORDER BY c.id", countQuery = "SELECT count(DISTINCT c.id) FROM care_hub.ch_cuidador c " +
                     "LEFT JOIN care_hub.ch_cuidador_especialidade ce ON c.id = ce.cuidador_id " +
                     "LEFT JOIN care_hub.ch_especialidade es ON ce.especialidade_id = es.id " +
-                    "WHERE u.deleted_at IS NULL " +
-                    "AND (:nome IS NULL OR u.name ILIKE '%'||:nome||'%') " +
+                    "WHERE c.deleted_at IS NULL " +
+                    "AND (:nome IS NULL OR c.name ILIKE '%'||:nome||'%') " +
                     "AND (:localizacao IS NULL OR (c.estado = :localizacao) OR (c.cidade ILIKE '%'||:localizacao||'%')) "
                     +
                     "AND (:especialidade IS NULL OR es.nome ILIKE '%'||:especialidade||'%') " +
@@ -79,29 +79,27 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
 
     // ── Projection queries ────────────────────────────────────────────────────
 
-    @Query(value = "SELECT DISTINCT ON (u.id) " +
-            "  u.id as \"id\", u.name as \"name\", u.email as \"email\", u.phone as \"phone\", " +
+    @Query(value = "SELECT DISTINCT ON (c.id) " +
+            "  c.id as \"id\", c.name as \"name\", c.email as \"email\", c.telefone as \"phone\", " +
             "  c.experiencia as \"experiencia\", c.cidade as \"cidade\", c.estado as \"estado\", " +
             "  c.disponibilidade as \"disponibilidade\", c.taxa_hora as \"taxaHora\", " +
             "  c.avaliacao_media as \"avaliacaoMedia\", c.total_avaliacoes as \"totalAvaliacoes\", " +
             "  c.biografia as \"biografia\", c.foto_perfil as \"fotoPerfil\", " +
-            "  u.created_at as \"createdAt\", (u.deleted_at IS NULL) as \"ativo\" " +
-            "FROM care_hub.usuario u " +
-            "JOIN care_hub.ch_cuidador c ON u.id = c.id " +
+            "  c.created_at as \"createdAt\", (c.deleted_at IS NULL) as \"ativo\" " +
+            "FROM care_hub.ch_cuidador c " +
             "LEFT JOIN care_hub.ch_cuidador_especialidade ce ON c.id = ce.cuidador_id " +
             "LEFT JOIN care_hub.ch_especialidade es ON ce.especialidade_id = es.id " +
-            "WHERE u.deleted_at IS NULL " +
-            "AND (:nome IS NULL OR u.name ILIKE '%'||:nome||'%') " +
+            "WHERE c.deleted_at IS NULL " +
+            "AND (:nome IS NULL OR c.name ILIKE '%'||:nome||'%') " +
             "AND (:localizacao IS NULL OR (c.estado = :localizacao) OR (c.cidade ILIKE '%'||:localizacao||'%')) " +
             "AND (:especialidade IS NULL OR es.nome ILIKE '%'||:especialidade||'%') " +
             "AND (:disponibilidade IS NULL OR c.disponibilidade = :disponibilidade) " +
-            "ORDER BY u.id, c.avaliacao_media DESC NULLS LAST", countQuery = "SELECT count(DISTINCT c.id) FROM care_hub.ch_cuidador c "
+            "ORDER BY c.id, c.avaliacao_media DESC NULLS LAST", countQuery = "SELECT count(DISTINCT c.id) FROM care_hub.ch_cuidador c "
                     +
-                    "JOIN care_hub.usuario u ON u.id = c.id " +
                     "LEFT JOIN care_hub.ch_cuidador_especialidade ce ON c.id = ce.cuidador_id " +
                     "LEFT JOIN care_hub.ch_especialidade es ON ce.especialidade_id = es.id " +
-                    "WHERE u.deleted_at IS NULL " +
-                    "AND (:nome IS NULL OR u.name ILIKE '%'||:nome||'%') " +
+                    "WHERE c.deleted_at IS NULL " +
+                    "AND (:nome IS NULL OR c.name ILIKE '%'||:nome||'%') " +
                     "AND (:localizacao IS NULL OR (c.estado = :localizacao) OR (c.cidade ILIKE '%'||:localizacao||'%')) "
                     +
                     "AND (:especialidade IS NULL OR es.nome ILIKE '%'||:especialidade||'%') " +

@@ -193,8 +193,6 @@ public class CuidadorService {
             cuidador.setName(dto.getNome());
         if (dto.getEmail() != null)
             cuidador.setEmail(dto.getEmail());
-        if (dto.getSenha() != null)
-            cuidador.setPassword(passwordEncoder.encode(dto.getSenha()));
         if (dto.getTelefone() != null)
             cuidador.setTelefone(dto.getTelefone());
         if (dto.getExperiencia() != null)
@@ -268,7 +266,7 @@ public class CuidadorService {
         dto.setBiografia(cuidador.getBiografia());
         dto.setFotoPerfil(cuidador.getFotoPerfil());
         dto.setAtivo(cuidador.getAtivo());
-        dto.setCriadoEm(cuidador.getCriadoEm());
+        dto.setCriadoEm(cuidador.getCreatedAt() == null ? null : cuidador.getCreatedAt().toLocalDateTime());
         return dto;
     }
 

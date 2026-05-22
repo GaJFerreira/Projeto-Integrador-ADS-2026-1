@@ -2,7 +2,6 @@ package br.pucgo.ads.projetointegrador.carehub.controller;
 
 import br.pucgo.ads.projetointegrador.carehub.dto.perfil.PerfilRequestDTO;
 import br.pucgo.ads.projetointegrador.carehub.dto.perfil.PerfilResponseDTO;
-import br.pucgo.ads.projetointegrador.carehub.entity.Usuario;
 import br.pucgo.ads.projetointegrador.carehub.service.UsuarioSyncService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,26 +21,26 @@ public class CareHubPerfilController {
 
     @GetMapping
     public ResponseEntity<PerfilResponseDTO> obterPerfil() {
-        Usuario usuario = obterESincronizarUsuarioLogado();
+        Object usuario = obterESincronizarUsuarioLogado();
         PerfilResponseDTO response = usuarioSyncService.obterPerfilCompleto(usuario);
         return ResponseEntity.ok(response);
     }
 
     @PostMapping("/completar")
     public ResponseEntity<PerfilResponseDTO> completarPerfil(@RequestBody PerfilRequestDTO requestDTO) {
-        Usuario usuario = obterESincronizarUsuarioLogado();
+        Object usuario = obterESincronizarUsuarioLogado();
         PerfilResponseDTO response = usuarioSyncService.completarOuAtualizarPerfil(usuario, requestDTO);
         return ResponseEntity.ok(response);
     }
 
     @PutMapping
     public ResponseEntity<PerfilResponseDTO> atualizarPerfil(@RequestBody PerfilRequestDTO requestDTO) {
-        Usuario usuario = obterESincronizarUsuarioLogado();
+        Object usuario = obterESincronizarUsuarioLogado();
         PerfilResponseDTO response = usuarioSyncService.completarOuAtualizarPerfil(usuario, requestDTO);
         return ResponseEntity.ok(response);
     }
 
-    private Usuario obterESincronizarUsuarioLogado() {
+    private Object obterESincronizarUsuarioLogado() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated() || authentication.getPrincipal() instanceof String) {
             throw new RuntimeException("Usuário não autenticado no contexto de segurança");

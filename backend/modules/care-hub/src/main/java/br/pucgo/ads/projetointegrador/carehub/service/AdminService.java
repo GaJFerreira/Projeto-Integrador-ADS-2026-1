@@ -4,50 +4,100 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import br.pucgo.ads.projetointegrador.carehub.entity.Usuario;
-import br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository;
+import br.pucgo.ads.projetointegrador.carehub.entity.Cuidador;
+import br.pucgo.ads.projetointegrador.carehub.entity.Cliente;
+import br.pucgo.ads.projetointegrador.carehub.entity.Administrador;
+import br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository;
+import br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository;
+import br.pucgo.ads.projetointegrador.carehub.repository.AdministradorRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 @Service
 public class AdminService {
 
     @Autowired
-    private CareHubUsuarioRepository careHubUsuarioRepository;
+    private CuidadorRepository cuidadorRepository;
+    
+    @Autowired
+    private ClienteRepository clienteRepository;
+    
+    @Autowired
+    private AdministradorRepository administradorRepository;
 
-    public List<Usuario> listarTodosUsuarios() {
-        return careHubUsuarioRepository.findAll();
+    public List<Object> listarTodosUsuarios() {
+        List<Object> all = new ArrayList<>();
+        all.addAll(cuidadorRepository.findAll());
+        all.addAll(clienteRepository.findAll());
+        all.addAll(administradorRepository.findAll());
+        return all;
     }
 
-    public Usuario buscarUsuarioPorId(Long id) {
+    public Object buscarUsuarioPorId(Long id) {
         Objects.requireNonNull(id, "id não pode ser nulo");
-        return careHubUsuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        Optional<Cuidador> oc = cuidadorRepository.findById(id);
+        if (oc.isPresent()) return oc.get();
+        Optional<Cliente> ocl = clienteRepository.findById(id);
+        if (ocl.isPresent()) return ocl.get();
+        Optional<Administrador> oa = administradorRepository.findById(id);
+        if (oa.isPresent()) return oa.get();
+        throw new RuntimeException("Usuário não encontrado");
     }
 
     @Transactional
-    public Usuario alterarStatusUsuario(Long id, Boolean ativo) {
+    public Object alterarStatusUsuario(Long id, Boolean ativo) {
         Objects.requireNonNull(id, "id não pode ser nulo");
         Objects.requireNonNull(ativo, "ativo não pode ser nulo");
-        Usuario usuario = careHubUsuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        // Use local Usuario fields: setStatus / setAtivo / setDeletedAt
-        usuario.setStatus(ativo ? "ACTIVE" : "INACTIVE");
-        usuario.setAtivo(ativo);
-        if (!ativo) {
-            usuario.setDeletedAt(java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC));
-        } else {
-            usuario.setDeletedAt(null);
+        
+        Optional<Cuidador> oc = cuidadorRepository.findById(id);
+        if (oc.isPresent()) {
+            Cuidador u = oc.get();
+            u.setStatus(ativo ? "ACTIVE" : "INACTIVE");
+            u.setAtivo(ativo);
+            u.setDeletedAt(ativo ? null : java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC));
+            return cuidadorRepository.save(u);
         }
-        return careHubUsuarioRepository.save(Objects.requireNonNull(usuario));
+        
+        Optional<Cliente> ocl = clienteRepository.findById(id);
+        if (ocl.isPresent()) {
+            Cliente u = ocl.get();
+            u.setStatus(ativo ? "ACTIVE" : "INACTIVE");
+            u.setAtivo(ativo);
+            u.setDeletedAt(ativo ? null : java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC));
+            return clienteRepository.save(u);
+        }
+        
+        Optional<Administrador> oa = administradorRepository.findById(id);
+        if (oa.isPresent()) {
+            Administrador u = oa.get();
+            u.setStatus(ativo ? "ACTIVE" : "INACTIVE");
+            u.setAtivo(ativo);
+            u.setDeletedAt(ativo ? null : java.time.OffsetDateTime.now(java.time.ZoneOffset.UTC));
+            return administradorRepository.save(u);
+        }
+        
+        throw new RuntimeException("Usuário não encontrado");
     }
 
     @Transactional
     public void deletarUsuario(Long id) {
         Objects.requireNonNull(id, "id não pode ser nulo");
-        Usuario usuario = careHubUsuarioRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-        careHubUsuarioRepository.delete(Objects.requireNonNull(usuario));
+        
+        if (cuidadorRepository.existsById(id)) {
+            cuidadorRepository.deleteById(id);
+            return;
+        }
+        if (clienteRepository.existsById(id)) {
+            clienteRepository.deleteById(id);
+            return;
+        }
+        if (administradorRepository.existsById(id)) {
+            administradorRepository.deleteById(id);
+            return;
+        }
+        throw new RuntimeException("Usuário não encontrado");
     }
 }

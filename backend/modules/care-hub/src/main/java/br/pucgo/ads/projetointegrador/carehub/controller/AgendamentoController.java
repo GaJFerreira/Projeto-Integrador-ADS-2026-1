@@ -27,18 +27,26 @@ public class AgendamentoController {
     private AgendamentoService agendamentoService;
 
     @Autowired
-    private br.pucgo.ads.projetointegrador.carehub.repository.CareHubUsuarioRepository careHubUsuarioRepository;
+    private br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository cuidadorRepository;
+
+    @Autowired
+    private br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository clienteRepository;
 
     private Long obterIdLocal(Long platformUserId) {
         if (platformUserId == null) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST, "X-User-Id/User ID é obrigatório");
         }
-        return careHubUsuarioRepository.findByPlatformUserId(platformUserId)
-                .map(br.pucgo.ads.projetointegrador.carehub.entity.Usuario::getId)
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.NOT_FOUND, 
-                        "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId));
+        
+        var c = cuidadorRepository.findByPlatformUserId(platformUserId);
+        if (c.isPresent()) return c.get().getId();
+        
+        var cli = clienteRepository.findByPlatformUserId(platformUserId);
+        if (cli.isPresent()) return cli.get().getId();
+        
+        throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND, 
+                "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId);
     }
 
     private String getUsername(Principal principal) {

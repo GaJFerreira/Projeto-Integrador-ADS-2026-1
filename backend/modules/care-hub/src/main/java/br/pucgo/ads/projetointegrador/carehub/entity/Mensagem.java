@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
  * {@code destinatarioId}), eliminando qualquer dependência de classe externa.
  *
  * <p>O {@link br.pucgo.ads.projetointegrador.carehub.service.MensagemService}
- * resolve os nomes consultando o {@code UsuarioRepository} local quando necessário
- * para montar o DTO de resposta.
+ * resolve os nomes consultando repositórios locais (ex: CuidadorRepository, ClienteRepository)
+ * quando necessário para montar o DTO de resposta.
  */
 @Entity
 @Table(name = "ch_mensagem", schema = "care_hub")
