@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+﻿import { useQuery } from '@tanstack/react-query';
 import { contarMensagensNaoLidas } from '../api/mensagens';
 import { initializeAuthToken } from '../components/auth';
 
@@ -6,23 +6,19 @@ export function useMensagensNaoLidas(usuarioId: number | undefined) {
   return useQuery({
     queryKey: ['mensagens-nao-lidas', usuarioId],
     queryFn: async () => {
-      // Tentar inicializar token automaticamente antes da requisição
-      initializeAuthToken();
-
-      // Pequeno delay para garantir que o token seja configurado
-      await new Promise(resolve => setTimeout(resolve, 100));
-
+      await initializeAuthToken();
       return contarMensagensNaoLidas();
     },
     enabled: !!usuarioId,
-    refetchInterval: 10000, // Atualiza a cada 10 segundos
-    staleTime: 5 * 60 * 1000, // 5 minutos - considera dados "frescos"
-    gcTime: 10 * 60 * 1000, // 10 minutos - mantém cache
+    refetchInterval: 30000,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 10 * 60 * 1000,
     retry: (failureCount, error: any) => {
-      // Se erro 401, tentar inicializar token novamente
+      if ((error?.status === 0 || error?.original?.code === 'ERR_NETWORK') && failureCount >= 1) {
+        return false;
+      }
       if (error?.response?.status === 401 && failureCount < 2) {
-        console.log('CareHub: Tentando re-inicializar token após erro 401');
-        initializeAuthToken();
+        void initializeAuthToken();
         return true;
       }
       return false;

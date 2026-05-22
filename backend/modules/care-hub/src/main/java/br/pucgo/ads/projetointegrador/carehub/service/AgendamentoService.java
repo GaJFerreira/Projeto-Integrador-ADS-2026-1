@@ -60,7 +60,7 @@ public class AgendamentoService {
                                 .map(Cliente::getId)
                                 .orElseGet(() -> clienteRepository.findByEmail(usernameOrEmail)
                                         .map(Cliente::getId)
-                                        .orElseThrow(() -> new RuntimeException("UsuÃ¡rio nÃ£o encontrado: " + usernameOrEmail)))));
+                                        .orElse(null))));
     }
 
     private Long getUserIdFromPrincipal(java.security.Principal principal) {
@@ -255,6 +255,72 @@ public class AgendamentoService {
             case PENDENTE:
             default:
                 throw new OperacaoNaoPermitidaException("TransiÃ§Ã£o de status nÃ£o permitida");
+        }
+
+        agendamento = agendamentoRepository.save(agendamento);
+        return toResponseDTO(agendamento);
+    }
+
+    @Transactional
+    public AgendamentoResponseDTO atualizarStatusPorPrincipalName(Long id, String status, java.security.Principal principal) {
+        Objects.requireNonNull(id, "Agendamento ID cannot be null");
+        Agendamento agendamento = agendamentoRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
+
+        if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
+            throw new OperacaoNaoPermitidaException("Operação não autorizada: usuário não autenticado");
+        }
+
+        boolean isCuidadorCaller = principalMatchesCuidador(principal, agendamento.getCuidador());
+        boolean isClienteCaller = principalMatchesCliente(principal, agendamento.getCliente());
+        Agendamento.StatusAgendamento novoStatus = Agendamento.StatusAgendamento.valueOf(status);
+
+        switch (novoStatus) {
+            case EM_ANDAMENTO:
+                if (!isCuidadorCaller) {
+                    throw new OperacaoNaoPermitidaException("Apenas o cuidador pode iniciar o atendimento");
+                }
+                validarInicioAtendimento(agendamento);
+                criarRegistroAutomatico(agendamento);
+                agendamento.setStatus(novoStatus);
+                break;
+            case CONFIRMADO:
+                if (agendamento.getStatus() == Agendamento.StatusAgendamento.REAGENDADO) {
+                    if (!isClienteCaller) {
+                        throw new OperacaoNaoPermitidaException("Apenas o cliente pode aceitar a contraproposta");
+                    }
+                    if (agendamento.getProposedDataHoraInicio() == null || agendamento.getProposedDataHoraFim() == null) {
+                        throw new RuntimeException("Não existe contraproposta pendente para este agendamento");
+                    }
+                    agendamento.setDataHoraInicio(agendamento.getProposedDataHoraInicio());
+                    agendamento.setDataHoraFim(agendamento.getProposedDataHoraFim());
+                    agendamento.setProposedDataHoraInicio(null);
+                    agendamento.setProposedDataHoraFim(null);
+                    agendamento.setStatus(Agendamento.StatusAgendamento.CONFIRMADO);
+                } else {
+                    if (!isCuidadorCaller) {
+                        throw new OperacaoNaoPermitidaException("Apenas o cuidador pode confirmar a proposta inicial");
+                    }
+                    agendamento.setStatus(Agendamento.StatusAgendamento.CONFIRMADO);
+                }
+                break;
+            case CANCELADO:
+                if (!isClienteCaller && !isCuidadorCaller) {
+                    throw new OperacaoNaoPermitidaException("Somente o cliente ou o cuidador podem cancelar este agendamento");
+                }
+                agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
+                break;
+            case CONCLUIDO:
+                if (!isCuidadorCaller) {
+                    throw new OperacaoNaoPermitidaException("Apenas o cuidador pode marcar como concluído");
+                }
+                agendamento.setStatus(Agendamento.StatusAgendamento.CONCLUIDO);
+                break;
+            case REAGENDADO:
+                throw new OperacaoNaoPermitidaException("Use o endpoint de contraproposta para propor nova data");
+            case PENDENTE:
+            default:
+                throw new OperacaoNaoPermitidaException("Transição de status não permitida");
         }
 
         agendamento = agendamentoRepository.save(agendamento);
@@ -481,6 +547,8 @@ public class AgendamentoService {
         return dto;
     }
 }
+
+
 
 
 

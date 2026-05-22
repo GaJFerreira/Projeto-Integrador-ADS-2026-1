@@ -94,8 +94,20 @@ public class AgendamentoController {
             Principal principal
     ) {
         log.info("Atualizando status do agendamento: id={}, novoStatus={} (actor={})", id, status, principal == null ? "anonymous" : principal.getName());
-
-        AgendamentoResponseDTO agendamento = agendamentoService.atualizarStatus(id, status, principal);
+        AgendamentoResponseDTO agendamento;
+        try {
+            agendamento = agendamentoService.atualizarStatus(id, status, principal);
+        } catch (RuntimeException ex) {
+            String msg = ex.getMessage() == null ? "" : ex.getMessage();
+            if (msg.toLowerCase().contains("usuário não encontrado")
+                    || msg.toLowerCase().contains("usuario nao encontrado")
+                    || msg.toLowerCase().contains("usuÃ¡rio nÃ£o encontrado")) {
+                log.warn("Fallback de atualização de status por principalName (sem ID local): actor={}", principal == null ? "anonymous" : principal.getName());
+                agendamento = agendamentoService.atualizarStatusPorPrincipalName(id, status, principal);
+            } else {
+                throw ex;
+            }
+        }
 
         log.info("Status atualizado com sucesso: id={}, status={}", id, agendamento.getStatus());
 
