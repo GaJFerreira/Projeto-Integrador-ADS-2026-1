@@ -28,7 +28,7 @@ export default function LoginPage() {
 
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1, py: { xs: 6, md: 10 } }}>
         <Grid container spacing={{ xs: 6, md: 8 }} alignItems="center">
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Stack spacing={3} sx={{ pr: { md: 4 }, maxWidth: 560, mx: { xs: 'auto', md: 0 }, textAlign: { xs: 'center', md: 'left' } }}>
               <Box
                 component="img"
@@ -56,7 +56,7 @@ export default function LoginPage() {
             </Stack>
           </Grid>
 
-          <Grid item xs={12} md={6}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Box sx={{ maxWidth: 460, ml: { md: 'auto' }, mx: { xs: 'auto', md: 'inherit' } }}>
               <LoginForm />
             </Box>

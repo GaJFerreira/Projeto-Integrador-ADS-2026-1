@@ -25,6 +25,7 @@ import {
 import { PageHeader } from '../components/PageHeader';
 import http from '../libHttp';
 import { getUserId, isCuidador as isRoleCuidador, checkAndCacheUserType } from '../components/auth';
+import { parseDate, formatDate } from '../utils/dateUtils';
 
 interface Prontuario {
   id: number;
@@ -124,8 +125,9 @@ export function ProntuariosClientesPage() {
   };
 
   const calcularIdade = (dataNascimento: string) => {
+    const nascimento = parseDate(dataNascimento);
+    if (!nascimento) return 0;
     const hoje = new Date();
-    const nascimento = new Date(dataNascimento);
     let idade = hoje.getFullYear() - nascimento.getFullYear();
     const mesAtual = hoje.getMonth();
     const mesNascimento = nascimento.getMonth();
@@ -138,8 +140,7 @@ export function ProntuariosClientesPage() {
   };
 
   const formatarData = (dataISO: string) => {
-    const data = new Date(dataISO);
-    return data.toLocaleDateString('pt-BR');
+    return formatDate(dataISO);
   };
 
   // Verificar autorização após checagem inicial

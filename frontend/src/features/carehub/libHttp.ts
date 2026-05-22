@@ -7,9 +7,7 @@ const http = axios.create({
 });
 
 let token: string | null = null;
-let devUserId: number | string | null = null; // usado em desenvolvimento para simular usuário
 export function setAuthToken(t: string | null) { token = t; }
-export function setDevUserId(id: number | string | null) { devUserId = id; }
 
 // Auto-inicializa token a partir do localStorage para garantir que o
 // interceptor envie o Authorization mesmo quando a página atual não
@@ -43,21 +41,11 @@ try {
 
 http.interceptors.request.use((config) => {
   if (token) {
-    config.headers = config.headers || {};
-    (config.headers as any)['Authorization'] = `Bearer ${token}`;
+    config.headers = { ...config.headers, Authorization: `Bearer ${token}` } as any;
     // Indica que Authorization foi adicionado sem expor o token em logs
     console.debug('CareHub: Authorization header set for', config.url);
   } else {
     console.debug('CareHub: Nenhum token disponível para requisição:', config.url);
-  }
-  // Adiciona X-User-Id automaticamente quando definido (modo dev)
-  if (devUserId) {
-    config.headers = config.headers || {};
-    // Não sobrescreve se já foi especificado manualmente
-    if (!(config.headers as any)['X-User-Id']) {
-      (config.headers as any)['X-User-Id'] = String(devUserId);
-      console.debug('CareHub: Injetando X-User-Id (dev) na requisição', config.url);
-    }
   }
   return config;
 });
@@ -100,3 +88,4 @@ http.interceptors.response.use(
 );
 
 export default http;
+

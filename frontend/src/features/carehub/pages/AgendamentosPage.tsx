@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from '../libSnackbar';
 import { PageHeader } from '../components/PageHeader';
 import dayjs from 'dayjs';
+import { parseDate } from '../utils/dateUtils';
 import { CalendarMonth, Schedule, CheckCircle, Cancel, AccessTime, Person, LocationOn } from '@mui/icons-material';
 
 import { getUserId, isCuidador as isRoleCuidador, checkAndCacheUserType } from '../components/auth';
@@ -118,8 +119,8 @@ export default function AgendamentosPage() {
     }
 
     // ✅ Usar formato local sem conversão para UTC
-    const dataInicio = dInicio.format('YYYY-MM-DDTHH:mm:ss');
-    const dataFim = dFim.format('YYYY-MM-DDTHH:mm:ss');
+    const dataInicio = dInicio.toDate().toISOString();
+    const dataFim = dFim.toDate().toISOString();
 
     criarMutation.mutate({ 
       clienteId, 
@@ -316,7 +317,8 @@ export default function AgendamentosPage() {
           .filter((a) => {
             // Filtro por data
             if (filtroData) {
-              const dataAgendamento = dayjs(a.dataHoraInicio).format('YYYY-MM-DD');
+              const dataInicio = parseDate(a.dataHoraInicio);
+              const dataAgendamento = dataInicio ? dayjs(dataInicio).format('YYYY-MM-DD') : '';
               if (dataAgendamento !== filtroData) return false;
             }
             
@@ -333,8 +335,12 @@ export default function AgendamentosPage() {
             return true;
           })
           .map((a) => {
-          const isPast = dayjs(a.dataHoraFim).isBefore(dayjs());
-          const isNow = dayjs().isAfter(dayjs(a.dataHoraInicio)) && dayjs().isBefore(dayjs(a.dataHoraFim));
+          const dataInicio = parseDate(a.dataHoraInicio);
+          const dataFim = parseDate(a.dataHoraFim);
+          const isPast = dataFim ? dayjs(dataFim).isBefore(dayjs()) : false;
+          const isNow = dataInicio && dataFim
+            ? dayjs().isAfter(dayjs(dataInicio)) && dayjs().isBefore(dayjs(dataFim))
+            : false;
           
           return (
             <Card 
@@ -437,17 +443,25 @@ export default function AgendamentosPage() {
                   <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
                     <Chip 
                       icon={<CalendarMonth fontSize="small" />}
-                      label={dayjs(a.dataHoraInicio).format('DD/MM/YYYY')}
+                      label={dataInicio ? dayjs(dataInicio).format('DD/MM/YYYY') : '-'}
                       size="small"
                       variant="outlined"
                       sx={{ fontWeight: 'medium' }}
                     />
-                    <Typography variant="body2" fontWeight="bold">
-                      {dayjs(a.dataHoraInicio).format('HH:mm')} → {dayjs(a.dataHoraFim).format('HH:mm')}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      ({dayjs(a.dataHoraFim).diff(dayjs(a.dataHoraInicio), 'hour')}h)
-                    </Typography>
+                    {dataInicio && dataFim ? (
+                      <>
+                        <Typography variant="body2" fontWeight="bold">
+                          {dayjs(dataInicio).format('HH:mm')} → {dayjs(dataFim).format('HH:mm')}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          ({dayjs(dataFim).diff(dayjs(dataInicio), 'hour')}h)
+                        </Typography>
+                      </>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        Horário não informado
+                      </Typography>
+                    )}
                   </Stack>
                 </Paper>
                 

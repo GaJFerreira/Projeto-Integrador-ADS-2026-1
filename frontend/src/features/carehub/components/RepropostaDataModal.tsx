@@ -14,6 +14,7 @@ import { CalendarMonth } from '@mui/icons-material';
 import dayjs from 'dayjs';
 import http from '../libHttp';
 import { useSnackbar } from '../libSnackbar';
+import { parseDate } from '../utils/dateUtils';
 
 interface RepropostaDataModalProps {
   open: boolean;
@@ -33,11 +34,12 @@ export function RepropostaDataModal({
   onSuccess,
 }: RepropostaDataModalProps) {
   const { enqueueSnackbar } = useSnackbar();
+  const baseDate = parseDate(dataOriginal) ? dayjs(parseDate(dataOriginal)!) : dayjs();
   const [novaInicio, setNovaInicio] = useState<string>(
-    dayjs(dataOriginal).add(1, 'day').hour(9).minute(0).format('YYYY-MM-DDTHH:mm')
+    baseDate.add(1, 'day').hour(9).minute(0).format('YYYY-MM-DDTHH:mm')
   );
   const [novaFim, setNovaFim] = useState<string>(
-    dayjs(dataOriginal).add(1, 'day').hour(11).minute(0).format('YYYY-MM-DDTHH:mm')
+    baseDate.add(1, 'day').hour(11).minute(0).format('YYYY-MM-DDTHH:mm')
   );
   const [loading, setLoading] = useState(false);
 
@@ -62,8 +64,8 @@ export function RepropostaDataModal({
       await http.post(
         `/api/carehub/agendamentos/${agendamentoId}/contraproposta`,
         {
-          dataHoraInicio: dInicio.format('YYYY-MM-DDTHH:mm:ss'),
-          dataHoraFim: dFim.format('YYYY-MM-DDTHH:mm:ss'),
+          dataHoraInicio: dInicio.toDate().toISOString(),
+          dataHoraFim: dFim.toDate().toISOString(),
         }
       );
 
@@ -92,7 +94,10 @@ export function RepropostaDataModal({
               <strong>Cliente:</strong> {clienteNome}
             </Typography>
             <Typography variant="body2">
-              <strong>Data Original:</strong> {dayjs(dataOriginal).format('DD/MM/YYYY HH:mm')}
+              <strong>Data Original:</strong> {(() => {
+                const d = parseDate(dataOriginal);
+                return d ? dayjs(d).format('DD/MM/YYYY HH:mm') : '-';
+              })()}
             </Typography>
           </Alert>
 

@@ -9,6 +9,7 @@ import dayjs from 'dayjs';
 import { agendamentosApi } from '../api';
 import { AvaliacaoModal } from '../components/AvaliacaoModal';
 import { useNavigate } from 'react-router-dom';
+import { parseDate } from '../utils/dateUtils';
 
 export default function CareHubHomePage() {
   const navigate = useNavigate();
@@ -112,6 +113,11 @@ export default function CareHubHomePage() {
     } catch (error) {
       alert('Erro ao recusar reproposta');
     }
+  };
+
+  const formatarSeguro = (value?: string, pattern = 'DD/MM/YYYY HH:mm', fallback = 'Data não informada') => {
+    const d = parseDate(value);
+    return d ? dayjs(d).format(pattern) : fallback;
   };
 
   return (
@@ -287,10 +293,10 @@ export default function CareHubHomePage() {
                         Cuidador: {ag.cuidadorNome}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through', fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                        Original: {dayjs(ag.dataHoraInicio).format('DD/MM HH:mm')}
+                        Original: {formatarSeguro(ag.dataHoraInicio, 'DD/MM HH:mm')}
                       </Typography>
                       <Typography variant="body1" fontWeight={600} color="primary" sx={{ mt: 1, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
-                        Nova: {dayjs(ag.proposedDataHoraInicio).format('DD/MM HH:mm')}
+                        Nova: {formatarSeguro(ag.proposedDataHoraInicio, 'DD/MM HH:mm')}
                       </Typography>
                       {ag.tipoAtendimento && (
                         <Chip label={ag.tipoAtendimento} size="small" sx={{ mt: 1 }} />
@@ -372,7 +378,7 @@ export default function CareHubHomePage() {
                         {ag.cuidadorNome}
                       </Typography>
                       <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.8rem', sm: '0.875rem' } }}>
-                        Concluído em {dayjs(ag.dataHoraFim).format('DD/MM/YYYY [às] HH:mm')}
+                        Concluído em {formatarSeguro(ag.dataHoraFim || ag.dataHoraInicio || ag.dataSolicitacao, 'DD/MM/YYYY [às] HH:mm')}
                       </Typography>
                       {ag.tipoAtendimento && (
                         <Chip

@@ -110,45 +110,32 @@ export const prontuariosApi = {
 };
 
 export const mensagensApi = {
-  enviar: async (remetenteId: number, dto: MensagemRequestDTO): Promise<MensagemResponseDTO> => {
-    const { data } = await http.post('/api/carehub/mensagens', dto, {
-      headers: { 'X-User-Id': String(remetenteId) },
-    });
+  enviar: async (dto: MensagemRequestDTO): Promise<MensagemResponseDTO> => {
+    const { data } = await http.post('/api/carehub/mensagens', dto);
     return data;
   },
-  uploadMedia: async (remetenteId: number, destinatarioId: number, file: File): Promise<MensagemResponseDTO> => {
+  uploadMedia: async (destinatarioId: number, file: File): Promise<MensagemResponseDTO> => {
     const form = new FormData();
     form.append('file', file, file.name);
     form.append('destinatarioId', String(destinatarioId));
-    const { data } = await http.post('/api/carehub/mensagens/media', form, {
-      // Não setar Content-Type manualmente para multipart/form-data; axios
-      // define o boundary automaticamente.
-      headers: { 'X-User-Id': String(remetenteId) },
-    });
+    const { data } = await http.post('/api/carehub/mensagens/media', form);
     return data;
   },
-  conversa: async (autenticadoId: number, usuarioId: number): Promise<MensagemResponseDTO[]> => {
-    const { data } = await http.get(`/api/carehub/mensagens/conversa/${usuarioId}`, {
-      headers: { 'X-User-Id': String(autenticadoId) },
-    });
+  conversa: async (usuarioId: number): Promise<MensagemResponseDTO[]> => {
+    const { data } = await http.get(`/api/carehub/mensagens/conversa/${usuarioId}`);
     return data;
   },
-  naoLidas: async (destinatarioId: number): Promise<MensagemResponseDTO[]> => {
-    const { data } = await http.get('/api/carehub/mensagens/nao-lidas', {
-      headers: { 'X-User-Id': String(destinatarioId) },
-    });
+  naoLidas: async (): Promise<MensagemResponseDTO[]> => {
+    const { data } = await http.get('/api/carehub/mensagens/nao-lidas');
     return data;
   },
   marcarComoLida: async (id: number): Promise<void> => {
     await http.put(`/api/carehub/mensagens/${id}/lida`);
   },
 };
-
 export const avaliacoesApi = {
-  criar: async (clienteId: number, dto: AvaliacaoRequestDTO): Promise<AvaliacaoResponseDTO> => {
-    const { data } = await http.post('/api/carehub/avaliacoes', dto, {
-      headers: { 'X-User-Id': String(clienteId) },
-    });
+  criar: async (dto: AvaliacaoRequestDTO): Promise<AvaliacaoResponseDTO> => {
+    const { data } = await http.post('/api/carehub/avaliacoes', dto);
     return data;
   },
   porCuidador: async (cuidadorId: number): Promise<AvaliacaoResponseDTO[]> => {
@@ -159,3 +146,4 @@ export const avaliacoesApi = {
     await http.delete(`/api/carehub/avaliacoes/${id}`);
   },
 };
+

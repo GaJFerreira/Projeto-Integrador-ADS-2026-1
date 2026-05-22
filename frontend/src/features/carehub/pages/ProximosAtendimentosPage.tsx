@@ -23,6 +23,7 @@ import http from '../libHttp';
 import { getUserId } from '../components/auth';
 import { PageHeader } from '../components/PageHeader';
 import { AvaliacaoModal } from '../components/AvaliacaoModal';
+import { parseDate } from '../utils/dateUtils';
 
 interface Agendamento {
   id: number;
@@ -52,7 +53,7 @@ export function ProximosAtendimentosPage() {
     queryKey: ['proximos-atendimentos', userId],
     queryFn: async () => {
       // Este endpoint usa Principal no backend (autenticação JWT).
-      // Não enviar 'X-User-Id' aqui para manter comportamento de produção.
+      // Autenticacao apenas por token JWT (Authorization via interceptor).
       const response = await http.get<Agendamento[]>('/api/carehub/agendamentos/proximos', {
         params: { dias: 7 },
       });
@@ -91,7 +92,8 @@ export function ProximosAtendimentosPage() {
 
   // Função para formatar data sem biblioteca externa
   const formatarData = (dataString: string) => {
-    const data = new Date(dataString);
+    const data = parseDate(dataString);
+    if (!data) return '-';
     const diasSemana = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
     const meses = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 
                    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
@@ -106,7 +108,8 @@ export function ProximosAtendimentosPage() {
   };
 
   const formatarDataCurta = (dataString: string) => {
-    const data = new Date(dataString);
+    const data = parseDate(dataString);
+    if (!data) return '-';
     const dia = data.getDate().toString().padStart(2, '0');
     const mes = (data.getMonth() + 1).toString().padStart(2, '0');
     const ano = data.getFullYear();
@@ -121,7 +124,8 @@ export function ProximosAtendimentosPage() {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0); // Zera o horário para comparar só a data
     
-    const dataAgendamento = new Date(dataString);
+    const dataAgendamento = parseDate(dataString);
+    if (!dataAgendamento) return 'Data inválida';
     dataAgendamento.setHours(0, 0, 0, 0); // Zera o horário para comparar só a data
     
     const diferencaMs = dataAgendamento.getTime() - hoje.getTime();

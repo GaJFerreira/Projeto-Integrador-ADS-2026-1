@@ -31,6 +31,7 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
     boolean existsByUsername(String username);
 
     Optional<Cuidador> findByUsername(String username);
+    Optional<Cuidador> findByEmail(String email);
 
     Optional<Cuidador> findByPlatformUserId(Long platformUserId);
 

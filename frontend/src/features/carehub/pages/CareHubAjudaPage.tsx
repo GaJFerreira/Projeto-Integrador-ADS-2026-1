@@ -27,7 +27,7 @@ export default function CareHubAjudaPage() {
                 Selecione o seu perfil para ver as orientações:
               </Typography>
               <Grid container spacing={4} justifyContent="center">
-                <Grid item xs={12} sm={5}>
+                <Grid size={{ xs: 12, sm: 5 }}>
                   <Button
                     fullWidth
                     variant="outlined"
@@ -50,7 +50,7 @@ export default function CareHubAjudaPage() {
                     </Typography>
                   </Button>
                 </Grid>
-                <Grid item xs={12} sm={5}>
+                <Grid size={{ xs: 12, sm: 5 }}>
                   <Button
                     fullWidth
                     variant="outlined"
@@ -105,7 +105,7 @@ export default function CareHubAjudaPage() {
               </Box>
 
               <Grid container spacing={3}>
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderLeft: '6px solid', borderColor: 'primary.main', bgcolor: 'primary.50' }}>
                     <Typography variant="h6" color="primary.dark" fontWeight="bold" gutterBottom>
                       1. Como marcar um atendimento
@@ -116,7 +116,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, height: '100%', borderColor: 'grey.300' }}>
                     <Typography variant="h6" color="primary.main" fontWeight="bold" gutterBottom>
                       2. Seus próximos compromissos
@@ -127,7 +127,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, height: '100%', borderColor: 'grey.300' }}>
                     <Typography variant="h6" color="primary.main" fontWeight="bold" gutterBottom>
                       3. Consultar agendamentos
@@ -138,7 +138,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: 'grey.300' }}>
                     <Typography variant="h6" color="primary.main" fontWeight="bold" gutterBottom>
                       4. Detalhes das visitas passadas
@@ -149,7 +149,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: 'grey.300', bgcolor: 'secondary.50' }}>
                     <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>
                       5. Conversar com o cuidador
@@ -191,7 +191,7 @@ export default function CareHubAjudaPage() {
               </Box>
 
               <Grid container spacing={3}>
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, height: '100%', borderColor: 'grey.300' }}>
                     <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>
                       1. Agenda da semana
@@ -202,7 +202,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, height: '100%', borderColor: 'grey.300' }}>
                     <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>
                       2. Gestão de serviços
@@ -213,7 +213,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderLeft: '6px solid', borderColor: 'secondary.main', bgcolor: 'secondary.50' }}>
                     <Typography variant="h6" color="secondary.dark" fontWeight="bold" gutterBottom>
                       3. Prontuários e Saúde
@@ -224,7 +224,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, height: '100%', borderColor: 'grey.300' }}>
                     <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>
                       4. Registrar acompanhamento
@@ -235,7 +235,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, height: '100%', borderColor: 'grey.300' }}>
                     <Typography variant="h6" color="secondary.main" fontWeight="bold" gutterBottom>
                       5. Histórico de registros
@@ -246,7 +246,7 @@ export default function CareHubAjudaPage() {
                   </Paper>
                 </Grid>
 
-                <Grid item xs={12}>
+                <Grid size={{ xs: 12 }}>
                   <Paper variant="outlined" sx={{ p: 3, borderRadius: 3, borderColor: 'grey.300', bgcolor: 'primary.50' }}>
                     <Typography variant="h6" color="primary.main" fontWeight="bold" gutterBottom>
                       6. Conversar com o paciente

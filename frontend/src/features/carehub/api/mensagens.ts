@@ -10,26 +10,20 @@ export interface ContatoDTO {
   dataUltimaMensagem?: string; // Data/hora da última mensagem
 }
 
-export async function contarMensagensNaoLidas(usuarioId: number): Promise<number> {
+export async function contarMensagensNaoLidas(): Promise<number> {
   try {
-    const response = await http.get<number>('/api/carehub/mensagens/contador-nao-lidas', {
-      headers: { 'X-User-Id': String(usuarioId) },
-    });
+    const response = await http.get<number>('/api/carehub/mensagens/contador-nao-lidas');
     return typeof response.data === 'number' ? response.data : 0;
   } catch {
     return 0;
   }
 }
 
-export async function listarContatos(usuarioId: number): Promise<ContatoDTO[]> {
-  const response = await http.get<ContatoDTO[]>('/api/carehub/mensagens/contatos', {
-    headers: { 'X-User-Id': String(usuarioId) },
-  });
+export async function listarContatos(): Promise<ContatoDTO[]> {
+  const response = await http.get<ContatoDTO[]>('/api/carehub/mensagens/contatos');
   return response.data;
 }
 
-export async function marcarConversaComoLida(usuarioId: number, remetenteId: number): Promise<void> {
-  await http.put(`/api/carehub/mensagens/marcar-lidas/${remetenteId}`, null, {
-    headers: { 'X-User-Id': String(usuarioId) },
-  });
+export async function marcarConversaComoLida(remetenteId: number): Promise<void> {
+  await http.put(`/api/carehub/mensagens/marcar-lidas/${remetenteId}`);
 }

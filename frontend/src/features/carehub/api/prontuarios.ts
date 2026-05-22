@@ -12,11 +12,9 @@ export interface ProntuarioResponse {
   dataAtualizacao: string;
 }
 
-export async function verificarPodeEditar(clienteId: number, cuidadorId: number): Promise<boolean> {
+export async function verificarPodeEditar(clienteId: number): Promise<boolean> {
   try {
-    const response = await http.get<boolean>(`/api/carehub/prontuarios/pode-editar/${clienteId}`, {
-      headers: { 'X-User-Id': String(cuidadorId) },
-    });
+    const response = await http.get<boolean>(`/api/carehub/prontuarios/pode-editar/${clienteId}`);
     return response.data;
   } catch (error) {
     console.error('Erro ao verificar permissão de edição:', error);

@@ -31,6 +31,7 @@ import 'dayjs/locale/pt-br';
 import { Chat, Send, Person, Search, FilterList, Close, PlayArrow, Pause } from '@mui/icons-material';
 import { Mic } from '@mui/icons-material';
 import { getUserId, isCuidador, checkAndCacheUserType } from '../components/auth';
+import { parseDate } from '../utils/dateUtils';
 
 // Configurar dayjs para mostrar tempo relativo em português
 dayjs.extend(relativeTime);
@@ -74,7 +75,7 @@ export default function ChatPage() {
   // Busca lista de contatos (pessoas com quem já trocou mensagens)
   const { data: contatos = [], isLoading: loadingContatos } = useQuery({
     queryKey: ['contatos', userId],
-    queryFn: () => listarContatos(userId!),
+    queryFn: () => listarContatos(),
     enabled: !!userId,
     refetchInterval: 10000, // Atualiza a cada 10 segundos
   });
@@ -84,11 +85,11 @@ export default function ChatPage() {
     queryKey: ['mensagens', userId, contatoSelecionado],
     queryFn: async () => {
       if (!userId || !contatoSelecionado) return [];
-      const mensagens = await mensagensApi.conversa(userId, contatoSelecionado);
+      const mensagens = await mensagensApi.conversa(contatoSelecionado);
       
       // Marca mensagens como lidas quando abre a conversa
       if (mensagens.length > 0) {
-        await marcarConversaComoLida(userId, contatoSelecionado);
+        await marcarConversaComoLida(contatoSelecionado);
         // Invalida o contador de não lidas para atualizar o badge
         queryClient.invalidateQueries({ queryKey: ['mensagens-nao-lidas', userId] });
       }
@@ -103,7 +104,7 @@ export default function ChatPage() {
   const [mediaObjectUrls, setMediaObjectUrls] = useState<Record<number, string>>({});
   const mediaObjectUrlsRef = useRef<Record<number, string>>({});
 
-  // Fetch media blobs for messages that contain mediaUrl, using X-User-Id header so server can authorize
+  // Fetch media blobs for messages that contain mediaUrl, using Authorization header via interceptor
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -112,10 +113,7 @@ export default function ChatPage() {
         if (m.mediaUrl && !mediaObjectUrlsRef.current[m.id]) {
           try {
             // usar axios/http para garantir Authorization header via interceptor
-            const res = await http.get(m.mediaUrl, {
-              responseType: 'blob',
-              headers: { 'X-User-Id': String(userId) },
-            });
+            const res = await http.get(m.mediaUrl, { responseType: 'blob' });
             const blob = res.data as Blob;
             const url = URL.createObjectURL(blob);
             if (cancelled) {
@@ -323,7 +321,7 @@ export default function ChatPage() {
   const enviarMutation = useMutation({
     mutationFn: () => {
       if (!userId || !contatoSelecionado || !texto) throw new Error('Dados incompletos');
-      return mensagensApi.enviar(userId, { destinatarioId: contatoSelecionado, conteudo: texto });
+      return mensagensApi.enviar({ destinatarioId: contatoSelecionado, conteudo: texto });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mensagens', userId, contatoSelecionado] });
@@ -349,7 +347,7 @@ export default function ChatPage() {
   const handleFileUpload = async (file?: File) => {
     if (!userId || !contatoSelecionado || !file) return;
     try {
-      return await mensagensApi.uploadMedia(userId, contatoSelecionado, file);
+      return await mensagensApi.uploadMedia(contatoSelecionado, file);
     } catch (err: any) {
       enqueueSnackbar(err?.message || 'Erro ao enviar mídia', { variant: 'error' });
       throw err;
@@ -490,7 +488,7 @@ export default function ChatPage() {
   // Combine server messages with optimistic local messages and sort by date
   const displayMessages = [...(msgs || []), ...optimisticMessages]
     .slice()
-    .sort((a, b) => new Date(a.dataEnvio).getTime() - new Date(b.dataEnvio).getTime());
+    .sort((a, b) => (parseDate(a.dataEnvio)?.getTime() ?? 0) - (parseDate(b.dataEnvio)?.getTime() ?? 0));
 
   return (
     <Stack gap={{ xs: 1.5, sm: 2, md: 3 }} sx={{ p: { xs: 1, sm: 1.5, md: 2 }, height: '100%' }}>
@@ -630,7 +628,10 @@ export default function ChatPage() {
                               color="text.secondary"
                               sx={{ ml: 1, whiteSpace: 'nowrap' }}
                             >
-                              {dayjs(contato.dataUltimaMensagem).fromNow()}
+                              {(() => {
+                                const d = parseDate(contato.dataUltimaMensagem);
+                                return d ? dayjs(d).fromNow() : '-';
+                              })()}
                             </Typography>
                           )}
                         </Box>
@@ -853,7 +854,10 @@ export default function ChatPage() {
                                 fontSize: 10
                               }}
                             >
-                              {dayjs(m.dataEnvio).format('DD/MM HH:mm')}
+                              {(() => {
+                                const d = parseDate(m.dataEnvio);
+                                return d ? dayjs(d).format('DD/MM HH:mm') : 'Data não informada';
+                              })()}
                             </Typography>
                           </Box>
                         </Paper>

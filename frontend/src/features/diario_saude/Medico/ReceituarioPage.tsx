@@ -72,7 +72,7 @@ export default function ReceituarioPage() {
 
   const addMedicamentoMutation = useMutation({
     mutationFn: (med: Medicamento) =>
-      prescricaoMedicamentoApi.adicionar(prescricaoExistente.id_prescricao, med),
+      prescricaoMedicamentoApi.adicionar(prescricaoExistente.id_prescricao, med as any),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["prescricao", prescricaoExistente.id_prescricao] }),
   });
 
@@ -254,12 +254,12 @@ export default function ReceituarioPage() {
           <Stack spacing={2} mt={2}>
             <Autocomplete
               options={listaMedicamentos}
-              getOptionLabel={(option) => option.nome}
+              getOptionLabel={(option: any) => option.nome || ""}
               onChange={(_, newValue) => {
                 if (newValue) setForm({
                   ...form,
-                  nome: newValue.nome,
-                  principio_ativo: newValue.principio_ativo,
+                  nome: newValue.nome || "",
+                  principio_ativo: newValue.principio_ativo || "",
                   id_medicamento: newValue.id_medicamento,
                 });
               }}

@@ -77,7 +77,7 @@ export function AvaliacaoModal({ open, onClose, cuidadorId, cuidadorNome, client
   const agendamentoId = initialAgendamentoId || null;
 
   const mutation = useMutation({
-    mutationFn: (avaliacao: AvaliacaoRequest) => criarAvaliacao(clienteId, avaliacao),
+    mutationFn: (avaliacao: AvaliacaoRequest) => criarAvaliacao(avaliacao),
     onSuccess: () => {
       enqueueSnackbar('✨ Avaliação enviada com sucesso! Obrigado pelo seu feedback.', { variant: 'success' });
       queryClient.invalidateQueries({ queryKey: ['avaliacoes', cuidadorId] });

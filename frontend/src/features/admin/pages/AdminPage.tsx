@@ -16,7 +16,7 @@ export default function AdminPage() {
       </Box>
 
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <AdminModuleCard
             title="Usuarios"
             description="Gerenciar usuarios do sistema"
@@ -24,7 +24,7 @@ export default function AdminPage() {
             icon={<GroupIcon color="primary" fontSize="large" />}
           />
         </Grid>
-        <Grid item xs={12} sm={6} md={4}>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <AdminModuleCard
             title="Permissoes"
             description="Listar permissoes cadastradas"

@@ -12,7 +12,7 @@ import br.pucgo.ads.projetointegrador.carehub.dto.agendamento.AgendamentoRespons
 import br.pucgo.ads.projetointegrador.carehub.service.AgendamentoService;
 
 import java.security.Principal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +35,7 @@ public class AgendamentoController {
     private Long obterIdLocal(Long platformUserId) {
         if (platformUserId == null) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "X-User-Id/User ID é obrigatório");
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "User ID é obrigatório");
         }
         
         var c = cuidadorRepository.findByPlatformUserId(platformUserId);
@@ -46,13 +46,24 @@ public class AgendamentoController {
         
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND, 
-                "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId);
+                "UsuÃ¡rio local do CareHub nÃ£o encontrado para o platformUserId: " + platformUserId);
+    }
+
+    private Long obterIdLocalOuNull(Long platformUserId) {
+        try {
+            return obterIdLocal(platformUserId);
+        } catch (org.springframework.web.server.ResponseStatusException ex) {
+            if (ex.getStatusCode() == org.springframework.http.HttpStatus.NOT_FOUND) {
+                return null;
+            }
+            throw ex;
+        }
     }
 
     private String getUsername(Principal principal) {
         if (principal == null) {
             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
+                org.springframework.http.HttpStatus.UNAUTHORIZED, "UsuÃ¡rio nÃ£o autenticado");
         }
         return principal.getName();
     }
@@ -104,14 +115,20 @@ public class AgendamentoController {
 
     @GetMapping("/cuidador/{cuidadorId}")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarPorCuidador(@PathVariable Long cuidadorId) {
-        Long localCuidadorId = obterIdLocal(cuidadorId);
+        Long localCuidadorId = obterIdLocalOuNull(cuidadorId);
+        if (localCuidadorId == null) {
+            return ResponseEntity.ok(List.of());
+        }
         List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCuidador(localCuidadorId);
         return ResponseEntity.ok(agendamentos);
     }
 
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarPorCliente(@PathVariable Long clienteId) {
-        Long localClienteId = obterIdLocal(clienteId);
+        Long localClienteId = obterIdLocalOuNull(clienteId);
+        if (localClienteId == null) {
+            return ResponseEntity.ok(List.of());
+        }
         List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCliente(localClienteId);
         return ResponseEntity.ok(agendamentos);
     }
@@ -125,10 +142,13 @@ public class AgendamentoController {
     @GetMapping("/cuidador/{cuidadorId}/periodo")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarPorCuidadorEPeriodo(
             @PathVariable Long cuidadorId,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime inicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime inicio,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fim
     ) {
-        Long localCuidadorId = obterIdLocal(cuidadorId);
+        Long localCuidadorId = obterIdLocalOuNull(cuidadorId);
+        if (localCuidadorId == null) {
+            return ResponseEntity.ok(List.of());
+        }
         List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCuidadorEPeriodo(localCuidadorId, inicio, fim);
         return ResponseEntity.ok(agendamentos);
     }
@@ -137,7 +157,7 @@ public class AgendamentoController {
         try {
             return agendamentoService.getUserIdByUsernameOrEmail(usernameOrEmail);
         } catch (Exception e) {
-            log.warn("Usuário não cadastrado no módulo CareHub (pode ser admin): {}", usernameOrEmail);
+            log.warn("UsuÃ¡rio nÃ£o cadastrado no mÃ³dulo CareHub (pode ser admin): {}", usernameOrEmail);
             return null;
         }
     }
@@ -147,7 +167,7 @@ public class AgendamentoController {
             Principal principal,
             @RequestParam(defaultValue = "7") int dias
     ) {
-        // Principal.getName() retorna email ou username, não o ID
+        // Principal.getName() retorna email ou username, nÃ£o o ID
         String usernameOrEmail = getUsername(principal);
         Long userId = obterUserIdSeguro(usernameOrEmail);
         List<AgendamentoResponseDTO> agendamentos = List.of();
@@ -180,8 +200,8 @@ public class AgendamentoController {
     }
 
     /**
-     * Retorna os agendamentos concluídos que ainda não foram avaliados (estilo Uber/99).
-     * Usado para mostrar notificação de avaliação pendente.
+     * Retorna os agendamentos concluÃ­dos que ainda nÃ£o foram avaliados (estilo Uber/99).
+     * Usado para mostrar notificaÃ§Ã£o de avaliaÃ§Ã£o pendente.
      */
     @GetMapping("/avaliacoes-pendentes")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarAvaliacoesPendentes(
@@ -189,20 +209,20 @@ public class AgendamentoController {
     ) {
         String usernameOrEmail = getUsername(principal);
         Long clienteId = obterUserIdSeguro(usernameOrEmail);
-        log.info("Listando avaliações pendentes: clienteId={}", clienteId);
+        log.info("Listando avaliaÃ§Ãµes pendentes: clienteId={}", clienteId);
         
         List<AgendamentoResponseDTO> pendentes = List.of();
         if (clienteId != null) {
             pendentes = agendamentoService.listarAvaliacoesPendentes(clienteId);
         }
-        log.info("Avaliações pendentes encontradas: {}", pendentes.size());
+        log.info("AvaliaÃ§Ãµes pendentes encontradas: {}", pendentes.size());
         
         return ResponseEntity.ok(pendentes);
     }
 
     /**
-     * Conta quantos atendimentos concluídos estão pendentes de avaliação.
-     * Usado para badge de notificação.
+     * Conta quantos atendimentos concluÃ­dos estÃ£o pendentes de avaliaÃ§Ã£o.
+     * Usado para badge de notificaÃ§Ã£o.
      */
     @GetMapping("/avaliacoes-pendentes/count")
     public ResponseEntity<Map<String, Long>> contarAvaliacoesPendentes(
@@ -220,8 +240,8 @@ public class AgendamentoController {
     }
 
     /**
-     * Conta agendamentos PENDENTES aguardando confirmação do cuidador.
-     * Usado para badge de notificação no grid de módulos.
+     * Conta agendamentos PENDENTES aguardando confirmaÃ§Ã£o do cuidador.
+     * Usado para badge de notificaÃ§Ã£o no grid de mÃ³dulos.
      */
     @GetMapping("/pendentes-cuidador/count")
     public ResponseEntity<Map<String, Long>> contarPendentesCuidador(Principal principal) {
@@ -239,7 +259,7 @@ public class AgendamentoController {
 
     /**
      * Conta agendamentos REAGENDADOS (contrapropostas) aguardando resposta do cliente.
-     * Usado para badge de notificação no grid de módulos.
+     * Usado para badge de notificaÃ§Ã£o no grid de mÃ³dulos.
      */
     @GetMapping("/reagendados-cliente/count")
     public ResponseEntity<Map<String, Long>> contarReagendadosCliente(Principal principal) {
@@ -255,3 +275,4 @@ public class AgendamentoController {
         return ResponseEntity.ok(Map.of("count", count));
     }
 }
+

@@ -9,6 +9,7 @@ import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
+import java.security.Principal;
 import java.util.Map;
 import java.util.List;
 
@@ -37,17 +38,43 @@ public class MensagemController {
     private Long obterIdLocal(Long platformUserId) {
         if (platformUserId == null) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "X-User-Id header é obrigatório");
+                    org.springframework.http.HttpStatus.BAD_REQUEST, "ID de usuario e obrigatorio");
         }
+
         var c = cuidadorRepository.findByPlatformUserId(platformUserId);
         if (c.isPresent()) return c.get().getId();
-        
+
         var cli = clienteRepository.findByPlatformUserId(platformUserId);
         if (cli.isPresent()) return cli.get().getId();
-        
+
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId);
+                "Usuario local do CareHub nao encontrado para o platformUserId: " + platformUserId);
+    }
+
+    private Long obterIdLocalAutenticado(Principal principal) {
+        if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario nao autenticado");
+        }
+
+        String usernameOrEmail = principal.getName();
+
+        var cuidador = cuidadorRepository.findByUsername(usernameOrEmail)
+                .or(() -> cuidadorRepository.findByEmail(usernameOrEmail));
+        if (cuidador.isPresent()) {
+            return cuidador.get().getId();
+        }
+
+        var cliente = clienteRepository.findByUsername(usernameOrEmail)
+                .or(() -> clienteRepository.findByEmail(usernameOrEmail));
+        if (cliente.isPresent()) {
+            return cliente.get().getId();
+        }
+
+        throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                "Usuario local do CareHub nao encontrado para o principal autenticado: " + usernameOrEmail);
     }
 
     private Long obterIdPlataforma(Long localUserId) {
@@ -55,10 +82,10 @@ public class MensagemController {
             return null;
         var c = cuidadorRepository.findById(localUserId);
         if (c.isPresent() && c.get().getPlatformUserId() != null) return c.get().getPlatformUserId();
-        
+
         var cli = clienteRepository.findById(localUserId);
         if (cli.isPresent() && cli.get().getPlatformUserId() != null) return cli.get().getPlatformUserId();
-        
+
         return localUserId;
     }
 
@@ -79,9 +106,9 @@ public class MensagemController {
 
     @PostMapping
     public ResponseEntity<MensagemResponseDTO> enviarMensagem(
-            @RequestHeader("X-User-Id") Long remetenteId,
+            Principal principal,
             @RequestBody Map<String, Object> dtoMap) {
-        Long localRemetenteId = obterIdLocal(remetenteId);
+        Long localRemetenteId = obterIdLocalAutenticado(principal);
         Long platformDestinatarioId = dtoMap.get("destinatarioId") == null ? null
                 : Long.valueOf(dtoMap.get("destinatarioId").toString());
         Long localDestinatarioId = obterIdLocal(platformDestinatarioId);
@@ -92,18 +119,17 @@ public class MensagemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<MensagemResponseDTO>> listarMensagens(
-            @RequestHeader("X-User-Id") Long usuarioId) {
-        Long localUsuarioId = obterIdLocal(usuarioId);
+    public ResponseEntity<List<MensagemResponseDTO>> listarMensagens(Principal principal) {
+        Long localUsuarioId = obterIdLocalAutenticado(principal);
         List<MensagemResponseDTO> mensagens = mensagemService.listarMensagens(localUsuarioId);
         return ResponseEntity.ok(converterListaParaPlataforma(mensagens));
     }
 
     @GetMapping("/conversa/{usuarioId}")
     public ResponseEntity<List<MensagemResponseDTO>> buscarConversa(
-            @RequestHeader("X-User-Id") Long usuarioAutenticadoId,
+            Principal principal,
             @PathVariable Long usuarioId) {
-        Long localUsuarioAutenticadoId = obterIdLocal(usuarioAutenticadoId);
+        Long localUsuarioAutenticadoId = obterIdLocalAutenticado(principal);
         Long localUsuarioId = obterIdLocal(usuarioId);
         List<MensagemResponseDTO> mensagens = mensagemService.buscarConversa(localUsuarioAutenticadoId, localUsuarioId);
         return ResponseEntity.ok(converterListaParaPlataforma(mensagens));
@@ -111,23 +137,19 @@ public class MensagemController {
 
     @PostMapping("/media")
     public ResponseEntity<MensagemResponseDTO> enviarMensagemComMedia(
-            @RequestHeader("X-User-Id") Long remetenteId,
+            Principal principal,
             @RequestParam("destinatarioId") Long destinatarioId,
             @RequestParam("file") MultipartFile file) throws Exception {
-        Long localRemetenteId = obterIdLocal(remetenteId);
+        Long localRemetenteId = obterIdLocalAutenticado(principal);
         Long localDestinatarioId = obterIdLocal(destinatarioId);
-        // read bytes and store in DB as blob
         byte[] data = file.getBytes();
         String storageKey = java.util.UUID.randomUUID().toString();
         String mediaUrl = "/api/carehub/mensagens/media/" + storageKey;
 
-        // create message using existing service (persist message with mediaUrl, no text
-        // content for audio)
         MensagemResponseDTO mensagem = mensagemService.enviarMensagem(localRemetenteId,
                 new br.pucgo.ads.projetointegrador.carehub.dto.mensagem.MensagemRequestDTO(localDestinatarioId, null,
                         mediaUrl, file.getContentType()));
 
-        // Persist media blob in DB
         try {
             br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = new br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia();
             mm.setMensagemId(mensagem.getId());
@@ -146,18 +168,14 @@ public class MensagemController {
 
     @GetMapping("/media/{filename:.+}")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
-    public ResponseEntity<Resource> serveMedia(@RequestHeader("X-User-Id") Long usuarioId,
+    public ResponseEntity<Resource> serveMedia(Principal principal,
             @PathVariable String filename) throws Exception {
-        Long localUsuarioId = obterIdLocal(usuarioId);
-        // Look up media in DB by storageKey
-        br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = messageMediaRepository
-                .findByStorageKey(filename);
+        Long localUsuarioId = obterIdLocalAutenticado(principal);
+        br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = messageMediaRepository.findByStorageKey(filename);
         if (mm == null) {
             return ResponseEntity.notFound().build();
         }
 
-        // Verify that the requesting user is either remetente or destinatario of the
-        // message that references this media
         String mediaUrl = "/api/carehub/mensagens/media/" + filename;
         var maybe = mensagemRepository.findByMediaUrl(mediaUrl);
         if (maybe.isEmpty()) {
@@ -171,14 +189,11 @@ public class MensagemController {
             return ResponseEntity.status(403).build();
         }
 
-        // Garantir que o contentType seja não-nulo para satisfazer o analisador de
-        // null-safety
         String rawContentType = mm.getContentType();
         if (rawContentType == null)
             rawContentType = "application/octet-stream";
         final String contentType = java.util.Objects.requireNonNull(rawContentType);
 
-        // garantir não-nulidade dos bytes antes de construir o resource
         byte[] dataBytes = java.util.Objects.requireNonNull(mm.getData());
         InputStreamResource resource = new InputStreamResource(new java.io.ByteArrayInputStream(dataBytes));
         return ResponseEntity.ok()
@@ -188,9 +203,8 @@ public class MensagemController {
     }
 
     @GetMapping("/nao-lidas")
-    public ResponseEntity<List<MensagemResponseDTO>> buscarNaoLidas(
-            @RequestHeader("X-User-Id") Long destinatarioId) {
-        Long localDestinatarioId = obterIdLocal(destinatarioId);
+    public ResponseEntity<List<MensagemResponseDTO>> buscarNaoLidas(Principal principal) {
+        Long localDestinatarioId = obterIdLocalAutenticado(principal);
         List<MensagemResponseDTO> mensagens = mensagemService.buscarMensagensNaoLidas(localDestinatarioId);
         return ResponseEntity.ok(converterListaParaPlataforma(mensagens));
     }
@@ -202,15 +216,15 @@ public class MensagemController {
     }
 
     @GetMapping("/contador-nao-lidas")
-    public ResponseEntity<Long> contarNaoLidas(@RequestHeader("X-User-Id") Long usuarioId) {
-        Long localUsuarioId = obterIdLocal(usuarioId);
+    public ResponseEntity<Long> contarNaoLidas(Principal principal) {
+        Long localUsuarioId = obterIdLocalAutenticado(principal);
         long count = mensagemService.contarMensagensNaoLidas(localUsuarioId);
         return ResponseEntity.ok(count);
     }
 
     @GetMapping("/contatos")
-    public ResponseEntity<List<ContatoDTO>> listarContatos(@RequestHeader("X-User-Id") Long usuarioId) {
-        Long localUsuarioId = obterIdLocal(usuarioId);
+    public ResponseEntity<List<ContatoDTO>> listarContatos(Principal principal) {
+        Long localUsuarioId = obterIdLocalAutenticado(principal);
         List<ContatoDTO> contatos = mensagemService.listarContatos(localUsuarioId);
         contatos.forEach(c -> c.setId(obterIdPlataforma(c.getId())));
         return ResponseEntity.ok(contatos);
@@ -219,8 +233,8 @@ public class MensagemController {
     @PutMapping("/marcar-lidas/{remetenteId}")
     public ResponseEntity<Void> marcarConversaComoLida(
             @PathVariable Long remetenteId,
-            @RequestHeader("X-User-Id") Long usuarioId) {
-        Long localUsuarioId = obterIdLocal(usuarioId);
+            Principal principal) {
+        Long localUsuarioId = obterIdLocalAutenticado(principal);
         Long localRemetenteId = obterIdLocal(remetenteId);
         mensagemService.marcarConversaComoLida(localUsuarioId, localRemetenteId);
         return ResponseEntity.noContent().build();

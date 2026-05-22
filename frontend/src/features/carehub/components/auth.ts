@@ -1,5 +1,24 @@
-// Lightweight auth helpers for CareHub feature only.
-// These read from localStorage and provide minimal fallback behavior so CareHub pages work
+﻿// Lightweight auth helpers for CareHub feature only.
+// These read from localStorage and provide minimal fallback behavior so CareHub pages work.
+
+function getStoredToken(): string | null {
+  try {
+    return (
+      localStorage.getItem('token') ||
+      localStorage.getItem('accessToken') ||
+      localStorage.getItem('jwtToken') ||
+      localStorage.getItem('authToken')
+    );
+  } catch {
+    return null;
+  }
+}
+
+function cacheKey(suffix: 'cuidador' | 'cliente'): string {
+  const uid = getUserId();
+  return `carehub_is_${suffix}_${uid ?? 'anon'}`;
+}
+
 export function getUserId(): number | null {
   try {
     const userStr = localStorage.getItem('user');
@@ -7,8 +26,7 @@ export function getUserId(): number | null {
       const user = JSON.parse(userStr);
       return user.userId || null;
     }
-  } catch (e) {
-    // fallback to old keys
+  } catch {
     const v = localStorage.getItem('userId') || localStorage.getItem('userID');
     if (!v) return null;
     const n = Number(v);
@@ -24,8 +42,7 @@ export function getUserRole(): string | null {
       const user = JSON.parse(userStr);
       return user.roleName || user.roleCode || null;
     }
-  } catch (e) {
-    // fallback to old keys
+  } catch {
     return localStorage.getItem('roles') || localStorage.getItem('userRole') || localStorage.getItem('role') || null;
   }
   return null;
@@ -35,15 +52,13 @@ export function getUser(): any {
   try {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
-  } catch (e) {
+  } catch {
     return null;
   }
 }
 
-// Normaliza uma role (string ou array) para string maiúscula ou null
 export function normalizeRole(role: any): string | null {
   if (!role) return null;
-  // Array de strings ou objetos
   if (Array.isArray(role)) {
     const first = role[0];
     if (!first) return null;
@@ -51,60 +66,50 @@ export function normalizeRole(role: any): string | null {
     if (typeof first === 'object') return (first.roleName || first.name || first.code || String(first)).toString().toUpperCase();
   }
   if (typeof role === 'object') {
-    // tentar extrair propriedades comuns de um objeto role
     return (role.roleName || role.name || role.code || role.authority || '').toString().toUpperCase() || null;
   }
   return String(role).toUpperCase();
 }
 
 export function isCuidador(role?: any): boolean {
-  // 1) checar cache específico de cuidador
-  const isCuidadorCached = localStorage.getItem('carehub_is_cuidador');
-  if (isCuidadorCached === 'true') return true;
-  if (isCuidadorCached === 'false') return false;
+  const cached = localStorage.getItem(cacheKey('cuidador'));
+  if (cached === 'true') return true;
+  if (cached === 'false') return false;
 
-  // 2) checar explictamente o objeto user salvo
   const user = getUser();
   if (user) {
-    // roles como array de strings
     if (Array.isArray(user.roles)) {
       const roles = user.roles.map((x: any) => String(x).toUpperCase());
       if (roles.some((s: string) => s.includes('CUIDADOR') || s.includes('CAREHUB_CUIDADOR'))) return true;
     }
-    // permissions possivelmente presente
     if (Array.isArray(user.permissions)) {
       if (user.permissions.some((p: any) => String(p).toUpperCase().includes('CUIDADOR'))) return true;
     }
-    // campos diretos
     if (user.roleName && String(user.roleName).toUpperCase().includes('CUIDADOR')) return true;
     if (user.roleCode && String(user.roleCode).toUpperCase().includes('CUIDADOR')) return true;
   }
 
-  // 2) checar token JWT (se presente) por claims comuns
-  const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || localStorage.getItem('jwtToken') || localStorage.getItem('authToken');
+  const token = getStoredToken();
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const claims = JSON.stringify(payload).toUpperCase();
       if (claims.includes('CUIDADOR') || claims.includes('CAREHUB_CUIDADOR')) return true;
-    } catch (e) {
+    } catch {
       // ignore parse errors
     }
   }
 
-  // 3) fallback: checar argumento role passado
   const r = normalizeRole(role ?? getUserRole());
   if (!r) return false;
   return r.includes('CUIDADOR') || r.includes('ROLE_CUIDADOR') || r.includes('CAREHUB_CUIDADOR');
 }
 
 export function isCliente(role?: any): boolean {
-  // 1) checar cache específico de cliente
-  const isClienteCached = localStorage.getItem('carehub_is_cliente');
-  if (isClienteCached === 'true') return true;
-  if (isClienteCached === 'false') return false;
+  const cached = localStorage.getItem(cacheKey('cliente'));
+  if (cached === 'true') return true;
+  if (cached === 'false') return false;
 
-  // 2) checar objeto user salvo
   const user = getUser();
   if (user) {
     if (Array.isArray(user.roles)) {
@@ -117,13 +122,13 @@ export function isCliente(role?: any): boolean {
     if (user.roleName && String(user.roleName).toUpperCase().includes('CLIENTE')) return true;
   }
 
-  const token = localStorage.getItem('token') || localStorage.getItem('accessToken') || localStorage.getItem('jwtToken') || localStorage.getItem('authToken');
+  const token = getStoredToken();
   if (token) {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const claims = JSON.stringify(payload).toUpperCase();
       if (claims.includes('CLIENTE') || claims.includes('CAREHUB_CLIENTE') || claims.includes('IDOSO')) return true;
-    } catch (e) {
+    } catch {
       // ignore
     }
   }
@@ -133,76 +138,54 @@ export function isCliente(role?: any): boolean {
   return r.includes('CLIENTE') || r.includes('IDOSO') || r.includes('ROLE_CLIENTE') || r.includes('CAREHUB_CLIENTE');
 }
 
-// Função para inicializar o token JWT no interceptor HTTP
-export function initializeAuthToken() {
+export async function initializeAuthToken(): Promise<void> {
   try {
-    // Tentar múltiplas chaves onde o token pode estar salvo
-    const token = localStorage.getItem('token') ||
-                  localStorage.getItem('accessToken') ||
-                  localStorage.getItem('jwtToken') ||
-                  localStorage.getItem('authToken');
-
+    const token = getStoredToken();
     if (token) {
-      // Importar dinamicamente para evitar dependências circulares
-      import('../libHttp').then(({ setAuthToken }) => {
-        setAuthToken(token);
-        console.debug('CareHub: Token JWT inicializado no interceptor');
-      });
-    } else {
-      console.debug('CareHub: Nenhum token encontrado no localStorage');
-      console.debug('CareHub: Chaves verificadas:', ['token', 'accessToken', 'jwtToken', 'authToken']);
+      const { setAuthToken } = await import('../libHttp');
+      setAuthToken(token);
     }
   } catch (error) {
     console.error('CareHub: Erro ao inicializar token:', error);
   }
 }
 
-// Função para verificar se usuário é cuidador via localStorage (roleName) e cachear resultado
 export async function checkAndCacheUserType() {
   const userId = getUserId();
   if (!userId) return;
 
   try {
-    // Verificar pelo roleName no localStorage (mais confiável e sem chamadas API)
+    await initializeAuthToken();
+
+    try {
+      const { default: http } = await import('../libHttp');
+      await http.get('/api/carehub/perfil');
+    } catch {
+      // Nao bloqueia fluxo
+    }
+
     const userStr = localStorage.getItem('user');
     if (userStr) {
       const user = JSON.parse(userStr);
       const roleName = (user.roleName || user.roleCode || '').toUpperCase();
-      
-      // Verificar se é cuidador
-      if (roleName.includes('CUIDADOR') || roleName.includes('CAREHUB_CUIDADOR')) {
-        localStorage.setItem('carehub_is_cuidador', 'true');
-        localStorage.setItem('carehub_is_cliente', 'false');
-        return;
-      }
-      
-      // Verificar se é cliente/idoso
-      if (roleName.includes('IDOSO') || roleName.includes('CLIENTE') || roleName.includes('FAMILIAR') || roleName.includes('CAREHUB_CLIENTE')) {
-        localStorage.setItem('carehub_is_cuidador', 'false');
-        localStorage.setItem('carehub_is_cliente', 'true');
-        return;
-      }
-      
-      // Role padrão (ROLE_USER) - assumir como cliente
-      localStorage.setItem('carehub_is_cuidador', 'false');
-      localStorage.setItem('carehub_is_cliente', 'true');
+
+      const isCuid = roleName.includes('CUIDADOR') || roleName.includes('CAREHUB_CUIDADOR');
+      const isCli = roleName.includes('IDOSO') || roleName.includes('CLIENTE') || roleName.includes('FAMILIAR') || roleName.includes('CAREHUB_CLIENTE') || !isCuid;
+
+      localStorage.setItem(cacheKey('cuidador'), isCuid ? 'true' : 'false');
+      localStorage.setItem(cacheKey('cliente'), isCli ? 'true' : 'false');
     }
   } catch {
-    // Fallback: assumir como cliente
-    localStorage.setItem('carehub_is_cuidador', 'false');
-    localStorage.setItem('carehub_is_cliente', 'true');
+    localStorage.setItem(cacheKey('cuidador'), 'false');
+    localStorage.setItem(cacheKey('cliente'), 'true');
   }
 }
 
-// Função utilitária para salvar token (pode ser chamada do LoginForm)
 export function saveAuthToken(token: string) {
   try {
     localStorage.setItem('token', token);
-    // Também inicializar no interceptor imediatamente
-    import('../libHttp').then(({ setAuthToken: setToken }) => {
-      setToken(token);
-      console.debug('CareHub: Token salvo e inicializado');
-      // Verificar tipo de usuário após salvar token
+    import('../libHttp').then(({ setAuthToken }) => {
+      setAuthToken(token);
       checkAndCacheUserType();
     });
   } catch (error) {
@@ -210,24 +193,21 @@ export function saveAuthToken(token: string) {
   }
 }
 
-// Função para configurar token manualmente (para debug)
 export function setTokenManually(token: string) {
   try {
     import('../libHttp').then(({ setAuthToken }) => {
       setAuthToken(token);
-      console.debug('CareHub: Token configurado manualmente no interceptor');
     });
   } catch (error) {
     console.error('CareHub: Erro ao configurar token manualmente:', error);
   }
 }
 
-// Função para verificar todas as chaves de autenticação no localStorage
 export function debugAuthStorage() {
   const keys = ['token', 'accessToken', 'jwtToken', 'authToken', 'user', 'userId', 'roles', 'userRole'];
   const results: { [key: string]: any } = {};
 
-  keys.forEach(key => {
+  keys.forEach((key) => {
     const value = localStorage.getItem(key);
     if (value) {
       if (key === 'user') {

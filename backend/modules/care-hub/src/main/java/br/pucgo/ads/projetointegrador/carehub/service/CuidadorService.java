@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 import org.springframework.data.domain.PageImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 @Service
@@ -266,7 +266,7 @@ public class CuidadorService {
         dto.setBiografia(cuidador.getBiografia());
         dto.setFotoPerfil(cuidador.getFotoPerfil());
         dto.setAtivo(cuidador.getAtivo());
-        dto.setCriadoEm(cuidador.getCreatedAt() == null ? null : cuidador.getCreatedAt().toLocalDateTime());
+        dto.setCriadoEm(cuidador.getCreatedAt());
         return dto;
     }
 
@@ -319,7 +319,7 @@ public class CuidadorService {
             dto.setFotoPerfil(p.getFotoPerfil());
             dto.setAtivo(p.getAtivo());
             dto.setCriadoEm(p.getCreatedAt() == null ? null
-                    : LocalDateTime.ofInstant(p.getCreatedAt(), ZoneOffset.UTC));
+                    : OffsetDateTime.ofInstant(p.getCreatedAt(), ZoneOffset.UTC));
             return dto;
         }).collect(Collectors.toList());
         List<CuidadorResponseDTO> safeList2 = dtos == null ? new ArrayList<>() : dtos;

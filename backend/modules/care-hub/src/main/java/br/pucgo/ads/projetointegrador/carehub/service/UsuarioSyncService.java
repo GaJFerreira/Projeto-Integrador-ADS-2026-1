@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -158,11 +159,10 @@ public class UsuarioSyncService {
         dto.setBiografia(cuidador.getBiografia());
         dto.setFotoPerfil(cuidador.getFotoPerfil());
         
-        if (cuidador.getEspecialidades() != null) {
-            dto.setEspecialidades(cuidador.getEspecialidades().stream()
-                    .map(Especialidade::getNome)
-                    .collect(Collectors.toList()));
-        }
+        List<Object[]> rows = especialidadeRepository.findNamesByCuidadorIds(List.of(cuidador.getId()));
+        dto.setEspecialidades(rows.stream()
+                .map(r -> (String) r[1])
+                .collect(Collectors.toList()));
         return dto;
     }
 

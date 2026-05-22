@@ -43,6 +43,7 @@ import http from '../libHttp';
 import { getUserId, isCuidador as isRoleCuidador, checkAndCacheUserType } from '../components/auth';
 import { AvaliacaoModal } from '../components/AvaliacaoModal';
 import { avaliacoesApi } from '../api';
+import { parseDate, formatDateTime } from '../utils/dateUtils';
 
 interface RegistroAcompanhamento {
   id: number;
@@ -124,7 +125,7 @@ export function HistoricoAtendimentosPage() {
       
       // Ordenar por data mais recente primeiro
       const registrosOrdenados = response.data.sort((a: RegistroAcompanhamento, b: RegistroAcompanhamento) => 
-        new Date(b.dataHoraRegistro).getTime() - new Date(a.dataHoraRegistro).getTime()
+        (parseDate(b.dataHoraRegistro)?.getTime() ?? 0) - (parseDate(a.dataHoraRegistro)?.getTime() ?? 0)
       );
       setRegistros(registrosOrdenados);
       console.log('  - Total de registros:', registrosOrdenados.length);
@@ -210,8 +211,7 @@ export function HistoricoAtendimentosPage() {
   };
 
   const formatarData = (dataISO: string) => {
-    const data = new Date(dataISO);
-    return data.toLocaleDateString('pt-BR', {
+    return formatDateTime(dataISO, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',

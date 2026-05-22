@@ -26,6 +26,7 @@ import { PageHeader } from '../components/PageHeader';
 import http from '../libHttp';
 import { useSnackbar } from 'notistack';
 import { getUserId, isCuidador as isRoleCuidador, checkAndCacheUserType } from '../components/auth';
+import { formatDate } from '../utils/dateUtils';
 
 interface Agendamento {
   id: number;
@@ -132,11 +133,6 @@ export function RegistroAcompanhamentoPage() {
         {
           agendamentoId: parseInt(agendamentoSelecionado),
           ...formData,
-        },
-        {
-          headers: {
-            'X-User-Id': cuidadorId.toString(),
-          },
         }
       );
 
@@ -233,7 +229,7 @@ export function RegistroAcompanhamentoPage() {
                     </MenuItem>
                     {agendamentos.map((agendamento) => (
                       <MenuItem key={agendamento.id} value={agendamento.id.toString()}>
-                        {agendamento.clienteNome} - {new Date(agendamento.dataHoraInicio).toLocaleDateString('pt-BR')} ({agendamento.status})
+                        {agendamento.clienteNome} - {formatDate(agendamento.dataHoraInicio)} ({agendamento.status})
                       </MenuItem>
                     ))}
                   </Select>

@@ -7,6 +7,7 @@ import { PageHeader } from '../components/PageHeader';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br';
+import { parseDate } from '../utils/dateUtils';
 
 dayjs.extend(relativeTime);
 dayjs.locale('pt-br');
@@ -182,7 +183,9 @@ export default function AvaliacoesPage() {
 
       {/* Lista de Avaliações */}
       <Stack gap={2}>
-        {lista.map(a => (
+        {lista.map(a => {
+          const dataAvaliacao = parseDate(a.dataAvaliacao);
+          return (
           <Card 
             key={a.id} 
             variant="outlined"
@@ -216,7 +219,7 @@ export default function AvaliacoesPage() {
                     </Typography>
                     <Stack direction="row" alignItems="center" gap={1}>
                       <Typography variant="caption" color="text.secondary">
-                        {dayjs(a.dataAvaliacao).fromNow()}
+                        {dataAvaliacao ? dayjs(dataAvaliacao).fromNow() : 'Data não informada'}
                       </Typography>
                       <Box 
                         sx={{ 
@@ -227,7 +230,7 @@ export default function AvaliacoesPage() {
                         }} 
                       />
                       <Typography variant="caption" color="text.secondary">
-                        {dayjs(a.dataAvaliacao).format('DD/MM/YYYY')}
+                        {dataAvaliacao ? dayjs(dataAvaliacao).format('DD/MM/YYYY') : 'Data não informada'}
                       </Typography>
                     </Stack>
                   </Box>
@@ -298,7 +301,7 @@ export default function AvaliacoesPage() {
               )}
             </CardContent>
           </Card>
-        ))}
+        )})}
       </Stack>
     </Stack>
   );

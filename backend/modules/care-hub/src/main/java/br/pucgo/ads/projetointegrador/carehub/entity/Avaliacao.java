@@ -8,10 +8,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
- * Avaliação de um atendimento — feita pelo Cliente ao Cuidador após conclusão.
+ * AvaliaÃ§Ã£o de um atendimento â€” feita pelo Cliente ao Cuidador apÃ³s conclusÃ£o.
  */
 @Entity
 @Table(name = "ch_avaliacao", schema = "care_hub")
@@ -46,5 +46,6 @@ public class Avaliacao {
 
     @CreationTimestamp
     @Column(name = "data_avaliacao", nullable = false, updatable = false)
-    private LocalDateTime dataAvaliacao;
+    private OffsetDateTime dataAvaliacao;
 }
+

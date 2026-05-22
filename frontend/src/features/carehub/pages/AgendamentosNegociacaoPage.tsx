@@ -14,6 +14,7 @@ import {
   CalendarMonth, Schedule, CheckCircle, Cancel, AccessTime, 
   Person, Pending, Edit, EventAvailable
 } from '@mui/icons-material';
+import { parseDate } from '../utils/dateUtils';
 
 /**
  * Sistema de Agendamento com Negociação
@@ -141,8 +142,8 @@ export default function AgendamentosNegociacaoPage() {
     criarMutation.mutate({ 
       clienteId, 
       cuidadorId, 
-      dataHoraInicio: dataInicio.format('YYYY-MM-DDTHH:mm:ss'), 
-      dataHoraFim: dataFim.format('YYYY-MM-DDTHH:mm:ss'), 
+      dataHoraInicio: dataInicio.toDate().toISOString(),
+      dataHoraFim: dataFim.toDate().toISOString(),
       tipoAtendimento: tipo,
       observacoes: observacoes.trim() || undefined
     });
@@ -356,6 +357,8 @@ export default function AgendamentosNegociacaoPage() {
 
       <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3}>
         {lista.map((a) => {
+          const dataInicio = parseDate(a.dataHoraInicio);
+          const dataFim = parseDate(a.dataHoraFim);
           const statusInfo = getStatusInfo(a.status);
           const isPendente = a.status === 'PENDENTE';
           const isReagendado = a.status === 'REAGENDADO';
@@ -400,14 +403,14 @@ export default function AgendamentosNegociacaoPage() {
                   <Stack direction="row" alignItems="center" gap={1}>
                     <CalendarMonth fontSize="small" color="action" />
                     <Typography variant="body2">
-                      <strong>Início:</strong> {dayjs(a.dataHoraInicio).format('DD/MM/YYYY [às] HH:mm')}
+                      <strong>Início:</strong> {dataInicio ? dayjs(dataInicio).format('DD/MM/YYYY [às] HH:mm') : '-'}
                     </Typography>
                   </Stack>
                   
                   <Stack direction="row" alignItems="center" gap={1}>
                     <AccessTime fontSize="small" color="action" />
                     <Typography variant="body2">
-                      <strong>Fim:</strong> {dayjs(a.dataHoraFim).format('DD/MM/YYYY [às] HH:mm')}
+                      <strong>Fim:</strong> {dataFim ? dayjs(dataFim).format('DD/MM/YYYY [às] HH:mm') : '-'}
                     </Typography>
                   </Stack>
 

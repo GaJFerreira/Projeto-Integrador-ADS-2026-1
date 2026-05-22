@@ -27,6 +27,7 @@ import {
 import { PageHeader } from '../components/PageHeader';
 import { getUserId, isCuidador, checkAndCacheUserType } from '../components/auth';
 import http from '../libHttp';
+import { parseDate } from '../utils/dateUtils';
 
 interface Agendamento {
   id: number;
@@ -245,7 +246,8 @@ export function MeusAgendamentosPage() {
   };
 
   const formatarData = (dataISO: string) => {
-    const data = new Date(dataISO);
+    const data = parseDate(dataISO);
+    if (!data) return '-';
     const hoje = new Date();
     const amanha = new Date(hoje);
     amanha.setDate(amanha.getDate() + 1);
@@ -271,8 +273,9 @@ export function MeusAgendamentosPage() {
   };
 
   const formatarHorarioAtendimento = (inicio: string, fim: string) => {
-    const dataInicio = new Date(inicio);
-    const dataFim = new Date(fim);
+    const dataInicio = parseDate(inicio);
+    const dataFim = parseDate(fim);
+    if (!dataInicio || !dataFim) return '-';
     
     const horaInicio = dataInicio.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
     const horaFim = dataFim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });

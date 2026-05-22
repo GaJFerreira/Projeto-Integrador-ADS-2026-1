@@ -15,8 +15,8 @@ export function useCriarAvaliacao() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ clienteId, avaliacao }: { clienteId: number; avaliacao: AvaliacaoRequest }) =>
-      criarAvaliacao(clienteId, avaliacao),
+    mutationFn: ({ avaliacao }: { clienteId: number; avaliacao: AvaliacaoRequest }) =>
+      criarAvaliacao(avaliacao),
     onSuccess: (_, variables) => {
       // Invalidar cache das avaliações do cuidador
       queryClient.invalidateQueries({ 

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -23,6 +23,7 @@ public class ProntuarioResponseDTO {
     private String observacoesGerais;
     private String tipoSanguineo;
     private String necessidadesEspeciais;
-    private LocalDateTime dataCriacao;
-    private LocalDateTime dataAtualizacao;
+    private OffsetDateTime dataCriacao;
+    private OffsetDateTime dataAtualizacao;
 }
+

@@ -70,7 +70,7 @@ export default function ProntuarioPage() {
         return;
       }
       
-      const pode = await verificarPodeEditar(clienteId, userId);
+      const pode = await verificarPodeEditar(clienteId);
       setPodeEditar(pode);
       setVerificandoPermissao(false);
     }

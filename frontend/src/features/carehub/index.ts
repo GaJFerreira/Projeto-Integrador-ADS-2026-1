@@ -1,5 +1,6 @@
 // Página Inicial
 export { default as CareHubHomePage } from './pages/CareHubHomePage';
+export { default as CareHubPrimeiroAcessoPage } from './pages/CareHubPrimeiroAcessoPage';
 
 // Páginas do Cliente (Dona Maria - ID 2)
 export { default as CuidadoresPage } from './pages/CuidadoresPage';

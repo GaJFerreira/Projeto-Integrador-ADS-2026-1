@@ -24,9 +24,7 @@ export async function listarAvaliacoesCuidador(cuidadorId: number): Promise<Aval
   return response.data;
 }
 
-export async function criarAvaliacao(clienteId: number, avaliacao: AvaliacaoRequest): Promise<AvaliacaoResponse> {
-  const response = await http.post<AvaliacaoResponse>('/api/carehub/avaliacoes', avaliacao, {
-    headers: { 'X-User-Id': String(clienteId) },
-  });
+export async function criarAvaliacao(avaliacao: AvaliacaoRequest): Promise<AvaliacaoResponse> {
+  const response = await http.post<AvaliacaoResponse>('/api/carehub/avaliacoes', avaliacao);
   return response.data;
 }

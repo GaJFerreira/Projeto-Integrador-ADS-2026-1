@@ -12,7 +12,7 @@ export function useMensagensNaoLidas(usuarioId: number | undefined) {
       // Pequeno delay para garantir que o token seja configurado
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      return contarMensagensNaoLidas(usuarioId!);
+      return contarMensagensNaoLidas();
     },
     enabled: !!usuarioId,
     refetchInterval: 10000, // Atualiza a cada 10 segundos

@@ -78,7 +78,7 @@ public class ClienteService {
         dto.setContatoEmergencia(cliente.getContatoEmergencia());
         dto.setTipoCliente(cliente.getTipoCliente());
         dto.setAtivo(cliente.getAtivo());
-        dto.setCriadoEm(cliente.getCreatedAt() == null ? null : cliente.getCreatedAt().toLocalDateTime());
+        dto.setCriadoEm(cliente.getCreatedAt());
         return dto;
     }
 }
