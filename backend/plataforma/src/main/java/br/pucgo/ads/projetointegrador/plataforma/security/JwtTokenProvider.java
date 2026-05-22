@@ -39,6 +39,8 @@ public class JwtTokenProvider {
         JwtBuilder builder = Jwts.builder()
                 .subject(username)
                 .claim("userId", userDetails.getId())
+                .claim("email", userDetails.getUser().getEmail())
+                .claim("name", userDetails.getUser().getName())
                 .issuedAt(now)
                 .expiration(expiryDate);
 
