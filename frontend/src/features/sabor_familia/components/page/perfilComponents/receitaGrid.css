@@ -1,0 +1,47 @@
+.rg-section {
+  margin-top: 0.5rem;
+}
+
+.rg-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+
+.rg-header__icon {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.rg-header__label {
+  font-size: 11px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.rg-loading {
+  display: flex;
+  justify-content: center;
+  padding: 3rem 0;
+}
+
+.rg-empty {
+  text-align: center;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+  padding: 3rem 0;
+}
+
+/* Grade 3 colunas */
+.rg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+}

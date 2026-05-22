@@ -7,6 +7,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import EscalatorWarningIcon from '@mui/icons-material/EscalatorWarning';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // ✅ Novo ícone
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu'; // Sabor da Família
 import { useNavigate } from 'react-router-dom';
 
 export function ModuleGrid() {
@@ -18,6 +19,12 @@ export function ModuleGrid() {
       title: 'Consultas e Saúde',
       desc: 'Acesse histórico, atendimentos e outras funções.',
       to: '/saude',
+    },
+    {
+      icon: <RestaurantMenuIcon sx={{ fontSize: 40 }} color="warning" />,
+      title: 'Sabor da Família',
+      desc: 'Compartilhe e descubra receitas da sua família.',
+      to: '/sabor-familia/login',
     },
     {
       icon: <MedicationIcon sx={{ fontSize: 40 }} />,

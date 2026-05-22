@@ -43,6 +43,18 @@ import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
 import ViewListaPage from '@/features/lista-compras/pages/ViewListaPage';
 import TemplatesPage from '@/features/lista-compras/pages/TemplatesPage';
 
+//Sabor Familia
+
+import LoginSaborFamilia from '@/features/sabor_familia/pages/login/login';
+import CriarPerfil from '@/features/sabor_familia/pages/perfil/CriarPerfil';
+import { HomeSaborFamilia } from '@/features/sabor_familia/pages/home/HomeSaborFamilia';
+import AddReceita from '@/features/sabor_familia/pages/receita/AdicionarReceita';
+import ErrorSaborFamilia from '@/features/sabor_familia/pages/error/Error';
+import Perfil from '@/features/sabor_familia/pages/perfil/Perfil';
+import EditarPerfil from '@/features/sabor_familia/pages/perfil/EditarPerfil';
+import { AuthProvider } from '@/features/sabor_familia/context/AuthProvider';
+
+
 function Home() {
   return (
     <div>
@@ -114,6 +126,22 @@ export function AppRoutes() {
         <Route path="informacoes_saude" element={<InformacoesSaude />} />
         <Route path="questionario_saude" element={<QuestionarioPage />} />
         <Route path="dados_biometricos" element={<DadosBiometricosPage />} />
+
+        {/* Rotas Modulo Sabor_Familia */}
+        <Route path="sabor-familia/*" element={
+          <AuthProvider>
+            <Routes>
+              <Route path="login"           element={<LoginSaborFamilia />} />
+              <Route path="cadastro"        element={<CriarPerfil />} />
+              <Route path="home"            element={<HomeSaborFamilia />} />
+              <Route path="receita/nova"    element={<AddReceita />} />
+              <Route path="perfil/editar"   element={<EditarPerfil />} />
+              <Route path="perfil/:perfilId" element={<Perfil />} />
+              <Route path="error"           element={<ErrorSaborFamilia />} />
+              <Route path="*"               element={<ErrorSaborFamilia />} />
+            </Routes>
+          </AuthProvider>
+        } />
 
       </Route>
     </Routes>

@@ -1,0 +1,115 @@
+.rgc-card {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  cursor: pointer;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.rgc-card:hover .rgc-img { opacity: 0.85; }
+
+.rgc-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.2s;
+  display: block;
+}
+
+/* Placeholder quando não há imagem */
+.rgc-placeholder {
+  width: 100%;
+  height: 100%;
+  background: var(--brand-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.rgc-placeholder__title {
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  color: var(--brand-dark);
+  text-align: center;
+  line-height: 1.4;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+/* Botão de 3 pontos */
+.rgc-menu-wrap {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+}
+
+.rgc-menu-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: -1px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.rgc-card:hover .rgc-menu-btn { opacity: 1; }
+
+/* Dropdown */
+.rgc-dropdown {
+  position: absolute;
+  top: 34px;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  min-width: 130px;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.rgc-dropdown__item {
+  width: 100%;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.1s;
+}
+
+.rgc-dropdown__item:hover              { background: var(--bg); }
+.rgc-dropdown__item--danger            { color: var(--danger); }
+.rgc-dropdown__item--danger:hover      { background: #fff0f0; }
+
+/* Badge de restrição */
+.rgc-badge-restrita {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background: rgba(0, 0, 0, 0.5);
+  color: #ffd54f;
+  font-size: 12px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  pointer-events: none;
+}

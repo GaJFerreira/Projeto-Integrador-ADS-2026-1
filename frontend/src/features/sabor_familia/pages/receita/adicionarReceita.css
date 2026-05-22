@@ -1,0 +1,276 @@
+/* Herda os tokens do home.css — certifique-se de que home.css é importado
+   globalmente ou copie o bloco :root aqui se necessário.               */
+
+/* ── Layout ────────────────────────────────────────────────────────────────── */
+.ar-main {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 2rem 1.5rem 4rem;
+  display: flex;
+  justify-content: center;
+}
+
+.ar-container {
+  width: 100%;
+  max-width: 680px;
+}
+
+/* ── Cabeçalho ─────────────────────────────────────────────────────────────── */
+.ar-header {
+  margin-bottom: 2rem;
+}
+
+.ar-back {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 0.15s;
+}
+
+.ar-back:hover { color: var(--brand); }
+
+.ar-title {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.ar-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+/* ── Seções ────────────────────────────────────────────────────────────────── */
+.ar-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.ar-section__title {
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0 0 1.25rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.ar-section__desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  margin: -0.75rem 0 1rem;
+}
+
+/* ── Campos ────────────────────────────────────────────────────────────────── */
+.ar-field {
+  margin-bottom: 1.1rem;
+}
+
+.ar-field:last-child { margin-bottom: 0; }
+
+.ar-label {
+  display: block;
+  font-size: 11px;
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.ar-required { color: var(--brand); margin-left: 2px; }
+
+.ar-optional {
+  color: var(--text-muted);
+  font-size: 10px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+.ar-input,
+.ar-select,
+.ar-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 12px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fafafa;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.ar-input:focus,
+.ar-select:focus,
+.ar-textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(186, 117, 23, 0.1);
+}
+
+.ar-textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.ar-select { cursor: pointer; }
+
+/* ── Row de 3 colunas ──────────────────────────────────────────────────────── */
+.ar-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+
+/* ── Chips de seleção ──────────────────────────────────────────────────────── */
+.ar-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ar-chip {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  border: 1px solid var(--border);
+  background: #fafafa;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.ar-chip:hover {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.ar-chip--active {
+  background: var(--brand-light);
+  border-color: var(--brand);
+  color: var(--brand-dark);
+  font-weight: 500;
+}
+
+/* ── Grupos de categoria ────────────────────────────────────────────────────── */
+.ar-cat-group {
+  margin-bottom: 1.25rem;
+}
+
+.ar-cat-group:last-child { margin-bottom: 0; }
+
+.ar-cat-group__title {
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 0.6rem;
+}
+
+/* ── Loading pequeno ────────────────────────────────────────────────────────── */
+.ar-loading-sm {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  padding: 0.5rem 0;
+}
+
+/* ── Ações e erros ──────────────────────────────────────────────────────────── */
+.ar-form-error {
+  background: #fff0f0;
+  border: 1px solid #fcc;
+  color: #c00;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  margin-bottom: 1rem;
+}
+
+.ar-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+}
+
+.ar-btn {
+  padding: 10px 22px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.ar-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ar-btn--primary {
+  background: var(--brand);
+  color: #fff;
+}
+
+.ar-btn--primary:hover:not(:disabled) { background: var(--brand-dark); }
+
+.ar-btn--ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.ar-btn--ghost:hover:not(:disabled) {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+/* ── Scrollbar ──────────────────────────────────────────────────────────────── */
+.ar-main::-webkit-scrollbar { width: 5px; }
+.ar-main::-webkit-scrollbar-track { background: transparent; }
+.ar-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── Responsivo ─────────────────────────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .ar-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ar-form-actions {
+    flex-direction: column-reverse;
+  }
+
+  .ar-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

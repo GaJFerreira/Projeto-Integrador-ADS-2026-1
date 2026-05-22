@@ -1,0 +1,40 @@
+/* ── Layout ─────────────────────────────────────────────────────────────────── */
+.perfil-main {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--bg);
+  padding: 2.5rem 2rem 4rem;
+  display: flex;
+  justify-content: center;
+}
+
+.perfil-container {
+  width: 100%;
+  max-width: 860px;
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────────── */
+
+
+/* ── Seção de receitas ───────────────────────────────────────────────────────── */
+
+
+/* ── Card da receita ─────────────────────────────────────────────────────────── */
+
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────────── */
+.perfil-main::-webkit-scrollbar       { width: 5px; }
+.perfil-main::-webkit-scrollbar-track { background: transparent; }
+.perfil-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ── Responsivo ──────────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .ph-header   { flex-direction: column; align-items: center; text-align: center; gap: 1rem; }
+  .ph-stats    { justify-content: center; }
+  .ph-row--top { justify-content: center; }
+  .ph-avatar   { width: 80px; height: 80px; }
+}
+
+@media (max-width: 500px) {
+  .rg-grid { grid-template-columns: repeat(2, 1fr); }
+}
