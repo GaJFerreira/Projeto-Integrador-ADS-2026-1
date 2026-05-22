@@ -46,6 +46,12 @@ import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
 import ViewListaPage from '@/features/lista-compras/pages/ViewListaPage';
 import TemplatesPage from '@/features/lista-compras/pages/TemplatesPage';
 
+// ✅ Remember — Diário Cognitivo
+import RememberPage from '@/features/remember/pages/RememberPage';
+import AdminConquistasPage from '@/features/remember/pages/AdminConquistasPage';
+import AdminCreateConquistaPage from '@/features/remember/pages/AdminCreateConquistaPage';
+import AdminEditConquistaPage from '@/features/remember/pages/AdminEditConquistaPage';
+
 function Home() {
   return (
     <div>

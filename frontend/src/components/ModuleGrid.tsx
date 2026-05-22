@@ -9,6 +9,7 @@ import EscalatorWarningIcon from '@mui/icons-material/EscalatorWarning';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // ✅ Novo ícone
 import FavoriteIcon from '@mui/icons-material/Favorite'; // ✅ CareHub
 import { useNavigate } from 'react-router-dom';
+import NoteAltOutlinedIcon from '@mui/icons-material/NoteAltOutlined';
 
 export function ModuleGrid() {
   const navigate = useNavigate();
@@ -67,6 +68,15 @@ export function ModuleGrid() {
       desc: 'Dicas rápidas e ajuda no dia a dia.',
       to: '/grupo5/ajudador',
     },
+
+    {
+      icon: <NoteAltOutlinedIcon sx={{ fontSize: 40 }} />,
+      title: 'Remember',
+      desc: 'Diário Cognitivo e Gamificação',
+      to: '/remember',
+    },
+
+
     {
       icon: <HelpOutlineIcon sx={{ fontSize: 40 }} />,
       title: 'Dúvidas',

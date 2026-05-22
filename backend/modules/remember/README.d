@@ -1,25 +1,47 @@
-# Módulo: [Remember]
+# Modulo: Remember
 
-Este submódulo é dedicado exclusivamente às regras de negócio do grupo **[Nome do Grupo]**.
+Este submodulo e dedicado exclusivamente as regras de negocio do Remember.
 
-## 📦 O que deve conter aqui?
-Para manter a organização e evitar o "vazamento" de código entre grupos, todo o desenvolvimento deve ocorrer dentro do pacote:
-`br.pucgo.ads.projetointegrador.[nomedomodulo]`
+## Base URL
 
-### Estrutura de Pastas Interna:
-- `controller/`: Endpoints da API (ex: `/api/[modulo]/...`).
-- `service/`: Lógica de negócio e validações.
+Todos os endpoints do modulo seguem o prefixo:
+
+`/api/remember`
+
+Principais recursos:
+
+- `/api/remember/diarios`
+- `/api/remember/lembrancas`
+- `/api/remember/conquistas`
+- `/api/remember/usuario-conquistas`
+- `/api/remember/perguntas-cognitivas`
+- `/api/remember/pergunta-templates`
+- `/api/remember/respostas-perguntas-usuarios`
+
+## O que deve conter aqui?
+
+Para manter a organizacao e evitar o vazamento de codigo entre grupos, todo o desenvolvimento deve ocorrer dentro do pacote:
+
+`br.pucgo.ads.projetointegrador.remember`
+
+### Estrutura de pastas interna
+
+- `controller/`: Endpoints da API (ex: `/api/remember/...`).
+- `service/`: Logica de negocio e validacoes.
 - `repository/`: Interfaces de consulta ao banco de dados (Spring Data JPA).
-- `entity/`: Tabelas específicas deste domínio.
-- `dto/`: Objetos de transferência de dados para o Frontend.
+- `entity/`: Tabelas especificas deste dominio.
+- `dto/`: Objetos de transferencia de dados para o frontend.
+- `utils/`: Utilidades internas do modulo, sem dependencia direta da plataforma.
 
-## 🔑 Integração com a Plataforma
-Este módulo herda as dependências da Plataforma. Para proteger uma rota ou recuperar o usuário logado:
+## Integracao com a plataforma
 
-1. **Proteção de Rota:** Use `@PreAuthorize("hasRole('ROLE_NAME')")` nos métodos do seu Controller.
-2. **Usuário Atual:** Utilize o `SecurityContextHolder` para obter o e-mail ou ID do usuário que está realizando a requisição, garantindo que um paciente não veja dados de outro.
+Este modulo deve permanecer independente da plataforma. Para proteger uma rota ou recuperar o usuario logado:
 
-## 🚫 O que NÃO fazer
-- Não altere arquivos dentro da pasta `plataforma/`.
-- Não duplique a classe `User`. Se precisar de dados do usuário, use a entidade da Plataforma.
-- Não crie configurações de banco de dados locais. Use as da Plataforma.
+1. **Protecao de rota:** Use `@PreAuthorize("hasRole('ROLE_NAME')")` ou `@PreAuthorize("isAuthenticated()")` nos metodos do controller quando necessario.
+2. **Usuario atual:** Extraia o `userId` do header `Authorization` com a utilidade local `JwtClaimsUtils`, mantendo apenas a referencia numerica ao usuario da plataforma.
+
+## O que nao fazer
+
+- Nao altere arquivos dentro da pasta `plataforma/`.
+- Nao importe classes da plataforma. Se precisar referenciar o usuario autenticado, use apenas o ID numerico do token.
+- Nao crie configuracoes de banco de dados locais. Use as da plataforma.
