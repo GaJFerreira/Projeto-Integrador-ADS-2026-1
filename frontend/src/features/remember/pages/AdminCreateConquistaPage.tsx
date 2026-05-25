@@ -5,7 +5,6 @@ import {
     Button,
     Container,
     IconButton,
-    Grid,
     Stack,
     TextField,
     Typography,
@@ -119,10 +118,8 @@ export default function NewConquistaPage() {
             </Box>
 
             <Box component="form" onSubmit={handleSubmit} noValidate>
-                <Grid container spacing={0} justifyContent="center">
-                    <Grid item xs={12} md={8} lg={8}>
-
-                        <Stack spacing={3} component={Paper} sx={{ p: 4, borderRadius: 2 }}>
+                <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+                    <Stack spacing={3} component={Paper} sx={{ p: 4, borderRadius: 2 }}>
 
                             <Typography variant="h5" color="primary">
                                 Dados da Conquista
@@ -248,9 +245,8 @@ export default function NewConquistaPage() {
                                 </Button>
                             </Stack>
 
-                        </Stack>
-                    </Grid>
-                </Grid>
+                    </Stack>
+                </Box>
             </Box>
         </Container>
     );

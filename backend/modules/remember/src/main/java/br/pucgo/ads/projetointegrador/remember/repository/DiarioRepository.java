@@ -15,6 +15,8 @@ public interface DiarioRepository extends JpaRepository<Diario, Long> {
 
     List<Diario> findAllByIdentificadorUsuarioOrderByDataEscritaDesc(Long identificadorUsuario);
 
+    List<Diario> findAllByIdentificadorUsuario(Long identificadorUsuario);
+
     List<Diario> findAllByIdentificadorUsuarioAndDataCriacaoBetween(Long identificadorUsuario, LocalDateTime dataInicio, LocalDateTime dataFim);
 
     long countByIdentificadorUsuario(Long identificadorUsuario);

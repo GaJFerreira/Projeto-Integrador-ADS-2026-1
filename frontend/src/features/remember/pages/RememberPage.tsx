@@ -16,6 +16,7 @@ import {
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'; // Ícone da Conquista
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -24,6 +25,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import DiariosPage from './DiariosPage';
 import LembrancasPage from './LembrancasPage';
 import ConquistasUsuarioPage from './ConquistasUsuarioPage';
+import PerguntasCognitivasPage from './PerguntasCognitivasPage';
 
 // Componentes dos Modais
 import DiarioModal from '../components/DiarioModal';
@@ -180,6 +182,7 @@ export default function RememberPage() {
                 >
                     <Tab label="Meus Diários" icon={<MenuBookIcon />} iconPosition="start" />
                     <Tab label="Minhas Lembranças" icon={<AutoAwesomeIcon />} iconPosition="start" />
+                    <Tab label="Perguntas" icon={<PsychologyIcon />} iconPosition="start" />
                     <Tab label="Minhas Conquistas" icon={<EmojiEventsIcon />} iconPosition="start" />
                 </Tabs>
             </Paper>
@@ -207,6 +210,10 @@ export default function RememberPage() {
                 )}
 
                 {usuarioIdLogado && tabIndex === 2 && (
+                    <PerguntasCognitivasPage />
+                )}
+
+                {usuarioIdLogado && tabIndex === 3 && (
                     <ConquistasUsuarioPage usuarioId={usuarioIdLogado} />
                 )}
             </Box>
