@@ -10,6 +10,7 @@ import {
   AccessTime,
   History,
   HelpOutline,
+  Sensors,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -122,6 +123,12 @@ export function CareHubModuleGrid() {
       to: '/carehub/historico-atendimentos',
     },
     {
+      icon: <Sensors sx={{ fontSize: 40 }} color="primary" />,
+      title: 'Dispositivos de Ajuda',
+      desc: 'Gerencie seus botões de emergência IoT',
+      to: '/carehub/dispositivos',
+    },
+    {
       icon: (
         <Badge badgeContent={naoLidas} color="error">
           <Chat sx={{ fontSize: 40 }} />
@@ -178,6 +185,12 @@ export function CareHubModuleGrid() {
       title: 'Histórico de Atendimentos',
       desc: 'Veja todos os registros por cliente',
       to: '/carehub/historico-atendimentos',
+    },
+    {
+      icon: <Sensors sx={{ fontSize: 40 }} color="error" />,
+      title: 'Painel de Emergência',
+      desc: 'Monitore alertas IoT em tempo real',
+      to: '/carehub/cuidador/alertas',
     },
     {
       icon: (

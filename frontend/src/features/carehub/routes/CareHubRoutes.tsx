@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
   CareHubHomePage,
@@ -12,8 +12,10 @@ import {
   RegistroAcompanhamentoPage,
   ProximosAtendimentosPage,
   HistoricoAtendimentosPage,
-  CareHubPrimeiroAcessoPage,
-  CareHubAjudaPage
+  CareHubAjudaPage,
+  MeusDispositivosPage,
+  PainelAlertasPage,
+  CareHubPrimeiroAcessoPage
 } from '../index';
 import http from '../libHttp';
 import { initializeAuthToken } from '../components/auth';
@@ -109,10 +111,12 @@ export function CareHubRoutes() {
         <Route path="agendamentos" element={<AgendamentosPage />} />
         <Route path="prontuario" element={<ProntuarioPage />} />
         <Route path="avaliacoes/:id" element={<AvaliacoesPage />} />
+        <Route path="dispositivos" element={<MeusDispositivosPage />} />
 
         <Route path="cuidador/agendamentos" element={<MeusAgendamentosPage />} />
         <Route path="cuidador/prontuarios" element={<ProntuariosClientesPage />} />
         <Route path="cuidador/registro" element={<RegistroAcompanhamentoPage />} />
+        <Route path="cuidador/alertas" element={<PainelAlertasPage />} />
         <Route path="cuidador/atendimentos" element={<ProximosAtendimentosPage />} />
       </Route>
 

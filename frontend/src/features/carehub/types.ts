@@ -128,3 +128,33 @@ export interface AvaliacaoResponseDTO {
   dataAvaliacao: string;
   agendamentoId?: number;
 }
+
+export interface DispositivoIoTCreateRequestDTO {
+  nome?: string;
+  deviceId?: string;
+  deviceKey?: string;
+}
+
+export interface DispositivoIoTResponseDTO {
+  id: number;
+  nome: string;
+  deviceId: string;
+  ativo: boolean;
+  ultimoBatimentoEm?: string;
+  deviceKeyPlain?: string; // retornado apenas na criação
+}
+
+export interface AlertaEmergenciaResponseDTO {
+  id: number;
+  status: string;
+  tipo: string;
+  origem: string;
+  observacao?: string;
+  clienteId: number;
+  clienteNome: string;
+  dispositivoId: number;
+  deviceId: string;
+  dispositivoNome: string;
+  criadoEm: string;
+  reconhecidoEm?: string;
+}

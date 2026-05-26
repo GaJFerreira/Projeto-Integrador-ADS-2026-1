@@ -9,6 +9,7 @@ export { default as ProntuarioPage } from './pages/ProntuarioPage';
 export { default as AvaliacoesPage } from './pages/AvaliacoesPage';
 export { default as ChatPage } from './pages/ChatPage';
 export { default as CareHubAjudaPage } from './pages/CareHubAjudaPage';
+export { default as MeusDispositivosPage } from './pages/MeusDispositivosPage';
 
 // Páginas do Cuidador (João Cuidador - ID 3)
 export { MeusAgendamentosPage } from './pages/MeusAgendamentosPage';
@@ -16,6 +17,7 @@ export { ProntuariosClientesPage } from './pages/ProntuariosClientesPage';
 export { RegistroAcompanhamentoPage } from './pages/RegistroAcompanhamentoPage';
 export { ProximosAtendimentosPage } from './pages/ProximosAtendimentosPage';
 export { HistoricoAtendimentosPage } from './pages/HistoricoAtendimentosPage';
+export { default as PainelAlertasPage } from './pages/PainelAlertasPage';
 
 // Utilitários de autenticação
 export { 
