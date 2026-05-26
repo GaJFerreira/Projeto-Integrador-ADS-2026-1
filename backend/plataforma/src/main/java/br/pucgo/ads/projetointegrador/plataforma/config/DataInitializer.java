@@ -176,6 +176,36 @@ public class DataInitializer {
             } else {
                 System.out.println("Usuário idoso já existe. Nenhuma ação necessária.");
             }
+
+            // Criar usuário cuidador
+            if (!userRepository.existsByUsername("cuidador")) {
+                User cuidador = new User();
+                cuidador.setName("Maria Oliveira Santos");
+                cuidador.setUsername("cuidador");
+                cuidador.setEmail("moliveira@live.com");
+                cuidador.setPassword(passwordEncoder.encode("123456"));
+                cuidador.setRole(cuidadorRole);
+
+                userRepository.save(cuidador);
+                System.out.println("Usuário cuidador criado com sucesso!");
+            } else {
+                System.out.println("Usuário cuidador já existe. Nenhuma ação necessária.");
+            }
+
+            // Criar usuário médico
+            if (!userRepository.existsByUsername("medico")) {
+                User medico = new User();
+                medico.setName("Carlos Silva Santos");
+                medico.setUsername("medico");
+                medico.setEmail("carlosssantos@gmail.com");
+                medico.setPassword(passwordEncoder.encode("123456"));
+                medico.setRole(medicoRole);
+
+                userRepository.save(medico);
+                System.out.println("Usuário médico criado com sucesso!");
+            } else {
+                System.out.println("Usuário médico já existe. Nenhuma ação necessária.");
+            }
         };
     }
 }

@@ -1,6 +1,4 @@
 spring:
-  application:
-    name: lista-compras
 
 springdoc:
   swagger-ui:
