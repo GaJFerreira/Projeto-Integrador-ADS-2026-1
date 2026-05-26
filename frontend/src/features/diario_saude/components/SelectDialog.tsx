@@ -25,7 +25,7 @@ export default function SelectDialog({
       <DialogContent>
         <Autocomplete
           options={list}
-          getOptionLabel={(o) => o.nome}
+          getOptionLabel={(o: any) => o?.nome || ""}
           onChange={(e, value) => setSelected(value)}
           renderInput={(params) => (
             <TextField {...params} label={label} fullWidth />

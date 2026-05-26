@@ -14,6 +14,9 @@ import AdminCuidadoresPage from '@/features/admin/pages/AdminCuidadoresPage';
 import AdminUsuarioCreatePage from '@/features/admin/pages/AdminUsuarioCreatePage';
 import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
 
+//Care Hub
+import { CareHubRoutes } from '@/features/carehub/routes/CareHubRoutes';
+
 //Diário Saúde
         
 import InformacoesSaude from '@/features/diario_saude/Idoso/InformacoesSaude';
@@ -107,13 +110,8 @@ export function AppRoutes() {
         <Route path="lista-compras/templates" element={<TemplatesPage />} />
         <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
 
-        {/* Diário Cognitivo (Remember) */}
-        <Route path="remember" element={<RememberPage />} />
-
-        {/* Admin: Gestão de Conquistas do Remember */}
-        <Route path="admin/conquistas" element={<AdminConquistasPage />} />
-        <Route path="admin/conquistas/novo" element={<AdminCreateConquistaPage />} />
-        <Route path="admin/conquistas/:id/edit" element={<AdminEditConquistaPage />} />
+        {/* CareHub */}
+        <Route path="carehub/*" element={<CareHubRoutes />} />
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />

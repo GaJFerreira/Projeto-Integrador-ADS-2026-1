@@ -5,7 +5,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import br.pucgo.ads.projetointegrador.carehub.repository.MessageMediaRepository;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 
 @Component
@@ -18,7 +19,7 @@ public class ScheduledCleanupService {
     @Scheduled(cron = "0 30 3 * * *")
     public void cleanupOldMedia() {
         try {
-            LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+            OffsetDateTime cutoff = OffsetDateTime.now(ZoneOffset.UTC).minusDays(7);
             List<br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia> olds = messageMediaRepository.findByCreatedAtBefore(cutoff);
             if (olds == null || olds.isEmpty()) return;
             for (br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia m : olds) {

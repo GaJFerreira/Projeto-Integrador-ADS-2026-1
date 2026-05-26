@@ -6,10 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
- * Mídia associada a uma {@link Mensagem} (áudio, imagem, documento).
+ * MÃ­dia associada a uma {@link Mensagem} (Ã¡udio, imagem, documento).
  */
 @Entity
 @Table(name = "message_media", schema = "care_hub")
@@ -43,5 +43,6 @@ public class MessageMedia {
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 }
+

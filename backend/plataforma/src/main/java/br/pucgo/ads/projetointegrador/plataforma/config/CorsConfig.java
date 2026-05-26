@@ -41,7 +41,8 @@ public class CorsConfig {
         // Expor headers na resposta
         configuration.setExposedHeaders(Arrays.asList(
             "Authorization",
-            "Content-Type"
+            "Content-Type",
+            "Content-Disposition"
         ));
         
         // Permitir credenciais (cookies, authorization headers)

@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -18,7 +18,7 @@ public class RegistroAcompanhamentoResponseDTO {
     private String cuidadorNome;
     private Long clienteId;
     private String clienteNome;
-    private LocalDateTime dataHoraRegistro;
+    private OffsetDateTime dataHoraRegistro;
     private String pressaoArterial;
     private String glicemia;
     private String medicamentosAdministrados;
@@ -27,5 +27,6 @@ public class RegistroAcompanhamentoResponseDTO {
     private String observacoes;
     private String intercorrencias;
     private String sinaisVitais;
-    private LocalDateTime dataCriacao;
+    private OffsetDateTime dataCriacao;
 }
+

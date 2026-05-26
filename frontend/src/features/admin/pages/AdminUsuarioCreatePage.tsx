@@ -96,7 +96,7 @@ export default function AdminUsuarioCreatePage() {
         enqueueSnackbar('Informe certificacao e experiencia para cuidadores.', { variant: 'warning' });
         return;
       }
-      const payload: CreateUserPayload = {
+      const payload: any = {
         ...form,
         roleId: form.roleId ? Number(form.roleId) : undefined,
         crm: isMedico ? form.crm : undefined,

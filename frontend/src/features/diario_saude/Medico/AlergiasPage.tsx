@@ -179,9 +179,9 @@ export default function AlergiasPage() {
           </Box>
         ) : (
           <Stack spacing={1.5} mb={3}>
-            {alergiasPaciente.map((a) => (
+            {alergiasPaciente.map((a: any) => (
               <Paper
-                key={a.id}
+                key={a.id || a.alergiaId || a.id_usuario_alergia}
                 elevation={0}
                 sx={{
                   p: 2,
@@ -194,7 +194,7 @@ export default function AlergiasPage() {
               >
                 <Box display="flex" alignItems="center" gap={1}>
                   <WarningAmberIcon fontSize="small" sx={{ color: "#FF7F00" }} />
-                  <Typography fontWeight={600}>{a.nome}</Typography>
+                  <Typography fontWeight={600}>{a.nome || a.alergia?.nome}</Typography>
                 </Box>
 
                 <IconButton
@@ -203,7 +203,7 @@ export default function AlergiasPage() {
                   onClick={() =>
                     removeAlergiaMutation.mutate({
                       usuarioId: pacienteId,
-                      alergiaId: a.id,
+                      alergiaId: a.id || a.alergiaId || a.alergia?.id,
                     })
                   }
                 >

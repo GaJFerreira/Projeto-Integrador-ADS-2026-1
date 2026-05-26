@@ -4,11 +4,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 /**
- * Registro de acompanhamento clínico realizado pelo Cuidador durante um atendimento.
+ * Registro de acompanhamento clÃ­nico realizado pelo Cuidador durante um atendimento.
  */
 @Entity
 @Table(name = "ch_registro_acompanhamento", schema = "care_hub")
@@ -34,7 +37,7 @@ public class RegistroAcompanhamento {
     private Cliente cliente;
 
     @Column(name = "data_hora_registro", nullable = false)
-    private LocalDateTime dataHoraRegistro;
+    private OffsetDateTime dataHoraRegistro;
 
     @Column(name = "pressao_arterial", length = 32)
     private String pressaoArterial;
@@ -60,23 +63,19 @@ public class RegistroAcompanhamento {
     @Column(name = "sinais_vitais", columnDefinition = "TEXT")
     private String sinaisVitais;
 
+    @CreationTimestamp
     @Column(name = "data_criacao", nullable = false, updatable = false)
-    private LocalDateTime dataCriacao;
+    private OffsetDateTime dataCriacao;
 
+    @UpdateTimestamp
     @Column(name = "data_atualizacao")
-    private LocalDateTime dataAtualizacao;
+    private OffsetDateTime dataAtualizacao;
 
     @PrePersist
     protected void onCreate() {
-        dataCriacao = LocalDateTime.now();
-        dataAtualizacao = LocalDateTime.now();
         if (dataHoraRegistro == null) {
-            dataHoraRegistro = LocalDateTime.now();
+            dataHoraRegistro = OffsetDateTime.now(ZoneOffset.UTC);
         }
     }
-
-    @PreUpdate
-    protected void onUpdate() {
-        dataAtualizacao = LocalDateTime.now();
-    }
 }
+

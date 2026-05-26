@@ -267,7 +267,7 @@ export default function QuestionarioPage() {
     }
   };
 
-  const bloqueado = enviarMutation.isLoading || respondendoRef.current;
+  const bloqueado = enviarMutation.isPending || respondendoRef.current;
   const progresso = Math.round((indiceAtual / perguntas.length) * 100);
 
   // ── Questionário ────────────────────────────────────────────
