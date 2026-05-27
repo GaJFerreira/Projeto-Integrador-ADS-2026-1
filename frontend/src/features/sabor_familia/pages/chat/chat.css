@@ -1,0 +1,160 @@
+.chat-layout {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ── Lista de conversas ── */
+.chat-list {
+  width: 300px;
+  min-width: 300px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-list__header {
+  padding: 1.25rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.chat-list__title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+  font-family: var(--font-sans);
+}
+
+.chat-list__items {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem 0;
+}
+
+.chat-list__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  font-family: var(--font-sans);
+}
+
+.chat-list__item:hover {
+  background: var(--bg);
+}
+
+.chat-list__item--active {
+  background: var(--brand-light);
+}
+
+.chat-list__item--active .chat-list__name {
+  color: var(--brand-dark);
+}
+
+.chat-list__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+}
+
+.chat-list__avatar--placeholder {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: var(--brand-light);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.chat-list__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-list__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-list__preview {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+}
+
+.chat-list__time {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.chat-list__empty {
+  text-align: center;
+  padding: 3rem 1.25rem;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+/* ── Placeholder sem conversa selecionada ── */
+.chat-placeholder {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  color: var(--text-muted);
+  font-size: 15px;
+  font-family: var(--font-sans);
+  background: var(--bg);
+}
+
+.chat-placeholder svg {
+  opacity: 0.3;
+  width: 48px;
+  height: 48px;
+}
+
+/* ── Responsivo ── */
+@media (max-width: 768px) {
+  .chat-list {
+    width: 220px;
+    min-width: 220px;
+  }
+}
+
+@media (max-width: 580px) {
+  .chat-list {
+    display: none;
+  }
+}

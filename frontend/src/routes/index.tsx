@@ -51,7 +51,11 @@ import { HomeSaborFamilia } from '@/features/sabor_familia/pages/home/HomeSaborF
 import AddReceita from '@/features/sabor_familia/pages/receita/AdicionarReceita';
 import ErrorSaborFamilia from '@/features/sabor_familia/pages/error/Error';
 import Perfil from '@/features/sabor_familia/pages/perfil/Perfil';
-import EditarPerfil from '@/features/sabor_familia/pages/perfil/EditarPerfil';
+import { Explorar } from '@/features/sabor_familia/pages/explorar/Explorar';
+import { Chat } from '@/features/sabor_familia/pages/chat/Chat';
+import { Favoritos } from '@/features/sabor_familia/pages/favoritos/Favoritos';
+import { VerSeguidores } from '@/features/sabor_familia/pages/ver_seguidores/VerSeguidores';
+import { Configuracoes } from '@/features/sabor_familia/pages/configuracoes/Configuracoes';
 import { AuthProvider } from '@/features/sabor_familia/context/AuthProvider';
 
 
@@ -134,8 +138,13 @@ export function AppRoutes() {
               <Route path="login"           element={<LoginSaborFamilia />} />
               <Route path="cadastro"        element={<CriarPerfil />} />
               <Route path="home"            element={<HomeSaborFamilia />} />
+              <Route path="explorar"        element={<Explorar />} />
+              <Route path="mensagens"       element={<Chat />} />
+              <Route path="configuracoes"   element={<Configuracoes />} />
+              <Route path="favoritos"       element={<Favoritos />} />
+              <Route path="perfil/:perfilId/seguidores" element={<VerSeguidores />} />
+              <Route path="perfil/:perfilId/seguindo" element={<VerSeguidores />} />
               <Route path="receita/nova"    element={<AddReceita />} />
-              <Route path="perfil/editar"   element={<EditarPerfil />} />
               <Route path="perfil/:perfilId" element={<Perfil />} />
               <Route path="error"           element={<ErrorSaborFamilia />} />
               <Route path="*"               element={<ErrorSaborFamilia />} />

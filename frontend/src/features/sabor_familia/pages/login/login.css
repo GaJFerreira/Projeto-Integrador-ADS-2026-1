@@ -102,3 +102,17 @@
 .cp-link-btn:hover { color: #854F0B; }
 
 .error { color: #c0392b; font-size: 13px; margin-top: 8px; font-family: sans-serif; }
+
+.sf-entry-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #e8e0d0;
+  border-top-color: #BA7517;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 1.5rem auto 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -58,7 +58,7 @@ export function PerfilHeader({
           {perfil.proprioPerfil && (
             <button
               className="ph-btn-editar"
-              onClick={() => navigate("/perfil/editar")}
+              onClick={() => navigate("/sabor-familia/configuracoes")}
             >
               Editar perfil
             </button>
@@ -74,7 +74,7 @@ export function PerfilHeader({
 
           <button
             className="ph-stat ph-stat--btn"
-            onClick={() => navigate(`/perfil/${perfil.id}/seguidores`)}
+            onClick={() => navigate(`/sabor-familia/perfil/${perfil.id}/seguidores`)}
           >
             <span className="ph-stat__num">{totalSeguidores}</span>
             <span className="ph-stat__label">seguidores</span>
@@ -82,7 +82,7 @@ export function PerfilHeader({
 
           <button
             className="ph-stat ph-stat--btn"
-            onClick={() => navigate(`/perfil/${perfil.id}/seguindo`)}
+            onClick={() => navigate(`/sabor-familia/perfil/${perfil.id}/seguindo`)}
           >
             <span className="ph-stat__num">{perfil.estatisticas.countSeguindo}</span>
             <span className="ph-stat__label">seguindo</span>

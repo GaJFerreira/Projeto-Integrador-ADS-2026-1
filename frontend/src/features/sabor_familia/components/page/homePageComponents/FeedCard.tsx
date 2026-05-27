@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useAlternarCurtida } from "../../../hooks/UseCurtida";
 import { useAlternarFavorito } from "../../../hooks/UseFavorito";
 // import { useBuscarComentarios } from "../../hooks/UseComentario";
-import { formatarTempo } from "../../../utils/formatarTempo";
 import CommentIcon from "../../../icon/menu/CommentIcon";
 import BookmarkIcon from "../../../icon/menu/BookmarkIcon";
 import HeartFillIcon from "../../../icon/menu/HeartFillIcon";
@@ -30,7 +29,7 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
   const totalComentarios = receita.estatisticas.comentarios;
 
   const navigate = useNavigate();
-  const tempo = receita.dataCadastro ? formatarTempo(receita.dataCadastro) : "";
+  const tempo = receita.dataCadastro;
 
   const fotoCapaUrl =
     (receita as ReceitaResponse & { fotoCapaUrl?: string | null }).fotoCapaUrl ?? null;
@@ -40,10 +39,10 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
       <header className="feed-card__header">
         <div
           className="feed-card__author"
-          onClick={() => navigate(`/perfil/${receita.autor.perfilId}`)}
+          onClick={() => navigate(`/sabor-familia/perfil/${receita.autor.perfilId}`)}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === "Enter" && navigate(`/perfil/${receita.autor.perfilId}`)}
+          onKeyDown={(e) => e.key === "Enter" && navigate(`/sabor-familia/perfil/${receita.autor.perfilId}`)}
         >
           {receita.autor.fotoPerfilUrl ? (
             <img

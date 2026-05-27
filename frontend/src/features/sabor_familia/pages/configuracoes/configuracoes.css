@@ -1,0 +1,263 @@
+.config-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.config-container {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.config-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+}
+
+.config-section__title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 0 0 1.25rem;
+  font-family: var(--font-sans);
+}
+
+.config-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.config-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border);
+  flex-shrink: 0;
+}
+
+.config-avatar--placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--brand-light);
+  color: var(--brand);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.config-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.config-profile-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+.config-profile-email {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+.config-profile-stats {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+}
+
+.config-profile-stats strong {
+  color: var(--text);
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 1rem;
+}
+
+.config-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.config-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.config-input,
+.config-textarea {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.config-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.45;
+}
+
+.config-input:focus,
+.config-textarea:focus {
+  border-color: var(--brand);
+}
+
+.config-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.config-tag {
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-family: var(--font-sans);
+}
+
+.config-tag--restricao {
+  background: #fff3e0;
+  color: #bf6c00;
+  border: 1px solid #ffe0b2;
+}
+
+.config-tag--personalizacao {
+  background: var(--brand-light);
+  color: var(--brand-dark);
+  border: 1px solid rgba(186,117,23,0.25);
+}
+
+.config-empty-tag {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.config-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.config-btn {
+  padding: 0.55rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.config-btn--primary {
+  background: var(--brand);
+  color: #fff;
+}
+
+.config-btn--primary:hover {
+  background: var(--brand-dark);
+}
+
+.config-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.config-btn--secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.config-btn--secondary:hover {
+  background: var(--bg);
+}
+
+.config-btn--danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.config-btn--danger:hover {
+  background: #fff0f0;
+}
+
+.config-success {
+  font-size: 13px;
+  color: #2e7d32;
+  background: #f1f8e9;
+  border: 1px solid #c5e1a5;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.config-error-msg {
+  font-size: 13px;
+  color: #c00;
+  background: #fff0f0;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 0.5rem 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.config-logout-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow);
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.config-logout-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+}
