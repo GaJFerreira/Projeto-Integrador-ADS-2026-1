@@ -112,7 +112,8 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
             @Param("disponibilidade") Boolean disponibilidade,
             Pageable pageable);
 
-    /** Cuidadores sem especialidades cadastradas. */
+    /**
+     * Cuidadores sem especialidades cadastradas. */
     @Query("SELECT c FROM Cuidador c WHERE c.especialidades IS EMPTY AND c.deletedAt IS NULL")
     List<Cuidador> findCuidadoresSemEspecialidades();
 
@@ -122,4 +123,18 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
      */
     @Query("SELECT DISTINCT c FROM Cuidador c LEFT JOIN FETCH c.especialidades WHERE c.deletedAt IS NULL")
     List<Cuidador> findAllComEspecialidades();
+
+    /**
+     * Busca o cuidador vinculado ao cliente por um agendamento ativo
+     * (CONFIRMADO ou EM_ANDAMENTO). Se houver mais de um, retorna o mais recente.
+     * Usado no momento do recebimento do alerta IoT para popular o campo cuidador
+     * diretamente no alerta, eliminando a dependência de JOIN posterior.
+     */
+    @Query("SELECT ag.cuidador FROM Agendamento ag " +
+           "WHERE ag.cliente.id = :clienteId " +
+           "AND ag.status IN ('CONFIRMADO', 'EM_ANDAMENTO') " +
+           "AND ag.cuidador.deletedAt IS NULL " +
+           "ORDER BY ag.dataHoraInicio DESC")
+    List<Cuidador> findCuidadoresAtivosDoCliente(@Param("clienteId") Long clienteId);
 }
+

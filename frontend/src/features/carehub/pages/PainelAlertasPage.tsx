@@ -74,7 +74,7 @@ export default function PainelAlertasPage() {
       ) : (
         <Grid container spacing={4}>
           {alertas.map(alerta => (
-            <Grid item xs={12} md={6} lg={4} key={alerta.id}>
+            <Grid size={{ xs: 12, md: 6, lg: 4 }} key={alerta.id}>
               <Card 
                 elevation={8}
                 sx={{ 

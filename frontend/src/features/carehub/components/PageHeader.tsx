@@ -1,3 +1,4 @@
+import React from 'react';
 import { Box, IconButton, Typography, Stack } from '@mui/material';
 import './carehub-accessibility.css';
 import { ArrowBack } from '@mui/icons-material';
@@ -7,13 +8,14 @@ interface PageHeaderProps {
   title: string;
   subtitle?: string;
   backTo?: string; // Se não fornecido, usa navigate(-1)
+  icon?: React.ReactNode;
 }
 
 /**
  * Componente de cabeçalho padronizado para todas as páginas do CareHub
  * com botão VOLTAR grande e visível, ideal para idosos
  */
-export function PageHeader({ title, subtitle, backTo }: PageHeaderProps) {
+export function PageHeader({ title, subtitle, backTo, icon }: PageHeaderProps) {
   const navigate = useNavigate();
 
   const handleBack = () => {
@@ -62,6 +64,26 @@ export function PageHeader({ title, subtitle, backTo }: PageHeaderProps) {
         >
           <ArrowBack sx={{ fontSize: 32 }} />
         </IconButton>
+
+        {/* Ícone do módulo, se fornecido */}
+        {icon && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'white',
+              borderRadius: '50%',
+              p: 1,
+              width: 56,
+              height: 56,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+              flexShrink: 0,
+            }}
+          >
+            {icon}
+          </Box>
+        )}
 
         {/* Título e Subtítulo */}
         <Box sx={{ flex: 1 }}>

@@ -37,15 +37,17 @@ public class AgendamentoController {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.BAD_REQUEST, "User ID é obrigatório");
         }
-        
+
         var c = cuidadorRepository.findByPlatformUserId(platformUserId);
-        if (c.isPresent()) return c.get().getId();
-        
+        if (c.isPresent())
+            return c.get().getId();
+
         var cli = clienteRepository.findByPlatformUserId(platformUserId);
-        if (cli.isPresent()) return cli.get().getId();
-        
+        if (cli.isPresent())
+            return cli.get().getId();
+
         throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.NOT_FOUND, 
+                org.springframework.http.HttpStatus.NOT_FOUND,
                 "UsuÃ¡rio local do CareHub nÃ£o encontrado para o platformUserId: " + platformUserId);
     }
 
@@ -63,27 +65,26 @@ public class AgendamentoController {
     private String getUsername(Principal principal) {
         if (principal == null) {
             throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.UNAUTHORIZED, "UsuÃ¡rio nÃ£o autenticado");
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "UsuÃ¡rio nÃ£o autenticado");
         }
         return principal.getName();
     }
 
     @PostMapping
     public ResponseEntity<AgendamentoResponseDTO> criarAgendamento(
-            @Valid @RequestBody AgendamentoRequestDTO dto
-    ) {
-        log.info("Criando agendamento: clienteId={}, cuidadorId={}, data={}", 
-            dto.getClienteId(), dto.getCuidadorId(), dto.getDataHoraInicio());
-        
+            @Valid @RequestBody AgendamentoRequestDTO dto) {
+        log.info("Criando agendamento: clienteId={}, cuidadorId={}, data={}",
+                dto.getClienteId(), dto.getCuidadorId(), dto.getDataHoraInicio());
+
         // Resolve platform user id to local id for client
         Long localClienteId = obterIdLocal(dto.getClienteId());
         dto.setClienteId(localClienteId);
-        
+
         AgendamentoResponseDTO agendamento = agendamentoService.criarAgendamento(dto);
-        
-        log.info("Agendamento criado com sucesso: id={}, status={}", 
-            agendamento.getId(), agendamento.getStatus());
-        
+
+        log.info("Agendamento criado com sucesso: id={}, status={}",
+                agendamento.getId(), agendamento.getStatus());
+
         return ResponseEntity.ok(agendamento);
     }
 
@@ -91,9 +92,9 @@ public class AgendamentoController {
     public ResponseEntity<AgendamentoResponseDTO> atualizarStatus(
             @PathVariable Long id,
             @RequestParam String status,
-            Principal principal
-    ) {
-        log.info("Atualizando status do agendamento: id={}, novoStatus={} (actor={})", id, status, principal == null ? "anonymous" : principal.getName());
+            Principal principal) {
+        log.info("Atualizando status do agendamento: id={}, novoStatus={} (actor={})", id, status,
+                principal == null ? "anonymous" : principal.getName());
         AgendamentoResponseDTO agendamento;
         try {
             agendamento = agendamentoService.atualizarStatus(id, status, principal);
@@ -102,7 +103,8 @@ public class AgendamentoController {
             if (msg.toLowerCase().contains("usuário não encontrado")
                     || msg.toLowerCase().contains("usuario nao encontrado")
                     || msg.toLowerCase().contains("usuÃ¡rio nÃ£o encontrado")) {
-                log.warn("Fallback de atualização de status por principalName (sem ID local): actor={}", principal == null ? "anonymous" : principal.getName());
+                log.warn("Fallback de atualização de status por principalName (sem ID local): actor={}",
+                        principal == null ? "anonymous" : principal.getName());
                 agendamento = agendamentoService.atualizarStatusPorPrincipalName(id, status, principal);
             } else {
                 throw ex;
@@ -118,9 +120,9 @@ public class AgendamentoController {
     public ResponseEntity<AgendamentoResponseDTO> proporContraproposta(
             @PathVariable Long id,
             @RequestBody br.pucgo.ads.projetointegrador.carehub.dto.agendamento.ContrapropostaRequestDTO dto,
-            Principal principal
-    ) {
-        log.info("Cuidador propondo contraproposta: agendamentoId={}, actor={} - inicio={}, fim={}", id, principal == null ? "anonymous" : principal.getName(), dto.getDataHoraInicio(), dto.getDataHoraFim());
+            Principal principal) {
+        log.info("Cuidador propondo contraproposta: agendamentoId={}, actor={} - inicio={}, fim={}", id,
+                principal == null ? "anonymous" : principal.getName(), dto.getDataHoraInicio(), dto.getDataHoraFim());
         AgendamentoResponseDTO agendamento = agendamentoService.proporContraproposta(id, dto, principal);
         return ResponseEntity.ok(agendamento);
     }
@@ -155,13 +157,13 @@ public class AgendamentoController {
     public ResponseEntity<List<AgendamentoResponseDTO>> listarPorCuidadorEPeriodo(
             @PathVariable Long cuidadorId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime inicio,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fim
-    ) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime fim) {
         Long localCuidadorId = obterIdLocalOuNull(cuidadorId);
         if (localCuidadorId == null) {
             return ResponseEntity.ok(List.of());
         }
-        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCuidadorEPeriodo(localCuidadorId, inicio, fim);
+        List<AgendamentoResponseDTO> agendamentos = agendamentoService.listarPorCuidadorEPeriodo(localCuidadorId,
+                inicio, fim);
         return ResponseEntity.ok(agendamentos);
     }
 
@@ -177,8 +179,7 @@ public class AgendamentoController {
     @GetMapping("/proximos")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarProximos(
             Principal principal,
-            @RequestParam(defaultValue = "7") int dias
-    ) {
+            @RequestParam(defaultValue = "7") int dias) {
         // Principal.getName() retorna email ou username, nÃ£o o ID
         String usernameOrEmail = getUsername(principal);
         Long userId = obterUserIdSeguro(usernameOrEmail);
@@ -194,41 +195,41 @@ public class AgendamentoController {
         agendamentoService.cancelarAgendamento(id);
         return ResponseEntity.noContent().build();
     }
-    
+
     @GetMapping("/{id}/pode-iniciar")
     public ResponseEntity<Map<String, Object>> verificarPodeIniciar(@PathVariable Long id) {
         Map<String, Object> resultado = agendamentoService.verificarPodeIniciar(id);
         return ResponseEntity.ok(resultado);
     }
-    
+
     @PostMapping("/{id}/aceitar-contraproposta")
     public ResponseEntity<AgendamentoResponseDTO> aceitarContraproposta(
             @PathVariable Long id,
-            Principal principal
-    ) {
-        log.info("Cliente aceitando contraproposta: agendamentoId={}, actor={}", id, principal == null ? "anonymous" : principal.getName());
+            Principal principal) {
+        log.info("Cliente aceitando contraproposta: agendamentoId={}, actor={}", id,
+                principal == null ? "anonymous" : principal.getName());
         AgendamentoResponseDTO agendamento = agendamentoService.aceitarContraproposta(id, principal);
         return ResponseEntity.ok(agendamento);
     }
 
     /**
-     * Retorna os agendamentos concluÃ­dos que ainda nÃ£o foram avaliados (estilo Uber/99).
+     * Retorna os agendamentos concluÃ­dos que ainda nÃ£o foram avaliados (estilo
+     * Uber/99).
      * Usado para mostrar notificaÃ§Ã£o de avaliaÃ§Ã£o pendente.
      */
     @GetMapping("/avaliacoes-pendentes")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarAvaliacoesPendentes(
-            Principal principal
-    ) {
+            Principal principal) {
         String usernameOrEmail = getUsername(principal);
         Long clienteId = obterUserIdSeguro(usernameOrEmail);
         log.info("Listando avaliaÃ§Ãµes pendentes: clienteId={}", clienteId);
-        
+
         List<AgendamentoResponseDTO> pendentes = List.of();
         if (clienteId != null) {
             pendentes = agendamentoService.listarAvaliacoesPendentes(clienteId);
         }
         log.info("AvaliaÃ§Ãµes pendentes encontradas: {}", pendentes.size());
-        
+
         return ResponseEntity.ok(pendentes);
     }
 
@@ -238,16 +239,15 @@ public class AgendamentoController {
      */
     @GetMapping("/avaliacoes-pendentes/count")
     public ResponseEntity<Map<String, Long>> contarAvaliacoesPendentes(
-            Principal principal
-    ) {
+            Principal principal) {
         String usernameOrEmail = getUsername(principal);
         Long clienteId = obterUserIdSeguro(usernameOrEmail);
-        
+
         long count = 0;
         if (clienteId != null) {
             count = agendamentoService.contarAvaliacoesPendentes(clienteId);
         }
-        
+
         return ResponseEntity.ok(Map.of("count", count));
     }
 
@@ -259,32 +259,32 @@ public class AgendamentoController {
     public ResponseEntity<Map<String, Long>> contarPendentesCuidador(Principal principal) {
         String usernameOrEmail = getUsername(principal);
         Long cuidadorId = obterUserIdSeguro(usernameOrEmail);
-        
+
         long count = 0;
         if (cuidadorId != null) {
             count = agendamentoService.contarPendentesCuidador(cuidadorId);
         }
         log.info("Agendamentos pendentes para cuidador {}: {}", cuidadorId, count);
-        
+
         return ResponseEntity.ok(Map.of("count", count));
     }
 
     /**
-     * Conta agendamentos REAGENDADOS (contrapropostas) aguardando resposta do cliente.
+     * Conta agendamentos REAGENDADOS (contrapropostas) aguardando resposta do
+     * cliente.
      * Usado para badge de notificaÃ§Ã£o no grid de mÃ³dulos.
      */
     @GetMapping("/reagendados-cliente/count")
     public ResponseEntity<Map<String, Long>> contarReagendadosCliente(Principal principal) {
         String usernameOrEmail = getUsername(principal);
         Long clienteId = obterUserIdSeguro(usernameOrEmail);
-        
+
         long count = 0;
         if (clienteId != null) {
             count = agendamentoService.contarReagendadosCliente(clienteId);
         }
         log.info("Agendamentos reagendados para cliente {}: {}", clienteId, count);
-        
+
         return ResponseEntity.ok(Map.of("count", count));
     }
 }
-

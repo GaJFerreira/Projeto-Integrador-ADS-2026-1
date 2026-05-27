@@ -23,6 +23,14 @@ public class AlertaEmergencia {
     @JoinColumn(name = "cliente_id", nullable = false)
     private Cliente cliente;
 
+    /**
+     * Cuidador responsável pelo cliente no momento do alerta.
+     * Nullable pois o cliente pode não ter cuidador vinculado via agendamento.
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "cuidador_id", nullable = true)
+    private Cuidador cuidador;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "dispositivo_id", nullable = false)
     private DispositivoIoT dispositivo;

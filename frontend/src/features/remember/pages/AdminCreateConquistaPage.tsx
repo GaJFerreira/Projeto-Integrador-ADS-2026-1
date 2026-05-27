@@ -120,7 +120,7 @@ export default function NewConquistaPage() {
 
             <Box component="form" onSubmit={handleSubmit} noValidate>
                 <Grid container spacing={0} justifyContent="center">
-                    <Grid item xs={12} md={8} lg={8}>
+                    <Grid size={{ xs: 12, md: 8, lg: 8 }}>
 
                         <Stack spacing={3} component={Paper} sx={{ p: 4, borderRadius: 2 }}>
 
