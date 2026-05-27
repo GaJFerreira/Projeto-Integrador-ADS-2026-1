@@ -127,6 +127,15 @@ export function AppRoutes() {
         <Route path="questionario_saude" element={<QuestionarioPage />} />
         <Route path="dados_biometricos" element={<DadosBiometricosPage />} />
 
+
+        {/* Diário Cognitivo (Remember) */}
+        <Route path="remember" element={<RememberPage />} />
+
+        {/* Admin: Gestão de Conquistas do Remember */}
+        <Route path="admin/conquistas" element={<AdminConquistasPage />} />
+        <Route path="admin/conquistas/novo" element={<AdminCreateConquistaPage />} />
+        <Route path="admin/conquistas/:id/edit" element={<AdminEditConquistaPage />} />
+
       </Route>
     </Routes>
   );
