@@ -1,8 +1,14 @@
 import "./feedCard.css";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAlternarCurtida } from "../../../hooks/UseCurtida";
 import { useAlternarFavorito } from "../../../hooks/UseFavorito";
-// import { useBuscarComentarios } from "../../hooks/UseComentario";
+import {
+  useAdicionarComentario,
+  useBuscarComentarios,
+  useRemoverComentario,
+} from "../../../hooks/UseComentario";
+import { useAuth } from "../../../hooks/UseAuth";
 import CommentIcon from "../../../icon/menu/CommentIcon";
 import BookmarkIcon from "../../../icon/menu/BookmarkIcon";
 import HeartFillIcon from "../../../icon/menu/HeartFillIcon";
@@ -15,6 +21,9 @@ interface FeedCardProps {
 }
 
 function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
+  const { perfilId } = useAuth();
+  const [showComments, setShowComments] = useState(false);
+  const [textoComentario, setTextoComentario] = useState("");
   const { curtido, totalCurtidas, alternar: alternarCurtida } = useAlternarCurtida(
     receita.id,
     receita.curtidoPeloUsuario,
@@ -27,12 +36,32 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
   );
 
   const totalComentarios = receita.estatisticas.comentarios;
+  const { comentarios, loading: carregandoComentarios, recarregar } = useBuscarComentarios(
+    receita.id,
+    showComments
+  );
+  const { adicionar, loading: adicionandoComentario } = useAdicionarComentario(receita.id);
+  const { remover, loadingId: removendoComentarioId } = useRemoverComentario(receita.id);
 
   const navigate = useNavigate();
   const tempo = receita.dataCadastro;
 
   const fotoCapaUrl =
     (receita as ReceitaResponse & { fotoCapaUrl?: string | null }).fotoCapaUrl ?? null;
+
+  const handleAdicionarComentario = async () => {
+    if (!textoComentario.trim()) return;
+    await adicionar(textoComentario, () => {
+      setTextoComentario("");
+      recarregar();
+    });
+  };
+
+  const handleRemoverComentario = async (comentarioId: number) => {
+    await remover(comentarioId, () => {
+      recarregar();
+    });
+  };
 
   return (
     <article className={`feed-card ${isSelected ? "feed-card--selected" : ""}`}>
@@ -78,6 +107,53 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
         )}
       </div>
 
+      {showComments && (
+        <section className="feed-card__comments">
+          <div className="feed-card__comments-list">
+            {carregandoComentarios ? (
+              <p className="feed-card__comments-empty">Carregando comentários...</p>
+            ) : comentarios.length === 0 ? (
+              <p className="feed-card__comments-empty">Nenhum comentário ainda.</p> 
+            ) : (
+              comentarios.map((comentario) => (
+                <div key={comentario.id} className="feed-card__comment-item">
+                  <div className="feed-card__comment-header">
+                    <strong className="feed-card__comment-author">{comentario.nomePerfil}</strong>
+                    {perfilId !== null && comentario.perfilId === perfilId && (
+                      <button
+                        className="feed-card__comment-remove"
+                        onClick={() => handleRemoverComentario(comentario.id)}
+                        disabled={removendoComentarioId === comentario.id}
+                      >
+                        {removendoComentarioId === comentario.id ? "Removendo..." : "Apagar"}
+                      </button>
+                    )}
+                  </div>
+                  <span className="feed-card__comment-text">{comentario.comentario}</span>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="feed-card__comment-form">
+            <input
+              className="feed-card__comment-input"
+              placeholder="Escreva um comentário..."
+              value={textoComentario}
+              onChange={(e) => setTextoComentario(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAdicionarComentario()}
+            />
+            <button
+              className="feed-card__comment-btn"
+              onClick={handleAdicionarComentario}
+              disabled={adicionandoComentario || !textoComentario.trim()}
+            >
+              {adicionandoComentario ? "..." : "Enviar"}
+            </button>
+          </div>
+        </section>
+      )}
+
       <footer className="feed-card__footer">
         {/* Curtir */}
         <button
@@ -92,11 +168,15 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
         {/* Comentários */}
         <button
           className="feed-card__action"
-          onClick={onClick}
-          title="Ver comentários"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowComments((valorAtual) => !valorAtual);
+          }}
+          title="Comentários"
         >
           <CommentIcon />
-          {totalComentarios > 0 && <span>{totalComentarios}</span>}
+          <span>{showComments ? "Fechar" : "Comentários"}</span>
+          {!showComments && totalComentarios > 0 && <span>({totalComentarios})</span>}
         </button>
 
         {/* Favoritar */}

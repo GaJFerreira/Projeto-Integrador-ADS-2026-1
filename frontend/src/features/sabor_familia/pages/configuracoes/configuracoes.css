@@ -7,6 +7,19 @@
   align-items: center;
 }
 
+.config-main::-webkit-scrollbar {
+  width: 5px;
+}
+
+.config-main::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.config-main::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
 .config-container {
   width: 100%;
   max-width: 580px;

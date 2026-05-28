@@ -7,6 +7,19 @@
   align-items: stretch;
 }
 
+.lista-perfis-main::-webkit-scrollbar {
+  width: 5px;
+}
+
+.lista-perfis-main::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.lista-perfis-main::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
 .lista-perfis-header {
   display: flex;
   align-items: center;

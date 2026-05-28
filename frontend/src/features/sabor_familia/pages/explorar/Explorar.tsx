@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import { useExplorarReceitas } from "../../hooks/UseReceita";
 import type { ReceitaResumoResponse } from "../../dto/receita/response/ReceitaResumoResponse";
 import type { TipoRefeicaoEnum } from "../../dto/enums/TipoRefeicaoEnum";
-import { ExplorarDetalhe } from "../../components/page/explorarComponents/ExplorarDetalhe";
+import { ExplorarReceitaFocus } from "../../components/page/explorarComponents/ExplorarReceitaFocus";
 import { ExplorarCard } from "../../components/page/explorarComponents/ExplorarCard";
 import Sidebar from "../../components/page/homePageComponents/SideBar";
 import SearchIcon from "../../icon/menu/SearchIcon";
@@ -56,6 +56,15 @@ export function Explorar() {
     setAllReceitas(listaFinal);
     setPage((p) => p + 1);
   };
+
+  if (selectedId !== null) {
+    return (
+      <ExplorarReceitaFocus
+        receitaId={selectedId}
+        onVoltar={() => setSelectedId(null)}
+      />
+    );
+  }
 
   return (
     <div className="home-layout">
@@ -122,8 +131,8 @@ export function Explorar() {
             <ExplorarCard
               key={receita.id}
               receita={receita}
-              isSelected={selectedId === receita.id}
-              onClick={() => setSelectedId(selectedId === receita.id ? null : receita.id)}
+              isSelected={false}
+              onClick={() => setSelectedId(receita.id)}
             />
           ))}
         </div>
@@ -142,13 +151,6 @@ export function Explorar() {
         )}
       </main>
 
-      {/* ── Painel de detalhe ── */}
-      {selectedId !== null && (
-        <ExplorarDetalhe
-          receitaId={selectedId}
-          onClose={() => setSelectedId(null)}
-        />
-      )}
     </div>
   );
 }

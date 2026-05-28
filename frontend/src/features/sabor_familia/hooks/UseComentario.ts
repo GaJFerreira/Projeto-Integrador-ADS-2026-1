@@ -3,9 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { comentarioService } from "../service/ComentarioService";
 import type { PerfilComentarioResponse } from "../dto/receita/response/PerfilComentarioResponse";
 
-export function useBuscarComentarios(receitaId: number) {
+export function useBuscarComentarios(receitaId: number, enabled = true) {
   const [comentarios, setComentarios] = useState<PerfilComentarioResponse[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -28,8 +28,12 @@ export function useBuscarComentarios(receitaId: number) {
   }, [receitaId, navigate]);
 
   useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
     buscar();
-  }, [buscar]);
+  }, [buscar, enabled]);
 
   return { comentarios, loading, error, recarregar: buscar };
 }

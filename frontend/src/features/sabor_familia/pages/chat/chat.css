@@ -36,6 +36,19 @@
   padding: 0.5rem 0;
 }
 
+.chat-list__items::-webkit-scrollbar {
+  width: 5px;
+}
+
+.chat-list__items::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-list__items::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
 .chat-list__item {
   display: flex;
   align-items: center;

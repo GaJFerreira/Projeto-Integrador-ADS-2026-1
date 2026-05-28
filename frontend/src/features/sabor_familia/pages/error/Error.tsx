@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { ERROR_MAP, FALLBACK_ERROR } from '../../utils/errorMapUtils';
 import type { ErrorPageProps } from '../../dto/error/ErrorPageProps';
 import ErrorIcon from '../../utils/ErrorIconUtil';
-import './error.css';
+import './Error.css';
 
 export default function ErrorPage({ message, onRetry }: Omit<ErrorPageProps, 'statusCode'>) {
   const navigate = useNavigate();
