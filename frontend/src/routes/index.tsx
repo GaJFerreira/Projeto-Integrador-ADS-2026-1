@@ -52,6 +52,9 @@ import AdminConquistasPage from '@/features/remember/pages/AdminConquistasPage';
 import AdminCreateConquistaPage from '@/features/remember/pages/AdminCreateConquistaPage';
 import AdminEditConquistaPage from '@/features/remember/pages/AdminEditConquistaPage';
 
+// Jogos
+import JogosPage from "@/features/jogos/pages/JogosPage.tsx";
+
 function Home() {
   return (
     <div>
@@ -135,6 +138,9 @@ export function AppRoutes() {
         <Route path="admin/conquistas" element={<AdminConquistasPage />} />
         <Route path="admin/conquistas/novo" element={<AdminCreateConquistaPage />} />
         <Route path="admin/conquistas/:id/edit" element={<AdminEditConquistaPage />} />
+
+         {/* Jogos */}
+         <Route path="jogos" element={<JogosPage/>}/>
 
       </Route>
     </Routes>
