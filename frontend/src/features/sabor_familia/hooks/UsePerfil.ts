@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { perfilService } from "../service/PerfilService";
-import { authService } from "../service/AuthService";
-import { useAuth } from "./UseAuth";
 import type { PerfilRequest } from "../dto/perfil/request/PerfilRequest";
 import type { EditarPerfilRequest } from "../dto/perfil/request/EditarPerfilRequest";
 import type { PerfilResponse } from "../dto/perfil/response/PerfilResponse";
@@ -50,48 +48,6 @@ export function useBuscarPerfil(perfilId: number) {
   }, [buscar]);
 
   return { perfil, loading, error, recarregar: buscar };
-}
-
-export function useLogin() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { salvarToken, salvarPerfil } = useAuth();
-  const navigate = useNavigate();
-
-  const login = async (usernameOrEmail: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const loginResponse = await authService.login({ usernameOrEmail, password });
-      salvarToken(loginResponse);
-
-      try {
-        const perfil = await perfilService.buscarMeuPerfil();
-        salvarPerfil(perfil);
-        navigate("/sabor-familia/home");
-      } catch (perfilErr: unknown) {
-        const status = (perfilErr as { response?: { status: number } })?.response?.status;
-        if (status === 404) {
-          navigate("/sabor-familia/cadastro");
-        } else {
-          navigate("/sabor-familia/error", { state: { statusCode: status }, replace: true });
-        }
-      }
-    } catch (err: unknown) {
-      const status = (err as { response?: { status: number } })?.response?.status;
-      if (status === 401) {
-        setError("Usuário ou senha inválidos.");
-      } else if (status) {
-        navigate("/sabor-familia/error", { state: { statusCode: status }, replace: true });
-      } else {
-        setError("Erro ao realizar login.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return { login, loading, error };
 }
 
 export function useCriarPerfil() {

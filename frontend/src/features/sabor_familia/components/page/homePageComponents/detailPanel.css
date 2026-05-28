@@ -1,4 +1,3 @@
-
 .detail-panel {
   width: var(--detail-w);
   min-width: var(--detail-w);
@@ -54,7 +53,6 @@
   line-height: 1.3;
 }
 
-/* Sections */
 .detail-section {
   margin-bottom: 1.25rem;
   padding-bottom: 1.25rem;
@@ -126,7 +124,6 @@
   color: var(--brand);
 }
 
-/* Tags */
 .detail-tags {
   display: flex;
   flex-wrap: wrap;
@@ -166,7 +163,6 @@
   color: var(--brand-dark);
 }
 
-/* Comments */
 .detail-comments {
   display: flex;
   flex-direction: column;

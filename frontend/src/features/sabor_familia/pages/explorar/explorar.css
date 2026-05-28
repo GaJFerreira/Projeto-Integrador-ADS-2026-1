@@ -7,7 +7,6 @@
   align-items: stretch;
 }
 
-/* ── Barra de busca e filtros ── */
 .explorar-filters {
   display: flex;
   gap: 0.75rem;
@@ -67,21 +66,18 @@
   border-color: var(--brand);
 }
 
-/* ── Contagem de resultados ── */
 .explorar-count {
   font-size: 13px;
   color: var(--text-muted);
   margin-bottom: 1rem;
 }
 
-/* ── Grid de receitas ── */
 .explorar-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 1rem;
 }
 
-/* ── Loading / vazio / erro ── */
 .explorar-loading {
   display: flex;
   flex-direction: column;
@@ -120,7 +116,6 @@
   animation: spin 0.8s linear infinite;
 }
 
-/* ── Carregar mais ── */
 .explorar-load-more {
   margin: 1.5rem auto 0;
   display: block;

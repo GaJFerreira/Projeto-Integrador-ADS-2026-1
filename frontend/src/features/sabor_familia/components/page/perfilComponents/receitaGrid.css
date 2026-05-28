@@ -39,7 +39,6 @@
   padding: 3rem 0;
 }
 
-/* Grade 3 colunas */
 .rg-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -6,7 +6,6 @@
   overflow: hidden;
 }
 
-/* ── Lista de conversas ── */
 .chat-list {
   width: 300px;
   min-width: 300px;
@@ -125,7 +124,6 @@
   line-height: 1.8;
 }
 
-/* ── Placeholder sem conversa selecionada ── */
 .chat-placeholder {
   flex: 1;
   display: flex;
@@ -145,7 +143,6 @@
   height: 48px;
 }
 
-/* ── Responsivo ── */
 @media (max-width: 768px) {
   .chat-list {
     width: 220px;

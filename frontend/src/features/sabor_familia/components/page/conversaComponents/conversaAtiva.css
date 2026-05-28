@@ -1,4 +1,3 @@
-/* ── Área de mensagens ── */
 .chat-messages-area {
   flex: 1;
   display: flex;
@@ -45,7 +44,6 @@
   font-family: var(--font-sans);
 }
 
-/* ── Scroll de mensagens ── */
 .chat-messages-scroll {
   flex: 1;
   overflow-y: auto;
@@ -68,7 +66,6 @@
   border-radius: 4px; 
 }
 
-/* ── Carregar mais no topo ── */
 .chat-load-more {
   display: block;
   width: fit-content;
@@ -89,7 +86,6 @@
   color: var(--brand);
 }
 
-/* ── Balão de mensagem ── */
 .chat-bubble-wrap {
   display: flex;
   flex-direction: column;
@@ -133,7 +129,6 @@
   padding: 0 4px;
 }
 
-/* ── Input de envio ── */
 .chat-input-area {
   padding: 0.85rem 1.25rem;
   background: var(--surface);
@@ -192,7 +187,6 @@
   transform: none;
 }
 
-/* ── Loading ── */
 .chat-loading {
   display: flex;
   flex-direction: column;

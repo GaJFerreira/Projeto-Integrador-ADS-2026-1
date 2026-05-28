@@ -7,7 +7,6 @@
   align-items: stretch;
 }
 
-/* ── Cabeçalho ── */
 .lista-perfis-header {
   display: flex;
   align-items: center;
@@ -51,7 +50,6 @@
   font-family: var(--font-sans);
 }
 
-/* ── Lista ── */
 .lista-perfis-list {
   display: flex;
   flex-direction: column;
@@ -64,7 +62,6 @@
   box-shadow: var(--shadow);
 }
 
-/* ── Item de perfil ── */
 .lista-perfis-item {
   display: flex;
   align-items: center;
@@ -120,7 +117,6 @@
   color: var(--text);
 }
 
-/* ── Estados ── */
 .lista-perfis-empty {
   text-align: center;
   padding: 4rem 1rem;
