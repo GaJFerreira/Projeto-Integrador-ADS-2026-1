@@ -11,6 +11,7 @@ import java.util.Objects;
 public record ReceitaResponse(
   Long id,
   Boolean curtidoPeloUsuario,
+  Boolean favoritadoPeloUsuario,
   Boolean restritaParaUsuario,
   PerfilResumoResponse autor,
   DetalhesReceita detalhes,
@@ -25,6 +26,7 @@ public record ReceitaResponse(
     Integer curtidas,
     Integer comentarios,
     Boolean curtidoPeloUsuario,
+    Boolean favoritadoPeloUsuario,
     List<RestricaoAlimentarResumoResponse> restricoesAlimentares,
     Boolean restritaParaUsuario,
     List<PersonalizacaoResumoResponse> personalizacao
@@ -36,6 +38,7 @@ public record ReceitaResponse(
     return new ReceitaResponse(
       receita.getId(),
       curtidoPeloUsuario,
+      favoritadoPeloUsuario,
       restritaParaUsuario,
       PerfilResumoResponse.fromEntity(receita.getPerfil()),
       new DetalhesReceita(

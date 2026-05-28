@@ -7,9 +7,9 @@ import org.springframework.data.domain.Pageable;
 
 public interface SeguindoService {
 
-  Page<PerfilResumoResponse> buscarSeguidores(Long perfilId, Pageable pageable);
+  Page<PerfilResumoResponse> buscarSeguidores(Long perfilId, Long usuarioId, Pageable pageable);
 
-  Page<PerfilResumoResponse> buscarSeguindo(Long perfilId, Pageable pageable);
+  Page<PerfilResumoResponse> buscarSeguindo(Long perfilId, Long usuarioId, Pageable pageable);
 
   SeguindoResponse seguirPerfil(Long usuarioId, Long seguidoPerfilId);
 

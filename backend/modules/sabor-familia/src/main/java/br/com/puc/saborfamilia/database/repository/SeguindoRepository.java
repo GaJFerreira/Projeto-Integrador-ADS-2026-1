@@ -2,6 +2,7 @@ package br.com.puc.saborfamilia.database.repository;
 
 import br.com.puc.saborfamilia.database.entity.SeguindoEntity;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -55,5 +56,17 @@ public interface SeguindoRepository extends JpaRepository<SeguindoEntity, Long> 
 
   @Query(value = "SELECT s.seguidor.id FROM SeguindoEntity s WHERE s.seguido.id = :seguidoId")
   List<Long> findSeguidorIdBySeguidoId(Long seguidoId);
+
+  @Query(
+    """
+      SELECT s.seguido.id FROM SeguindoEntity s
+      WHERE s.seguidor.id = :seguidorId
+      AND s.seguido.id IN :seguidoIds
+    """
+  )
+  List<Long> findSeguidoIdsBySeguidorIdAndSeguidoIdIn(
+    @Param("seguidorId") Long seguidorId,
+    @Param("seguidoIds") Collection<Long> seguidoIds
+  );
 
 }

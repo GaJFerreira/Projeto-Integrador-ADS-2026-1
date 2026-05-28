@@ -75,13 +75,21 @@ public class ReceitaServiceImpl implements ReceitaService {
       .map(FeedPerfilReceitaEntity::getReceita)
       .toList();
 
+    List<Long> receitaIds = receitas.stream().map(ReceitaEntity::getId).toList();
+
     Set<Long> receitasCurtidas = receitas.isEmpty()
       ? Set.of()
       : Set.copyOf(curtidaReceitaRepository.findReceitaIdsByPerfilIdAndReceitaIdIn(
           perfilUsuarioAutenticado.getId(),
-          receitas.stream().map(ReceitaEntity::getId
-        ).toList())
-      );
+          receitaIds
+        ));
+
+    Set<Long> receitasFavoritas = receitas.isEmpty()
+      ? Set.of()
+      : Set.copyOf(favoritoReceitaRepository.findReceitaIdsByPerfilIdAndReceitaIdIn(
+          perfilUsuarioAutenticado.getId(),
+          receitaIds
+        ));
 
     Page<ReceitaEntity> receitasPage = new PageImpl<>(
       receitas,
@@ -101,6 +109,7 @@ public class ReceitaServiceImpl implements ReceitaService {
     return receitasPage.map(receita -> toResponse(
       receita,
       receitasCurtidas.contains(receita.getId()),
+      receitasFavoritas.contains(receita.getId()),
       restricoesAlimentaresPorReceita.getOrDefault(receita.getId(), List.of()),
       restricoesUsuarioPorReceita.getOrDefault(receita.getId(), null),
       Objects.requireNonNullElse(personalizacaoPorReceita.get(receita.getId()), List.of())
@@ -165,8 +174,14 @@ public class ReceitaServiceImpl implements ReceitaService {
     ReceitaEntity receita = receitaRepository.findById(receitaId)
       .orElseThrow(() -> new ResourceNotFoundException(RECEITA_NAO_ENCONTRADA));
 
-    Boolean curtidoPeloUsuario = perfilRepository.findByUsuarioId(usuarioId)
+    var perfilOpt = perfilRepository.findByUsuarioId(usuarioId);
+
+    Boolean curtidoPeloUsuario = perfilOpt
       .map(perfil -> curtidaReceitaRepository.findByReceitaIdAndPerfilId(receitaId, perfil.getId()).isPresent())
+      .orElse(false);
+
+    Boolean favoritadoPeloUsuario = perfilOpt
+      .map(perfil -> favoritoReceitaRepository.findByReceitaIdAndPerfilId(receitaId, perfil.getId()).isPresent())
       .orElse(false);
 
     List<RestricaoAlimentarResumoResponse> restricoes = restricaoAlimentarReceitaService
@@ -180,6 +195,7 @@ public class ReceitaServiceImpl implements ReceitaService {
     return toResponse(
       receita,
       curtidoPeloUsuario,
+      favoritadoPeloUsuario,
       restricoes,
       restritaParaUsuario,
       personalizacao);
@@ -233,7 +249,8 @@ public class ReceitaServiceImpl implements ReceitaService {
 
     return toResponse(
       receitaSalva,
-      null,
+      false,
+      false,
       restricoesAlimentares,
       null,
       personalizacao
@@ -289,9 +306,21 @@ public class ReceitaServiceImpl implements ReceitaService {
       personalizacoesValidadas.size()
     );
 
+    PerfilEntity perfilAutenticado = perfilRepository.findByUsuarioId(usuarioId)
+      .orElseThrow(() -> new ResourceNotFoundException(PERFIL_NAO_ENCONTRADO));
+
+    Boolean curtidoPeloUsuario = curtidaReceitaRepository
+      .findByReceitaIdAndPerfilId(receitaId, perfilAutenticado.getId())
+      .isPresent();
+
+    Boolean favoritadoPeloUsuario = favoritoReceitaRepository
+      .findByReceitaIdAndPerfilId(receitaId, perfilAutenticado.getId())
+      .isPresent();
+
     return toResponse(
       receitaAtualizada,
-      null,
+      curtidoPeloUsuario,
+      favoritadoPeloUsuario,
       restricoesAlimentares,
       null,
       personalizacao
@@ -351,11 +380,15 @@ public class ReceitaServiceImpl implements ReceitaService {
     Map<Long, List<PersonalizacaoResumoResponse>> personalizacaoPorReceita =
       personalizacaoReceitaService.buscarPersonalizacoesReceitaEmLote(receitas.stream().map(ReceitaEntity::getId).toList());
 
+    Map<Long, Boolean> restritaPorReceita = restricaoAlimentarReceitaService
+      .buscarRestricoesUsuario(receitas, usuarioId);
+
     return receitasPage.map(receita -> toResponse(
       receita,
       receitasCurtidas.contains(receita.getId()),
+      true,
       restricoesPorReceita.getOrDefault(receita.getId(), List.of()),
-      null,
+      restritaPorReceita.getOrDefault(receita.getId(), null),
       Objects.requireNonNullElse(personalizacaoPorReceita.get(receita.getId()), List.of())
     ));
   }
@@ -363,6 +396,7 @@ public class ReceitaServiceImpl implements ReceitaService {
   private ReceitaResponse toResponse(
     ReceitaEntity receita,
     Boolean curtidoPeloUsuario,
+    Boolean favoritadoPeloUsuario,
     List<RestricaoAlimentarResumoResponse> restricoesAlimentares,
     Boolean restritaParaUsuario,
     List<PersonalizacaoResumoResponse> personalizacao) {
@@ -375,6 +409,7 @@ public class ReceitaServiceImpl implements ReceitaService {
       curtidas,
       comentarios,
       curtidoPeloUsuario,
+      favoritadoPeloUsuario,
       restricoesAlimentares,
       restritaParaUsuario,
       personalizacao

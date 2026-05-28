@@ -9,6 +9,9 @@ import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
 import br.com.puc.saborfamilia.service.seguindo.SeguindoService;
 import br.com.puc.saborfamilia.service.seguindo.dto.SeguindoResponse;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,22 +31,51 @@ public class SeguindoServiceImpl implements SeguindoService {
 
   @Override
   @Transactional(readOnly = true)
-  public Page<PerfilResumoResponse> buscarSeguidores(Long perfilId, Pageable pageable) {
+  public Page<PerfilResumoResponse> buscarSeguidores(Long perfilId, Long usuarioId, Pageable pageable) {
     PerfilEntity perfil = perfilRepository.findById(perfilId)
       .orElseThrow(() -> new ResourceNotFoundException(PERFIL_NAO_ENCONTRADO));
 
-    return seguindoRepository.findBySeguidoIdOrderByDataCadastroDesc(perfil.getId(), pageable)
-      .map(seguindo -> PerfilResumoResponse.fromEntity(seguindo.getSeguidor()));
+    Page<PerfilEntity> perfis = seguindoRepository
+      .findBySeguidoIdOrderByDataCadastroDesc(perfil.getId(), pageable)
+      .map(seguindo -> seguindo.getSeguidor());
+
+    return mapComSeguindoPeloUsuario(perfis, usuarioId);
   }
 
   @Override
   @Transactional(readOnly = true)
-  public Page<PerfilResumoResponse> buscarSeguindo(Long perfilId, Pageable pageable) {
+  public Page<PerfilResumoResponse> buscarSeguindo(Long perfilId, Long usuarioId, Pageable pageable) {
     PerfilEntity perfil = perfilRepository.findById(perfilId)
       .orElseThrow(() -> new ResourceNotFoundException(PERFIL_NAO_ENCONTRADO));
 
-    return seguindoRepository.findBySeguidorIdOrderByDataCadastroDesc(perfil.getId(), pageable)
-      .map(seguindo -> PerfilResumoResponse.fromEntity(seguindo.getSeguido()));
+    Page<PerfilEntity> perfis = seguindoRepository
+      .findBySeguidorIdOrderByDataCadastroDesc(perfil.getId(), pageable)
+      .map(seguindo -> seguindo.getSeguido());
+
+    return mapComSeguindoPeloUsuario(perfis, usuarioId);
+  }
+
+  private Page<PerfilResumoResponse> mapComSeguindoPeloUsuario(Page<PerfilEntity> perfis, Long usuarioId) {
+    Optional<PerfilEntity> perfilAutenticado = perfilRepository.findByUsuarioId(usuarioId);
+
+    Set<Long> seguidoIds = Set.of();
+    if (perfilAutenticado.isPresent() && !perfis.isEmpty()) {
+      List<Long> idsNaPagina = perfis.getContent().stream().map(PerfilEntity::getId).toList();
+      seguidoIds = Set.copyOf(
+        seguindoRepository.findSeguidoIdsBySeguidorIdAndSeguidoIdIn(
+          perfilAutenticado.get().getId(),
+          idsNaPagina
+        )
+      );
+    }
+
+    Set<Long> seguidoIdsFinal = seguidoIds;
+    return perfis.map(perfil -> {
+      boolean seguindoPeloUsuario = perfilAutenticado
+        .map(auth -> seguidoIdsFinal.contains(perfil.getId()))
+        .orElse(false);
+      return PerfilResumoResponse.fromEntity(perfil, seguindoPeloUsuario);
+    });
   }
 
   @Override

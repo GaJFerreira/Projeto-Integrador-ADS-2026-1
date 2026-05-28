@@ -97,10 +97,12 @@ public class PerfilController {
     description = "Retorna a lista paginada de perfis que seguem o perfil informado."
   )
   public ResponseEntity<Page<PerfilResumoResponse>> buscarSeguidores(
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long perfilId,
     @PageableDefault(size = 20) Pageable pageable
   ) {
-    Page<PerfilResumoResponse> response = seguindoService.buscarSeguidores(perfilId, pageable);
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
+    Page<PerfilResumoResponse> response = seguindoService.buscarSeguidores(perfilId, usuarioId, pageable);
     return ResponseEntity.ok(response);
   }
 
@@ -110,10 +112,12 @@ public class PerfilController {
     description = "Retorna a lista paginada de perfis que o perfil informado segue."
   )
   public ResponseEntity<Page<PerfilResumoResponse>> buscarSeguindo(
+    @RequestHeader(value = "Authorization") String authorization,
     @PathVariable Long perfilId,
     @PageableDefault(size = 20) Pageable pageable
   ) {
-    Page<PerfilResumoResponse> response = seguindoService.buscarSeguindo(perfilId, pageable);
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
+    Page<PerfilResumoResponse> response = seguindoService.buscarSeguindo(perfilId, usuarioId, pageable);
     return ResponseEntity.ok(response);
   }
 

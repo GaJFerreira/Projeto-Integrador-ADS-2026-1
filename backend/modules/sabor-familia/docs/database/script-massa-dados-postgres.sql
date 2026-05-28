@@ -472,6 +472,26 @@ FROM base
 WHERE rn <= 120;
 
 -- =====================================================================
+-- 9.1) SINCRONIZAR CONTADORES DENORMALIZADOS (receita.count_*)
+-- As curtidas/comentários acima são inseridos nas tabelas de vínculo;
+-- a API expõe estatisticas.curtidas/comentarios a partir destes campos.
+-- =====================================================================
+
+UPDATE receita r
+SET count_curtidas = COALESCE((
+  SELECT COUNT(*)::integer
+  FROM curtida_receita c
+  WHERE c.receita_id = r.id
+), 0);
+
+UPDATE receita r
+SET count_comentarios = COALESCE((
+  SELECT COUNT(*)::integer
+  FROM comentario_receita c
+  WHERE c.receita_id = r.id
+), 0);
+
+-- =====================================================================
 -- 10) CONVERSAS ENTRE PERFIS
 -- =====================================================================
 
