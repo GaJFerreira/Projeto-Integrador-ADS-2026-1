@@ -3,10 +3,13 @@ import Sidebar from "../../components/page/homePageComponents/SideBar";
 import { useParams } from "react-router-dom";
 import { useBuscarPerfil, useAlternarSeguir } from "../../hooks/UsePerfil";
 import { useBuscarReceitasPerfil, useRemoverReceita } from "../../hooks/UseReceita";
+import { useState } from "react";
 import { PerfilHeader } from "../../components/page/perfilComponents/PerfilHeader";
 import { ReceitasGrid } from "../../components/page/perfilComponents/ReceitasGrid";
+import { PerfilReceitaFocus } from "../../components/page/perfilComponents/PerfilReceitaFocus";
 
 export function Perfil() {
+  const [selectedReceitaId, setSelectedReceitaId] = useState<number | null>(null);
   const { perfilId } = useParams<{ perfilId: string }>();
   const id = Number(perfilId);
   const { perfil, loading: loadingPerfil, error: erroPerfil } = useBuscarPerfil(id);
@@ -27,6 +30,10 @@ export function Perfil() {
   const totalPosts    = receitas?.totalElements ?? 0;
   const handleRemover = (receitaId: number) => {
     remover(receitaId);
+  };
+
+  const handleAbrirReceita = (receitaId: number) => {
+    setSelectedReceitaId(receitaId);
   };
 
   if (isNaN(id)) {
@@ -65,6 +72,15 @@ export function Perfil() {
     );
   }
 
+  if (selectedReceitaId !== null) {
+    return (
+      <PerfilReceitaFocus
+        receitaId={selectedReceitaId}
+        onVoltar={() => setSelectedReceitaId(null)}
+      />
+    );
+  }
+
   return (
     <div className="home-layout">
       <Sidebar />
@@ -86,6 +102,7 @@ export function Perfil() {
             loading={loadingReceitas}
             isProprioPerfil={perfil.proprioPerfil}
             onRemover={handleRemover}
+            onAbrirReceita={handleAbrirReceita}
           />
 
         </div>

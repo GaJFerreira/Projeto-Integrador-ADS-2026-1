@@ -12,6 +12,34 @@
   max-width: 860px;
 }
 
+.perfil-focus-main {
+  align-items: center;
+}
+
+.perfil-back {
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 14px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.perfil-back:hover {
+  background: var(--brand-light);
+  border-color: var(--brand);
+  color: var(--brand-dark);
+}
+
 .perfil-main::-webkit-scrollbar       { width: 5px; }
 .perfil-main::-webkit-scrollbar-track { background: transparent; }
 .perfil-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }

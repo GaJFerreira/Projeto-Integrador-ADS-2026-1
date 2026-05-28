@@ -4,7 +4,7 @@
   padding: 1.75rem 1.5rem;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
+  align-items: center;
 }
 
 .lista-perfis-main::-webkit-scrollbar {
@@ -21,6 +21,8 @@
 }
 
 .lista-perfis-header {
+  width: 100%;
+  max-width: 560px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -64,6 +66,7 @@
 }
 
 .lista-perfis-list {
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -131,6 +134,8 @@
 }
 
 .lista-perfis-empty {
+  width: 100%;
+  max-width: 560px;
   text-align: center;
   padding: 4rem 1rem;
   color: var(--text-muted);

@@ -1,3 +1,4 @@
+import "./receitaGrid.css";
 import type { ReceitaResumoResponse } from "../../../dto/receita/response/ReceitaResumoResponse";
 import { ReceitaGridCard } from "./ReceitaGridCard";
 
@@ -6,9 +7,16 @@ interface Props {
   loading: boolean;
   isProprioPerfil: boolean;
   onRemover: (id: number) => void;
+  onAbrirReceita: (id: number) => void;
 }
 
-export function ReceitasGrid({ receitas, loading, isProprioPerfil, onRemover }: Props) {
+export function ReceitasGrid({
+  receitas,
+  loading,
+  isProprioPerfil,
+  onRemover,
+  onAbrirReceita,
+}: Props) {
   return (
     <div className="rg-section">
       <div className="rg-header">
@@ -34,6 +42,7 @@ export function ReceitasGrid({ receitas, loading, isProprioPerfil, onRemover }: 
               receita={receita}
               isProprioPerfil={isProprioPerfil}
               onRemover={onRemover}
+              onAbrirReceita={onAbrirReceita}
             />
           ))}
         </div>

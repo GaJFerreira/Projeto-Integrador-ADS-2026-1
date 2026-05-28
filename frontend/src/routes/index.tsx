@@ -54,7 +54,7 @@ import Perfil from '@/features/sabor_familia/pages/perfil/Perfil';
 import { Explorar } from '@/features/sabor_familia/pages/explorar/Explorar';
 import { Chat } from '@/features/sabor_familia/pages/chat/Chat';
 import { Favoritos } from '@/features/sabor_familia/pages/favoritos/Favoritos';
-import { VerSeguidores } from '@/features/sabor_familia/pages/ver_seguidores/VerSeguidores';
+import { VerSeguidores, VerSeguindo } from '@/features/sabor_familia/pages/ver_seguidores/VerSeguidores';
 import { Configuracoes } from '@/features/sabor_familia/pages/configuracoes/Configuracoes';
 import { AuthProvider } from '@/features/sabor_familia/context/AuthProvider';
 
@@ -143,7 +143,7 @@ export function AppRoutes() {
               <Route path="configuracoes"   element={<Configuracoes />} />
               <Route path="favoritos"       element={<Favoritos />} />
               <Route path="perfil/:perfilId/seguidores" element={<VerSeguidores />} />
-              <Route path="perfil/:perfilId/seguindo" element={<VerSeguidores />} />
+              <Route path="perfil/:perfilId/seguindo" element={<VerSeguindo />} />
               <Route path="receita/nova"    element={<AddReceita />} />
               <Route path="perfil/:perfilId" element={<Perfil />} />
               <Route path="error"           element={<ErrorSaborFamilia />} />

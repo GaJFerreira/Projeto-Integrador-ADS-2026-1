@@ -1,14 +1,17 @@
+import "./receitaGridCard.css";
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import type { ReceitaResumoResponse } from "../../../dto/receita/response/ReceitaResumoResponse";
+import { ExplorarCard } from "../explorarComponents/ExplorarCard";
 
 interface Props {
   receita: ReceitaResumoResponse;
   isProprioPerfil: boolean;
   onRemover: (id: number) => void;
+  onAbrirReceita: (id: number) => void;
 }
 
-export function ReceitaGridCard({ receita, isProprioPerfil, onRemover }: Props) {
+export function ReceitaGridCard({ receita, isProprioPerfil, onRemover, onAbrirReceita }: Props) {
   const navigate           = useNavigate();
   const [menuAberto, setMenuAberto] = useState(false);
   const menuRef            = useRef<HTMLDivElement>(null);
@@ -25,22 +28,19 @@ export function ReceitaGridCard({ receita, isProprioPerfil, onRemover }: Props) 
   }, []);
 
   return (
-    <div className="rgc-card" onClick={() => !menuAberto && navigate(`/receita/${receita.id}`)}>
-
-      {/* Imagem ou placeholder */}
-      {receita.fotoCapaUrl ? (
-        <img src={receita.fotoCapaUrl} alt={receita.titulo} className="rgc-img" />
-      ) : (
-        <div className="rgc-placeholder">
-          <span className="rgc-placeholder__title">{receita.titulo}</span>
-        </div>
-      )}
+    <div className="rgc-card-wrap" ref={menuRef}>
+      <div className={menuAberto ? "rgc-card-wrap__dimmed" : ""}>
+        <ExplorarCard
+          receita={receita}
+          isSelected={false}
+          onClick={() => !menuAberto && onAbrirReceita(receita.id)}
+        />
+      </div>
 
       {/* Menu 3 pontos — só para o próprio perfil */}
       {isProprioPerfil && (
         <div
           className="rgc-menu-wrap"
-          ref={menuRef}
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -74,11 +74,6 @@ export function ReceitaGridCard({ receita, isProprioPerfil, onRemover }: Props) 
             </div>
           )}
         </div>
-      )}
-
-      {/* Alerta de restrição */}
-      {receita.restritaParaUsuario && (
-        <div className="rgc-badge-restrita" title="Contém restrições alimentares">⚠</div>
       )}
     </div>
   );
