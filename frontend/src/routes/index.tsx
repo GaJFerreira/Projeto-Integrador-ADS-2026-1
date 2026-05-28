@@ -57,6 +57,7 @@ import { Favoritos } from '@/features/sabor_familia/pages/favoritos/Favoritos';
 import { VerSeguidores, VerSeguindo } from '@/features/sabor_familia/pages/ver_seguidores/VerSeguidores';
 import { Configuracoes } from '@/features/sabor_familia/pages/configuracoes/Configuracoes';
 import { AuthProvider } from '@/features/sabor_familia/context/AuthProvider';
+import SaborFamiliaModuleLayout from '@/features/sabor_familia/layout/SaborFamiliaModuleLayout';
 
 
 function Home() {
@@ -132,25 +133,28 @@ export function AppRoutes() {
         <Route path="dados_biometricos" element={<DadosBiometricosPage />} />
 
         {/* Rotas Modulo Sabor_Familia */}
-        <Route path="sabor-familia/*" element={
-          <AuthProvider>
-            <Routes>
-              <Route path="login"           element={<LoginSaborFamilia />} />
-              <Route path="cadastro"        element={<CriarPerfil />} />
-              <Route path="home"            element={<HomeSaborFamilia />} />
-              <Route path="explorar"        element={<Explorar />} />
-              <Route path="mensagens"       element={<Chat />} />
-              <Route path="configuracoes"   element={<Configuracoes />} />
-              <Route path="favoritos"       element={<Favoritos />} />
-              <Route path="perfil/:perfilId/seguidores" element={<VerSeguidores />} />
-              <Route path="perfil/:perfilId/seguindo" element={<VerSeguindo />} />
-              <Route path="receita/nova"    element={<AddReceita />} />
-              <Route path="perfil/:perfilId" element={<Perfil />} />
-              <Route path="error"           element={<ErrorSaborFamilia />} />
-              <Route path="*"               element={<ErrorSaborFamilia />} />
-            </Routes>
-          </AuthProvider>
-        } />
+        <Route
+          path="sabor-familia"
+          element={
+            <AuthProvider>
+              <SaborFamiliaModuleLayout />
+            </AuthProvider>
+          }
+        >
+          <Route path="login" element={<LoginSaborFamilia />} />
+          <Route path="cadastro" element={<CriarPerfil />} />
+          <Route path="home" element={<HomeSaborFamilia />} />
+          <Route path="explorar" element={<Explorar />} />
+          <Route path="mensagens" element={<Chat />} />
+          <Route path="configuracoes" element={<Configuracoes />} />
+          <Route path="favoritos" element={<Favoritos />} />
+          <Route path="perfil/:perfilId/seguidores" element={<VerSeguidores />} />
+          <Route path="perfil/:perfilId/seguindo" element={<VerSeguindo />} />
+          <Route path="receita/nova" element={<AddReceita />} />
+          <Route path="perfil/:perfilId" element={<Perfil />} />
+          <Route path="error" element={<ErrorSaborFamilia />} />
+          <Route path="*" element={<ErrorSaborFamilia />} />
+        </Route>
 
       </Route>
     </Routes>

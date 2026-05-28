@@ -1,4 +1,5 @@
 import "./detailPanel.css";
+import { formatDataPublicacaoCompleta } from "../../../utils/formatarTempo";
 import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
 import type { RestricaoAlimentarResumoResponse } from "../../../dto/restricao/response/RestricaoAlimentarResumoResponse";
 import type { PersonalizacaoResumoResponse } from "../../../dto/personalizacao/response/PersonalizacaoResumoResponse";
@@ -23,6 +24,12 @@ function DetailPanel({ receita, onClose }: DetailPanelProps) {
       <div className="detail-panel__scroll">
         {/* ── Título ── */}
         <h2 className="detail-panel__title">{receita.detalhes.titulo}</h2>
+
+        {receita.dataCadastro && (
+          <p className="detail-panel__published">
+            Publicada em {formatDataPublicacaoCompleta(receita.dataCadastro)}
+          </p>
+        )}
 
         {/* ── Tipo de refeição ── */}
         {receita.detalhes.tipoRefeicao && (

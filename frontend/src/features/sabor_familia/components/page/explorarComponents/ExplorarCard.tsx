@@ -1,4 +1,5 @@
 import "./explorarCard.css";
+import { formatDataGrid } from "../../../utils/formatarTempo";
 import type { ReceitaResumoResponse } from "../../../dto/receita/response/ReceitaResumoResponse";
 
 export function ExplorarCard({
@@ -10,7 +11,7 @@ export function ExplorarCard({
   isSelected: boolean;
   onClick: () => void;
 }) {
-  const data = receita.dataCadastro
+  const data = formatDataGrid(receita.dataCadastro);
 
   return (
     <article

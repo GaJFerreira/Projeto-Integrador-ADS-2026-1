@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AuthContext } from "./AuthContext";
 import type { PerfilResponse } from "../dto/perfil/response/PerfilResponse";
 
@@ -19,21 +19,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const [perfil, setPerfil] = useState<PerfilResponse | null>(null);
 
-  const salvarPerfil = (perfil: PerfilResponse) => {
-    localStorage.setItem("sf_perfilId", String(perfil.id));
-    setPerfilId(perfil.id);
-    setPerfil(perfil);
-  };
+  const salvarPerfil = useCallback((perfilSalvo: PerfilResponse) => {
+    localStorage.setItem("sf_perfilId", String(perfilSalvo.id));
+    setPerfilId(perfilSalvo.id);
+    setPerfil(perfilSalvo);
+  }, []);
 
-  const limparAuth = () => {
+  const limparAuth = useCallback(() => {
     localStorage.removeItem("sf_perfilId");
     setPerfilId(null);
     setPerfil(null);
-  };
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ usuarioId, perfilId, perfil, salvarPerfil, limparAuth }}>
-      {children}
-    </AuthContext.Provider>
+  const value = useMemo(
+    () => ({ usuarioId, perfilId, perfil, salvarPerfil, limparAuth }),
+    [usuarioId, perfilId, perfil, salvarPerfil, limparAuth]
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

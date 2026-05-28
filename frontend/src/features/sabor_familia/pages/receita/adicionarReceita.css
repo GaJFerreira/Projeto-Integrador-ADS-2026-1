@@ -1,15 +1,19 @@
 .ar-main {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   background: var(--bg);
-  padding: 2rem 1.5rem 4rem;
+  padding: 2rem 1.5rem 1.25rem;
   display: flex;
   justify-content: center;
+  align-items: flex-start;
 }
 
 .ar-container {
   width: 100%;
   max-width: 680px;
+  flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 .ar-header {
@@ -244,7 +248,14 @@
 
 .ar-main::-webkit-scrollbar { width: 5px; }
 .ar-main::-webkit-scrollbar-track { background: transparent; }
-.ar-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.ar-main::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #b0a090);
+  border-radius: 4px;
+}
+
+.ar-main::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
+}
 
 @media (max-width: 600px) {
   .ar-row {

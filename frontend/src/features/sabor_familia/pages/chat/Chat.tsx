@@ -5,6 +5,7 @@ import { useBuscarConversas } from "../../hooks/UseConversa";
 import type { ConversaResponse } from "../../dto/menssagem/response/ConversaResponse";
 import { useAuth } from "../../hooks/UseAuth";
 import Sidebar from "../../components/page/homePageComponents/SideBar";
+import { PerfilAvatar } from "../../components/common/PerfilAvatar";
 import ChatIcon from "../../icon/menu/ChatIcon";
 import { ConversaAtiva } from "../../components/page/conversaComponents/ConversaAtiva";
 import { formatHora } from "../../utils/formatarTempo";
@@ -45,17 +46,12 @@ export function Chat() {
                   className={`chat-list__item ${selecionada?.id === c.id ? "chat-list__item--active" : ""}`}
                   onClick={() => setSelecionada(c)}
                 >
-                  {c.contato.fotoPerfilUrl ? (
-                    <img
-                      src={c.contato.fotoPerfilUrl}
-                      alt={c.contato.nome}
-                      className="chat-list__avatar"
-                    />
-                  ) : (
-                    <div className="chat-list__avatar--placeholder">
-                      {c.contato.nome?.[0]?.toUpperCase() ?? "?"}
-                    </div>
-                  )}
+                  <PerfilAvatar
+                    src={c.contato.fotoPerfilUrl}
+                    alt={c.contato.nome}
+                    className="chat-list__avatar"
+                    placeholderClassName="chat-list__avatar chat-list__avatar--placeholder"
+                  />
                   <div className="chat-list__info">
                     <span className="chat-list__name">{c.contato.nome}</span>
                     <span className="chat-list__preview">{c.ultimaMensagem}</span>

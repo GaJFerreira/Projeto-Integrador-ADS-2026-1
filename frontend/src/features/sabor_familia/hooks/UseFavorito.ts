@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { favoritoService } from "../service/FavoritoService";
 
 export function useAlternarFavorito(receitaId: number, favoritadoInicial: boolean) {
   const [favoritado, setFavoritado] = useState(favoritadoInicial);
+
+  useEffect(() => {
+    setFavoritado(favoritadoInicial);
+  }, [receitaId, favoritadoInicial]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();

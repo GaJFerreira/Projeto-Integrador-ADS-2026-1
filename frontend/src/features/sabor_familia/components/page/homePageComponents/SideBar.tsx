@@ -1,5 +1,5 @@
 import "./sideBar.css";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/UseAuth";
 import HomeIcon from "../../../icon/menu/HomeIcon";
 // import SearchIcon from "../../../assets/icon/menu/SearchIcon";
@@ -7,11 +7,12 @@ import CompassIcon from "../../../icon/menu/CompassIcon";
 import ChatIcon from "../../../icon/menu/ChatIcon";
 import HeartIcon from "../../../icon/menu/HeartIcon"; 
 import PlusIcon from "../../../icon/menu/PlusIcon";
-import UserIcon from "../../../icon/menu/UserIcon";
 import SettingsIcon from "../../../icon/menu/SettingsIcon";
+import { PerfilAvatar } from "../../common/PerfilAvatar";
 
 function Sidebar() {
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const { perfil, perfilId  } = useAuth();
 
   const links = [
@@ -43,7 +44,7 @@ function Sidebar() {
         {links.map(({ label, icon, path }) => (
           <button
             key={path}
-            className={`sidebar-link ${window.location.pathname === path ? "active" : ""}`}
+            className={`sidebar-link ${pathname === path ? "active" : ""}`}
             onClick={() => navigate(path)}
           >
             {icon}
@@ -54,11 +55,12 @@ function Sidebar() {
 
       <div className="sidebar-bottom">
         <button className="sidebar-link" onClick={() => perfilId && navigate(`/sabor-familia/perfil/${perfilId}`)}>
-          {perfil?.detalhes?.fotoPerfilUrl ? (
-            <img src={perfil.detalhes.fotoPerfilUrl} className="sidebar-avatar" alt="avatar" />
-          ) : (
-            <UserIcon />
-          )}
+          <PerfilAvatar
+            src={perfil?.detalhes?.fotoPerfilUrl}
+            alt={perfil?.detalhes?.nome ?? "Perfil"}
+            className="sidebar-avatar"
+            placeholderClassName="sidebar-avatar sidebar-avatar--placeholder"
+          />
           <span>Perfil</span>
         </button>
         <button className="sidebar-link" onClick={() => navigate("/sabor-familia/configuracoes")}>

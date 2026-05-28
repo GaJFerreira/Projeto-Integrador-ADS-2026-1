@@ -23,7 +23,7 @@ export function Perfil() {
   } = useAlternarSeguir(
     id,
     perfil?.seguindoPerfil ?? false,
-    perfil?.estatisticas.countSeguidores ?? 0
+    perfil?.estatisticas?.countSeguidores ?? 0
   );
 
   const listaReceitas = receitas?.content ?? [];
@@ -92,7 +92,8 @@ export function Perfil() {
             perfil={perfil}
             totalPosts={totalPosts}
             seguindo={seguindo}
-            totalSeguidores={totalSeguidores}
+            countSeguidores={totalSeguidores}
+            countSeguindo={perfil.estatisticas.countSeguindo}
             onAlternarSeguir={alternarSeguir}
             loadingSeguir={loadingSeguir}
           />

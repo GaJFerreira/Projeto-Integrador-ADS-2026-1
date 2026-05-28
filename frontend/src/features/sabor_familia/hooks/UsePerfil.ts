@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
+import { useAuth } from "./UseAuth";
 import { perfilService } from "../service/PerfilService";
 import type { PerfilRequest } from "../dto/perfil/request/PerfilRequest";
 import type { EditarPerfilRequest } from "../dto/perfil/request/EditarPerfilRequest";
@@ -20,11 +21,45 @@ function isApiError(err: unknown): err is ApiError {
   );
 }
 
+export function useBuscarMeuPerfil() {
+  const { salvarPerfil } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const buscar = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await perfilService.buscarMeuPerfil();
+      salvarPerfil(data);
+      return data;
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
+      } else {
+        setError("Erro ao buscar perfil.");
+      }
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }, [navigate, salvarPerfil]);
+
+  useEffect(() => {
+    buscar();
+  }, [buscar]);
+
+  return { loading, error, recarregar: buscar };
+}
+
 export function useBuscarPerfil(perfilId: number) {
   const [perfil, setPerfil] = useState<PerfilResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const navigationType = useNavigationType();
 
   const buscar = useCallback(async () => {
     setLoading(true);
@@ -45,7 +80,7 @@ export function useBuscarPerfil(perfilId: number) {
 
   useEffect(() => {
     buscar();
-  }, [buscar]);
+  }, [buscar, location.pathname, navigationType]);
 
   return { perfil, loading, error, recarregar: buscar };
 }
@@ -79,6 +114,7 @@ export function useCriarPerfil() {
 }
 
 export function useEditarPerfil() {
+  const { salvarPerfil } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -91,6 +127,7 @@ export function useEditarPerfil() {
     setError(null);
     try {
       const perfil = await perfilService.editarPerfil(request);
+      salvarPerfil(perfil);
       onSucesso?.(perfil);
     } catch (err: unknown) {
       if (isApiError(err)) {
@@ -112,28 +149,48 @@ export function useBuscarSeguidores(perfilId: number, page = 0, size = 20) {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const buscar = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    setSeguidores(null);
     setError(null);
-    try {
-      const data = await perfilService.buscarSeguidores(perfilId, page, size);
-      setSeguidores(data);
-    } catch (err: unknown) {
-      if (isApiError(err)) {
-        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-      } else {
-        setError("Erro ao buscar seguidores.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [perfilId, page, size, navigate]);
+  }, [perfilId]);
 
   useEffect(() => {
-    buscar();
-  }, [buscar]);
+    let cancelled = false;
 
-  return { seguidores, loading, error, recarregar: buscar };
+    const buscar = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await perfilService.buscarSeguidores(perfilId, page, size);
+        if (!cancelled) {
+          setSeguidores(data);
+        }
+      } catch (err: unknown) {
+        if (cancelled) return;
+        if (isApiError(err)) {
+          navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
+        } else {
+          setError("Erro ao buscar seguidores.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    buscar();
+    return () => {
+      cancelled = true;
+    };
+  }, [perfilId, page, size, navigate]);
+
+  const recarregar = useCallback(async () => {
+    const data = await perfilService.buscarSeguidores(perfilId, page, size);
+    setSeguidores(data);
+  }, [perfilId, page, size]);
+
+  return { seguidores, loading, error, recarregar };
 }
 
 export function useBuscarSeguindo(perfilId: number, page = 0, size = 20) {
@@ -142,28 +199,48 @@ export function useBuscarSeguindo(perfilId: number, page = 0, size = 20) {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const buscar = useCallback(async () => {
-    setLoading(true);
+  useEffect(() => {
+    setSeguindo(null);
     setError(null);
-    try {
-      const data = await perfilService.buscarSeguindo(perfilId, page, size);
-      setSeguindo(data);
-    } catch (err: unknown) {
-      if (isApiError(err)) {
-        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-      } else {
-        setError("Erro ao buscar seguindo.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [perfilId, page, size, navigate]);
+  }, [perfilId]);
 
   useEffect(() => {
-    buscar();
-  }, [buscar]);
+    let cancelled = false;
 
-  return { seguindo, loading, error, recarregar: buscar };
+    const buscar = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await perfilService.buscarSeguindo(perfilId, page, size);
+        if (!cancelled) {
+          setSeguindo(data);
+        }
+      } catch (err: unknown) {
+        if (cancelled) return;
+        if (isApiError(err)) {
+          navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
+        } else {
+          setError("Erro ao buscar seguindo.");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      }
+    };
+
+    buscar();
+    return () => {
+      cancelled = true;
+    };
+  }, [perfilId, page, size, navigate]);
+
+  const recarregar = useCallback(async () => {
+    const data = await perfilService.buscarSeguindo(perfilId, page, size);
+    setSeguindo(data);
+  }, [perfilId, page, size]);
+
+  return { seguindo, loading, error, recarregar };
 }
 
 export function useAlternarSeguir(
@@ -176,6 +253,11 @@ export function useAlternarSeguir(
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setSeguindo(seguindoInicial);
+    setTotalSeguidores(totalSeguidoresInicial);
+  }, [perfilId, seguindoInicial, totalSeguidoresInicial]);
 
   const alternar = async () => {
     if (loading) return;
@@ -207,4 +289,44 @@ export function useAlternarSeguir(
   };
 
   return { seguindo, totalSeguidores, alternar, loading, error };
+}
+
+export function useAlternarSeguirLista(perfilId: number, seguindoInicial: boolean) {
+  const [seguindo, setSeguindo] = useState(seguindoInicial);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    setSeguindo(seguindoInicial);
+  }, [perfilId, seguindoInicial]);
+
+  const alternar = async () => {
+    if (loading) return;
+
+    const novoEstado = !seguindo;
+    setSeguindo(novoEstado);
+    setLoading(true);
+    setError(null);
+
+    try {
+      if (novoEstado) {
+        await perfilService.seguirPerfil(perfilId);
+      } else {
+        await perfilService.deixarSeguirPerfil(perfilId);
+      }
+    } catch (err: unknown) {
+      setSeguindo(seguindoInicial);
+
+      if (isApiError(err)) {
+        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
+      } else {
+        setError("Erro ao atualizar seguir.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { seguindo, alternar, loading, error };
 }

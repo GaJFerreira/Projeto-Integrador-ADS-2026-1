@@ -1,0 +1,39 @@
+.sf-module-layout {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  --scrollbar-thumb: #b0a090;
+  --scrollbar-thumb-hover: #8a7a68;
+}
+
+.sf-module-layout ::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sf-module-layout ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sf-module-layout ::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.sf-module-layout ::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+.sf-module-layout * {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+@media (max-width: 599px) {
+  .sf-module-layout {
+    top: 56px;
+  }
+}

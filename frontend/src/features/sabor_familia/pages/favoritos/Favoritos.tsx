@@ -1,61 +1,84 @@
 import "./favoritos.css";
+import "../explorar/explorar.css";
 import "../home/homeSaborFamilia.css";
 import { useState } from "react";
 import { useBuscarReceitasFavoritas } from "../../hooks/UseReceita";
 import type { ReceitaResponse } from "../../dto/receita/response/ReceitaResponse";
+import type { ReceitaResumoResponse } from "../../dto/receita/response/ReceitaResumoResponse";
 import Sidebar from "../../components/page/homePageComponents/SideBar";
-import FeedCard from "../../components/page/homePageComponents/FeedCard";
-import DetailPanel from "../../components/page/homePageComponents/DetailPanel";
 import BookmarkIcon from "../../icon/menu/BookmarkIcon";
+import { ExplorarCard } from "../../components/page/explorarComponents/ExplorarCard";
+import { ExplorarReceitaFocus } from "../../components/page/explorarComponents/ExplorarReceitaFocus";
+
+function receitaToResumo(receita: ReceitaResponse): ReceitaResumoResponse {
+  const comFoto = receita as ReceitaResponse & { fotoCapaUrl?: string | null };
+  return {
+    id: receita.id,
+    titulo: receita.detalhes.titulo,
+    fotoCapaUrl: comFoto.fotoCapaUrl ?? null,
+    restritaParaUsuario: receita.restritaParaUsuario,
+    dataCadastro: receita.dataCadastro,
+  };
+}
 
 export function Favoritos() {
   const [page, setPage] = useState(0);
   const [acumuladas, setAcumuladas] = useState<ReceitaResponse[]>([]);
-  const [selecionada, setSelecionada] = useState<ReceitaResponse | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const { favoritas, loading, error } = useBuscarReceitasFavoritas(page, 20);
-  const paginaAtual  = favoritas?.content ?? [];
-  const totalPages   = favoritas?.totalPages ?? 1;
-  const totalItems   = favoritas?.totalElements ?? 0;
-  const temMais      = page + 1 < totalPages;
-  const lista = page === 0
-    ? paginaAtual
-    : [...acumuladas, ...paginaAtual.filter((r) => !acumuladas.find((a) => a.id === r.id))];
+  const paginaAtual = favoritas?.content ?? [];
+  const totalPages = favoritas?.totalPages ?? 1;
+  const totalItems = favoritas?.totalElements ?? 0;
+  const temMais = page + 1 < totalPages;
+  const lista =
+    page === 0
+      ? paginaAtual
+      : [
+          ...acumuladas,
+          ...paginaAtual.filter((r) => !acumuladas.find((a) => a.id === r.id)),
+        ];
 
   const handleCarregarMais = () => {
     setAcumuladas(lista);
     setPage((p) => p + 1);
   };
 
+  if (selectedId !== null) {
+    return (
+      <ExplorarReceitaFocus
+        receitaId={selectedId}
+        onVoltar={() => setSelectedId(null)}
+        voltarLabel="← Voltar para favoritos"
+      />
+    );
+  }
+
   return (
     <div className="home-layout">
       <Sidebar />
 
-      <main className="favoritos-main">
-        {/* ── Cabeçalho ── */}
+      <main className="explorar-main favoritos-main">
         <div className="favoritos-header">
           <BookmarkIcon active />
-          <h2 className="favoritos-header__title">Receitas Salvas</h2>
-          {!loading && totalItems > 0 && (
-            <span className="favoritos-header__count">
-              {totalItems} {totalItems === 1 ? "receita" : "receitas"}
-            </span>
-          )}
+          <h2 className="favoritos-header__title">Receitas Favoritas</h2>
         </div>
 
-        {/* ── Loading inicial ── */}
         {loading && page === 0 && (
-          <div className="home-loading">
-            <div className="home-loading__spinner" />
+          <div className="explorar-loading">
+            <div className="explorar-spinner" />
             <span>Carregando favoritos…</span>
           </div>
         )}
 
-        {/* ── Erro ── */}
-        {error && (
-          <div className="home-error">{error}</div>
+        {error && <div className="explorar-error">{error}</div>}
+
+        {!loading && !error && totalItems > 0 && (
+          <p className="explorar-count">
+            {totalItems} receita{totalItems !== 1 ? "s" : ""} salva
+            {totalItems !== 1 ? "s" : ""}
+          </p>
         )}
 
-        {/* ── Vazio ── */}
         {!loading && !error && lista.length === 0 && (
           <div className="favoritos-empty">
             <BookmarkIcon active={false} />
@@ -64,41 +87,29 @@ export function Favoritos() {
           </div>
         )}
 
-        {/* ── Feed de favoritos ── */}
-        <div className="favoritos-feed">
+        <div className="explorar-grid">
           {lista.map((receita) => (
-            <FeedCard
+            <ExplorarCard
               key={receita.id}
-              receita={receita}
-              isSelected={selecionada?.id === receita.id}
-              onClick={() =>
-                setSelecionada(selecionada?.id === receita.id ? null : receita)
-              }
+              receita={receitaToResumo(receita)}
+              isSelected={false}
+              onClick={() => setSelectedId(receita.id)}
             />
           ))}
         </div>
 
-        {/* ── Carregar mais ── */}
         {!loading && temMais && (
-          <button className="favoritos-load-more" onClick={handleCarregarMais}>
+          <button className="explorar-load-more" onClick={handleCarregarMais}>
             Carregar mais
           </button>
         )}
 
         {loading && page > 0 && (
-          <div className="home-loading" style={{ margin: "1rem auto" }}>
-            <div className="home-loading__spinner" />
+          <div className="explorar-loading" style={{ margin: "1rem auto" }}>
+            <div className="explorar-spinner" />
           </div>
         )}
       </main>
-
-      {/* ── Painel de detalhe ── */}
-      {selecionada && (
-        <DetailPanel
-          receita={selecionada}
-          onClose={() => setSelecionada(null)}
-        />
-      )}
     </div>
   );
 }

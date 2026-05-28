@@ -1,67 +1,112 @@
 import "./verSeguidores.css";
 import "../home/homeSaborFamilia.css";
-import { useState } from "react";
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useBuscarSeguidores, useBuscarSeguindo } from "../../hooks/UsePerfil";
 import type { PerfilResumoResponse } from "../../dto/perfil/response/PerfilResumoResponse";
+import type { PageResponse } from "../../dto/page/PageResponse";
 import Sidebar from "../../components/page/homePageComponents/SideBar";
 import { PerfilItem } from "../../components/page/verSeguidoresComponentes/PerfilItem";
 
-// ── Seguidores ────────────────────────────────────────────────────────────────
-export function VerSeguidores() {
-  const { perfilId } = useParams<{ perfilId: string }>();
-  const navigate     = useNavigate();
-  const id           = Number(perfilId);
-  const [page, setPage]       = useState(0);
-  const [acumulados, setAcumulados] = useState<PerfilResumoResponse[]>([]);
-  const { seguidores, loading, error } = useBuscarSeguidores(id, page, 30);
-  const paginaAtual = seguidores?.content ?? [];
-  const total       = seguidores?.totalElements ?? 0;
-  const temMais     = page + 1 < (seguidores?.totalPages ?? 1);
-  const lista = page === 0
-    ? paginaAtual
-    : [...acumulados, ...paginaAtual.filter((p) => !acumulados.find((a) => a.perfilId === p.perfilId))];
+const PERFIS_POR_PAGINA = 20;
 
-  const handleCarregarMais = () => {
-    setAcumulados(lista);
-    setPage((p) => p + 1);
-  };
+function useListaPerfisPaginada(
+  perfilId: number,
+  pageData: PageResponse<PerfilResumoResponse> | null,
+  loading: boolean
+) {
+  const [lista, setLista] = useState<PerfilResumoResponse[]>([]);
+  const paginasMescladas = useRef(new Set<number>());
+
+  useEffect(() => {
+    setLista([]);
+    paginasMescladas.current.clear();
+  }, [perfilId]);
+
+  useEffect(() => {
+    if (!pageData?.content || loading) return;
+
+    const pageNumber = pageData.number;
+    if (paginasMescladas.current.has(pageNumber)) return;
+    paginasMescladas.current.add(pageNumber);
+
+    if (pageNumber === 0) {
+      setLista(pageData.content);
+      return;
+    }
+
+    setLista((prev) => {
+      const ids = new Set(prev.map((p) => p.perfilId));
+      return [
+        ...prev,
+        ...pageData.content.filter((p) => !ids.has(p.perfilId)),
+      ];
+    });
+  }, [pageData, loading]);
+
+  return lista;
+}
+
+function ListaPerfisPaginada({
+  titulo,
+  vazio,
+  perfilId,
+  page,
+  setPage,
+  pageData,
+  loading,
+  error,
+}: {
+  titulo: string;
+  vazio: string;
+  perfilId: number;
+  page: number;
+  setPage: Dispatch<SetStateAction<number>>;
+  pageData: PageResponse<PerfilResumoResponse> | null;
+  loading: boolean;
+  error: string | null;
+}) {
+  const navigate = useNavigate();
+  const lista = useListaPerfisPaginada(perfilId, pageData, loading);
+  const total = pageData?.totalElements ?? 0;
+  const temMais = pageData ? !pageData.last : false;
+  const carregandoMais = loading && page > 0;
 
   return (
-    <div className="home-layout">
-      <Sidebar />
-
-      <main className="lista-perfis-main">
-        {/* ── Cabeçalho ── */}
+    <main className="lista-perfis-main">
+      <div className="lista-perfis-content">
         <div className="lista-perfis-header">
-          <button className="lista-perfis-back" onClick={() => navigate(-1)} title="Voltar">
+          <button
+            className="lista-perfis-back"
+            onClick={() =>
+              navigate(`/sabor-familia/perfil/${perfilId}`, { replace: true })
+            }
+            title="Voltar"
+            type="button"
+          >
             ←
           </button>
-          <h2 className="lista-perfis-title">Seguidores</h2>
+          <h2 className="lista-perfis-title">{titulo}</h2>
           {!loading && total > 0 && (
             <span className="lista-perfis-count">{total}</span>
           )}
         </div>
 
-        {/* ── Loading ── */}
         {loading && page === 0 && (
           <div className="home-loading">
             <div className="home-loading__spinner" />
-            <span>Carregando seguidores…</span>
+            <span>Carregando…</span>
           </div>
         )}
 
-        {/* ── Erro ── */}
         {error && <div className="home-error">{error}</div>}
 
-        {/* ── Vazio ── */}
         {!loading && !error && lista.length === 0 && (
           <div className="lista-perfis-empty">
-            <p>Nenhum seguidor ainda.</p>
+            <p>{vazio}</p>
           </div>
         )}
 
-        {/* ── Lista ── */}
         {lista.length > 0 && (
           <div className="lista-perfis-list">
             {lista.map((p) => (
@@ -70,97 +115,99 @@ export function VerSeguidores() {
           </div>
         )}
 
-        {/* ── Carregar mais ── */}
+        {carregandoMais && (
+          <div className="home-loading lista-perfis-loading-more">
+            <div className="home-loading__spinner" />
+            <span>Carregando mais…</span>
+          </div>
+        )}
+
         {!loading && temMais && (
-          <button className="lista-perfis-load-more" onClick={handleCarregarMais}>
+          <button
+            className="lista-perfis-load-more"
+            onClick={() => setPage((p) => p + 1)}
+            type="button"
+          >
             Carregar mais
           </button>
         )}
-        {loading && page > 0 && (
-          <div className="home-loading" style={{ margin: "1rem auto" }}>
-            <div className="home-loading__spinner" />
-          </div>
-        )}
-      </main>
+      </div>
+    </main>
+  );
+}
+
+export function VerSeguidores() {
+  const { perfilId } = useParams<{ perfilId: string }>();
+  const id = Number(perfilId);
+  const [page, setPage] = useState(0);
+  const { seguidores, loading, error } = useBuscarSeguidores(id, page, PERFIS_POR_PAGINA);
+
+  useEffect(() => {
+    setPage(0);
+  }, [id]);
+
+  if (Number.isNaN(id)) {
+    return (
+      <div className="home-layout">
+        <Sidebar />
+        <main className="lista-perfis-main">
+          <div className="home-error">Perfil inválido.</div>
+        </main>
+      </div>
+    );
+  }
+
+  return (
+    <div className="home-layout">
+      <Sidebar />
+      <ListaPerfisPaginada
+        titulo="Seguidores"
+        vazio="Nenhum seguidor ainda."
+        perfilId={id}
+        page={page}
+        setPage={setPage}
+        pageData={seguidores}
+        loading={loading}
+        error={error}
+      />
     </div>
   );
 }
 
-// ── Seguindo ──────────────────────────────────────────────────────────────────
 export function VerSeguindo() {
   const { perfilId } = useParams<{ perfilId: string }>();
-  const navigate     = useNavigate();
-  const id           = Number(perfilId);
-  const [page, setPage]       = useState(0);
-  const [acumulados, setAcumulados] = useState<PerfilResumoResponse[]>([]);
-  const { seguindo, loading, error } = useBuscarSeguindo(id, page, 30);
-  const paginaAtual = seguindo?.content ?? [];
-  const total       = seguindo?.totalElements ?? 0;
-  const temMais     = page + 1 < (seguindo?.totalPages ?? 1);
-  const lista = page === 0
-    ? paginaAtual
-    : [...acumulados, ...paginaAtual.filter((p) => !acumulados.find((a) => a.perfilId === p.perfilId))];
+  const id = Number(perfilId);
+  const [page, setPage] = useState(0);
+  const { seguindo, loading, error } = useBuscarSeguindo(id, page, PERFIS_POR_PAGINA);
 
-  const handleCarregarMais = () => {
-    setAcumulados(lista);
-    setPage((p) => p + 1);
-  };
+  useEffect(() => {
+    setPage(0);
+  }, [id]);
+
+  if (Number.isNaN(id)) {
+    return (
+      <div className="home-layout">
+        <Sidebar />
+        <main className="lista-perfis-main">
+          <div className="home-error">Perfil inválido.</div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="home-layout">
       <Sidebar />
-
-      <main className="lista-perfis-main">
-        {/* ── Cabeçalho ── */}
-        <div className="lista-perfis-header">
-          <button className="lista-perfis-back" onClick={() => navigate(-1)} title="Voltar">
-            ←
-          </button>
-          <h2 className="lista-perfis-title">Seguindo</h2>
-          {!loading && total > 0 && (
-            <span className="lista-perfis-count">{total}</span>
-          )}
-        </div>
-
-        {/* ── Loading ── */}
-        {loading && page === 0 && (
-          <div className="home-loading">
-            <div className="home-loading__spinner" />
-            <span>Carregando seguindo…</span>
-          </div>
-        )}
-
-        {/* ── Erro ── */}
-        {error && <div className="home-error">{error}</div>}
-
-        {/* ── Vazio ── */}
-        {!loading && !error && lista.length === 0 && (
-          <div className="lista-perfis-empty">
-            <p>Este perfil não segue ninguém ainda.</p>
-          </div>
-        )}
-
-        {/* ── Lista ── */}
-        {lista.length > 0 && (
-          <div className="lista-perfis-list">
-            {lista.map((p) => (
-              <PerfilItem key={p.perfilId} perfil={p} />
-            ))}
-          </div>
-        )}
-
-        {/* ── Carregar mais ── */}
-        {!loading && temMais && (
-          <button className="lista-perfis-load-more" onClick={handleCarregarMais}>
-            Carregar mais
-          </button>
-        )}
-        {loading && page > 0 && (
-          <div className="home-loading" style={{ margin: "1rem auto" }}>
-            <div className="home-loading__spinner" />
-          </div>
-        )}
-      </main>
+      <ListaPerfisPaginada
+        titulo="Seguindo"
+        vazio="Este perfil não segue ninguém ainda."
+        perfilId={id}
+        page={page}
+        setPage={setPage}
+        pageData={seguindo}
+        loading={loading}
+        error={error}
+      />
     </div>
   );
 }

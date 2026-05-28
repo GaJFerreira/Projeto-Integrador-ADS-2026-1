@@ -16,8 +16,12 @@
 }
 
 .explorar-main::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--scrollbar-thumb, #b0a090);
   border-radius: 4px;
+}
+
+.explorar-main::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
 }
 
 .explorar-focus-main {

@@ -36,13 +36,7 @@
 }
 
 .feed-card__avatar--placeholder {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--brand-light);
-  color: var(--brand);
-  font-weight: 700;
-  font-size: 14px;
+  border: 2px solid var(--border);
 }
 
 .feed-card__username {
@@ -111,8 +105,12 @@
 }
 
 .feed-card__comments-list::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--scrollbar-thumb, #b0a090);
   border-radius: 4px;
+}
+
+.feed-card__comments-list::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
 }
 
 .feed-card__comments-empty {

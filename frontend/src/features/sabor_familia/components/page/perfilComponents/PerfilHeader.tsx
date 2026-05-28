@@ -1,12 +1,14 @@
 import "./perfilHeader.css";
 import { useNavigate } from "react-router-dom";
 import type { PerfilResponse } from "../../../dto/perfil/response/PerfilResponse";
+import { PerfilAvatar } from "../../common/PerfilAvatar";
 
 interface Props {
   perfil: PerfilResponse;
   totalPosts: number;
   seguindo: boolean;
-  totalSeguidores: number;
+  countSeguidores: number;
+  countSeguindo: number;
   onAlternarSeguir: () => void;
   loadingSeguir: boolean;
 }
@@ -15,7 +17,8 @@ export function PerfilHeader({
   perfil,
   totalPosts,
   seguindo,
-  totalSeguidores,
+  countSeguidores,
+  countSeguindo,
   onAlternarSeguir,
   loadingSeguir,
 }: Props) {
@@ -35,17 +38,12 @@ export function PerfilHeader({
         {/* Linha: avatar + botões */}
         <div className="ph-avatar-row">
           <div className="ph-avatar-wrap">
-            {perfil.detalhes.fotoPerfilUrl ? (
-              <img
-                src={perfil.detalhes.fotoPerfilUrl}
-                alt={perfil.detalhes.nome}
-                className="ph-avatar"
-              />
-            ) : (
-              <div className="ph-avatar ph-avatar--placeholder">
-                {perfil.detalhes.nome.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <PerfilAvatar
+              src={perfil.detalhes.fotoPerfilUrl}
+              alt={perfil.detalhes.nome}
+              className="ph-avatar"
+              placeholderClassName="ph-avatar ph-avatar--placeholder"
+            />
           </div>
 
           <div className="ph-actions">
@@ -86,7 +84,7 @@ export function PerfilHeader({
               className="ph-stat ph-stat--btn"
               onClick={() => navigate(`/sabor-familia/perfil/${perfil.id}/seguidores`)}
             >
-              <span className="ph-stat__num">{totalSeguidores}</span>
+              <span className="ph-stat__num">{countSeguidores}</span>
               <span className="ph-stat__label">seguidores</span>
             </button>
 
@@ -94,7 +92,7 @@ export function PerfilHeader({
               className="ph-stat ph-stat--btn"
               onClick={() => navigate(`/sabor-familia/perfil/${perfil.id}/seguindo`)}
             >
-              <span className="ph-stat__num">{perfil.estatisticas.countSeguindo}</span>
+              <span className="ph-stat__num">{countSeguindo}</span>
               <span className="ph-stat__label">seguindo</span>
             </button>
           </div>

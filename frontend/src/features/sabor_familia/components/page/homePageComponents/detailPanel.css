@@ -1,7 +1,7 @@
 .detail-panel {
   width: var(--detail-w);
   min-width: var(--detail-w);
-  height: 100vh;
+  height: 100%;
   background: var(--surface);
   border-left: 1px solid var(--border);
   position: sticky;
@@ -48,9 +48,17 @@
   font-size: 20px;
   font-weight: 500;
   color: var(--brand);
-  margin: 0 0 1.25rem;
+  margin: 0 0 0.5rem;
   padding-right: 24px;
   line-height: 1.3;
+}
+
+.detail-panel__published {
+  margin: 0 0 1.25rem;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  line-height: 1.4;
 }
 
 .detail-section {

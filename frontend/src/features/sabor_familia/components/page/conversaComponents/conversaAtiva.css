@@ -25,16 +25,7 @@
 }
 
 .chat-messages-header__avatar--placeholder {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--brand-light);
-  color: var(--brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
+  border: 2px solid var(--border);
 }
 
 .chat-messages-header__name {
@@ -61,9 +52,13 @@
   background: transparent; 
 }
 
-.chat-messages-scroll::-webkit-scrollbar-thumb { 
-  background: var(--border); 
-  border-radius: 4px; 
+.chat-messages-scroll::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #b0a090);
+  border-radius: 4px;
+}
+
+.chat-messages-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
 }
 
 .chat-load-more {

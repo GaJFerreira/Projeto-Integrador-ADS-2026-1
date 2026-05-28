@@ -74,14 +74,6 @@ export function AdicionarReceita() {
       <main className="ar-main">
         <div className="ar-container">
 
-          <div className="ar-header">
-            <button className="ar-back" type="button" onClick={() => navigate(-1)}>
-              ← Voltar
-            </button>
-            <h1 className="ar-title">Nova receita</h1>
-            <p className="ar-subtitle">Compartilhe sua história na cozinha</p>
-          </div>
-
           <form className="ar-form" onSubmit={handleSubmit}>
 
             <InformacoesBasicas

@@ -3,19 +3,20 @@ import "../home/homeSaborFamilia.css";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuth";
-import { useEditarPerfil } from "../../hooks/UsePerfil";
+import { useEditarPerfil, useBuscarMeuPerfil } from "../../hooks/UsePerfil";
 import { useListarCatalogo, useListarCatalogoContextoPerfil } from "../../hooks/UsePersonalizacao";
 import { useBuscarRestricoesAlimentares } from "../../hooks/UseRestricaoAlimentar";
 import Sidebar from "../../components/page/homePageComponents/SideBar";
+import { PerfilAvatar } from "../../components/common/PerfilAvatar";
 
 export function Configuracoes() {
   const navigate = useNavigate();
   const { perfil, limparAuth } = useAuth();
+  useBuscarMeuPerfil();
   const { editar, loading: salvando, error: erroEditar } = useEditarPerfil();
   const { catalogo: catalogoPersonalizacoes } = useListarCatalogo();
   const { personalizacoes: personalizacoesPerfil } = useListarCatalogoContextoPerfil();
   const { restricoes: catalogoRestricoes } = useBuscarRestricoesAlimentares();
-  const restricoesPerfil = perfil?.restricoesAlimentares ?? [];
   const [bio, setBio] = useState(perfil?.detalhes?.bio ?? "");
   const [fotoUrl, setFotoUrl] = useState(perfil?.detalhes?.fotoPerfilUrl ?? "");
   const [restricoesSelecionadas, setRestricoesSelecionadas] = useState<Set<string>>(new Set());
@@ -23,16 +24,27 @@ export function Configuracoes() {
   const [sucesso, setSucesso] = useState(false);
 
   useEffect(() => {
-    if (restricoesPerfil) {
-      setRestricoesSelecionadas(new Set(restricoesPerfil.map((r) => r.codigo)));
-    }
-  }, [restricoesPerfil]);
+    setBio(perfil?.detalhes?.bio ?? "");
+    setFotoUrl(perfil?.detalhes?.fotoPerfilUrl ?? "");
+  }, [perfil?.id, perfil?.detalhes?.bio, perfil?.detalhes?.fotoPerfilUrl]);
+
+  const restricoesPerfilKey =
+    perfil?.restricoesAlimentares?.map((r) => r.codigo).sort().join(",") ?? "";
+
+  const personalizacoesPerfilKey = personalizacoesPerfil
+    .map((p) => p.codigo)
+    .sort()
+    .join(",");
 
   useEffect(() => {
-    if (personalizacoesPerfil) {
-      setPersonalizacoesSelecionadas(new Set(personalizacoesPerfil.map((p) => p.codigo)));
-    }
-  }, [personalizacoesPerfil]);
+    if (!restricoesPerfilKey) return;
+    setRestricoesSelecionadas(new Set(restricoesPerfilKey.split(",")));
+  }, [restricoesPerfilKey]);
+
+  useEffect(() => {
+    if (!personalizacoesPerfilKey) return;
+    setPersonalizacoesSelecionadas(new Set(personalizacoesPerfilKey.split(",")));
+  }, [personalizacoesPerfilKey]);
 
   const handleSalvar = async () => {
     setSucesso(false);
@@ -43,7 +55,13 @@ export function Configuracoes() {
         restricoesAlimentares: Array.from(restricoesSelecionadas),
         personalizacoes: Array.from(personalizacoesSelecionadas),
       },
-      () => setSucesso(true)
+      async (perfilAtualizado) => {
+        setSucesso(true);
+        if (perfilAtualizado) {
+          setBio(perfilAtualizado.detalhes?.bio ?? "");
+          setFotoUrl(perfilAtualizado.detalhes?.fotoPerfilUrl ?? "");
+        }
+      }
     );
   };
 
@@ -80,17 +98,12 @@ export function Configuracoes() {
             <p className="config-section__title">Meu Perfil</p>
 
             <div className="config-profile-header">
-              {perfil?.detalhes?.fotoPerfilUrl ? (
-                <img
-                  src={perfil.detalhes.fotoPerfilUrl}
-                  alt={perfil.detalhes.nome}
-                  className="config-avatar"
-                />
-              ) : (
-                <div className="config-avatar--placeholder">
-                  {perfil?.detalhes?.nome?.[0]?.toUpperCase() ?? "?"}
-                </div>
-              )}
+              <PerfilAvatar
+                src={perfil?.detalhes?.fotoPerfilUrl}
+                alt={perfil?.detalhes?.nome ?? "Perfil"}
+                className="config-avatar"
+                placeholderClassName="config-avatar config-avatar--placeholder"
+              />
 
               <div className="config-profile-info">
                 <p className="config-profile-name">{perfil?.detalhes?.nome ?? "—"}</p>

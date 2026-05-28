@@ -1,10 +1,19 @@
 .lista-perfis-main {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 1.75rem 1.5rem;
+  overflow-x: hidden;
+  padding: 1.75rem 1.5rem 2rem;
+  scroll-padding-bottom: 2rem;
+}
+
+.lista-perfis-content {
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  flex-shrink: 0;
 }
 
 .lista-perfis-main::-webkit-scrollbar {
@@ -16,13 +25,16 @@
 }
 
 .lista-perfis-main::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--scrollbar-thumb, #b0a090);
   border-radius: 4px;
+}
+
+.lista-perfis-main::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
 }
 
 .lista-perfis-header {
   width: 100%;
-  max-width: 560px;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -70,29 +82,25 @@
   display: flex;
   flex-direction: column;
   gap: 0;
-  max-width: 560px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow);
+  flex-shrink: 0;
 }
 
 .lista-perfis-item {
   display: flex;
   align-items: center;
-  gap: 0.85rem;
+  gap: 0.75rem;
   padding: 0.85rem 1.1rem;
   border-bottom: 1px solid var(--border);
-  cursor: pointer;
-  transition: background 0.15s;
-  text-decoration: none;
   width: 100%;
   background: none;
   border-left: none;
   border-right: none;
   border-top: none;
-  text-align: left;
   font-family: var(--font-sans);
 }
 
@@ -102,6 +110,56 @@
 
 .lista-perfis-item:hover {
   background: var(--bg);
+}
+
+.lista-perfis-item__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+.lista-perfis-seguir {
+  flex-shrink: 0;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--brand);
+  background: var(--brand);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.lista-perfis-seguir:hover:not(:disabled) {
+  background: var(--brand-dark);
+  border-color: var(--brand-dark);
+}
+
+.lista-perfis-seguir:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.lista-perfis-seguir--ativo {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.lista-perfis-seguir--ativo:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: var(--text-muted);
+  color: var(--text);
 }
 
 .lista-perfis-avatar {
@@ -114,28 +172,24 @@
 }
 
 .lista-perfis-avatar--placeholder {
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--brand-light);
-  color: var(--brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 18px;
-  flex-shrink: 0;
+  border: 2px solid var(--border);
 }
 
 .lista-perfis-nome {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lista-perfis-loading-more {
+  margin: 1rem 0;
 }
 
 .lista-perfis-empty {
   width: 100%;
-  max-width: 560px;
   text-align: center;
   padding: 4rem 1rem;
   color: var(--text-muted);
@@ -145,7 +199,8 @@
 }
 
 .lista-perfis-load-more {
-  margin: 1.25rem auto 0;
+  margin: 1.25rem 0 0;
+  width: 100%;
   display: block;
   padding: 0.6rem 2rem;
   border: 1px solid var(--brand);

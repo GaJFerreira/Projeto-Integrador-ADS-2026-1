@@ -1,12 +1,13 @@
 import "./conversaAtiva.css";
 import SendIcon from "../../../icon/messagem/SendIcon";
-import { formatData, formatHora } from "../../../utils/formatarTempo";
+import { formatDataHora } from "../../../utils/formatarTempo";
 import {
   useMensagensConversa,
   useEnviarMensagem,
 } from "../../../hooks/UseConversa";
 import { useState, useEffect, useRef } from "react";
 import type { ConversaResponse } from "../../../dto/menssagem/response/ConversaResponse";
+import { PerfilAvatar } from "../../common/PerfilAvatar";
 
 export function ConversaAtiva({
   conversa,
@@ -46,17 +47,12 @@ export function ConversaAtiva({
     <div className="chat-messages-area">
       {/* ── Cabeçalho ── */}
       <div className="chat-messages-header">
-        {conversa.contato.fotoPerfilUrl ? (
-          <img
-            src={conversa.contato.fotoPerfilUrl}
-            alt={conversa.contato.nome}
-            className="chat-messages-header__avatar"
-          />
-        ) : (
-          <div className="chat-messages-header__avatar--placeholder">
-            {conversa.contato.nome?.[0]?.toUpperCase() ?? "?"}
-          </div>
-        )}
+        <PerfilAvatar
+          src={conversa.contato.fotoPerfilUrl}
+          alt={conversa.contato.nome}
+          className="chat-messages-header__avatar"
+          placeholderClassName="chat-messages-header__avatar chat-messages-header__avatar--placeholder"
+        />
         <span className="chat-messages-header__name">{conversa.contato.nome}</span>
       </div>
 
@@ -95,7 +91,7 @@ export function ConversaAtiva({
                   {msg.texto}
                 </div>
                 <span className="chat-bubble__time">
-                  {formatData(msg.dataEnvio)} {formatHora(msg.dataEnvio)}
+                  {formatDataHora(msg.dataEnvio)}
                 </span>
               </div>
             );

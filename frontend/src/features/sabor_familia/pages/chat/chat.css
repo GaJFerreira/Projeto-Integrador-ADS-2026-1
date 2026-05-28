@@ -45,8 +45,12 @@
 }
 
 .chat-list__items::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--scrollbar-thumb, #b0a090);
   border-radius: 4px;
+}
+
+.chat-list__items::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
 }
 
 .chat-list__item {
@@ -85,17 +89,7 @@
 }
 
 .chat-list__avatar--placeholder {
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  background: var(--brand-light);
-  color: var(--brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 16px;
-  flex-shrink: 0;
+  border: 2px solid var(--border);
 }
 
 .chat-list__info {

@@ -1,7 +1,7 @@
 .sidebar {
   width: var(--sidebar-w);
   min-width: var(--sidebar-w);
-  height: 100vh;
+  height: 100%;
   background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
@@ -118,4 +118,8 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+}
+
+.sidebar-avatar--placeholder {
+  border: 1px solid var(--border);
 }

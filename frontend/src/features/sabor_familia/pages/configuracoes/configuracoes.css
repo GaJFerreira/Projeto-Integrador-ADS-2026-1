@@ -1,7 +1,8 @@
 .config-main {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 2rem 1.5rem;
+  padding: 2rem 1.5rem 1.25rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -16,8 +17,12 @@
 }
 
 .config-main::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--scrollbar-thumb, #b0a090);
   border-radius: 4px;
+}
+
+.config-main::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
 }
 
 .config-container {
@@ -66,13 +71,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--brand-light);
-  color: var(--brand);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 24px;
+  border: 3px solid var(--border);
   flex-shrink: 0;
 }
 

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
 :root {
   --brand:        #BA7517;
   --brand-dark:   #854F0B;
@@ -10,15 +12,18 @@
   --danger:       #e53935;
   --sidebar-w:    220px;
   --detail-w:     360px;
-  --font-serif:   Georgia, 'Times New Roman', serif;
-  --font-sans:    'Helvetica Neue', Arial, sans-serif;
+  --font-serif:   'Roboto', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --font-sans:    'Roboto', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
   --radius:       12px;
   --shadow:       0 2px 12px rgba(0,0,0,0.07);
+  --scrollbar-thumb: #b0a090;
+  --scrollbar-thumb-hover: #8a7a68;
 }
 
 .home-layout {
   display: flex;
-  height: 100vh;
+  height: 100%;
+  min-height: 0;
   background: var(--bg);
   font-family: var(--font-sans);
   overflow: hidden;
@@ -100,8 +105,15 @@
 .detail-panel__scroll::-webkit-scrollbar-thumb,
 .sidebar-nav::-webkit-scrollbar-thumb,
 .detail-comments::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: var(--scrollbar-thumb);
   border-radius: 4px;
+}
+
+.home-main::-webkit-scrollbar-thumb:hover,
+.detail-panel__scroll::-webkit-scrollbar-thumb:hover,
+.sidebar-nav::-webkit-scrollbar-thumb:hover,
+.detail-comments::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
 }
 
 @media (max-width: 900px) {

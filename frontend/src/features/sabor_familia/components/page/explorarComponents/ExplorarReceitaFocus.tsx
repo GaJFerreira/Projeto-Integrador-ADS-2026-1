@@ -10,9 +10,14 @@ import DetailPanel from "../homePageComponents/DetailPanel";
 interface Props {
   receitaId: number;
   onVoltar: () => void;
+  voltarLabel?: string;
 }
 
-export function ExplorarReceitaFocus({ receitaId, onVoltar }: Props) {
+export function ExplorarReceitaFocus({
+  receitaId,
+  onVoltar,
+  voltarLabel = "← Voltar para explorar",
+}: Props) {
   const { receita, loading, error } = useBuscarReceita(receitaId);
   const [selecionada, setSelecionada] = useState<ReceitaResponse | null>(null);
 
@@ -22,7 +27,7 @@ export function ExplorarReceitaFocus({ receitaId, onVoltar }: Props) {
 
       <main className="home-main explorar-focus-main">
         <button type="button" className="explorar-back" onClick={onVoltar}>
-          ← Voltar para explorar
+          {voltarLabel}
         </button>
 
         {loading && (

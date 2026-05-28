@@ -11,7 +11,9 @@ import {
 import { useAuth } from "../../../hooks/UseAuth";
 import CommentIcon from "../../../icon/menu/CommentIcon";
 import BookmarkIcon from "../../../icon/menu/BookmarkIcon";
+import { PerfilAvatar } from "../../common/PerfilAvatar";
 import HeartFillIcon from "../../../icon/menu/HeartFillIcon";
+import { formatarTempo } from "../../../utils/formatarTempo";
 import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
 
 interface FeedCardProps {
@@ -32,7 +34,7 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
 
   const { favoritado, alternar: alternarFavorito } = useAlternarFavorito(
     receita.id,
-    (receita as ReceitaResponse & { favoritadoPeloUsuario?: boolean }).favoritadoPeloUsuario ?? false
+    receita.favoritadoPeloUsuario ?? false
   );
 
   const totalComentarios = receita.estatisticas.comentarios;
@@ -44,7 +46,7 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
   const { remover, loadingId: removendoComentarioId } = useRemoverComentario(receita.id);
 
   const navigate = useNavigate();
-  const tempo = receita.dataCadastro;
+  const tempo = formatarTempo(receita.dataCadastro);
 
   const fotoCapaUrl =
     (receita as ReceitaResponse & { fotoCapaUrl?: string | null }).fotoCapaUrl ?? null;
@@ -73,21 +75,16 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
           tabIndex={0}
           onKeyDown={(e) => e.key === "Enter" && navigate(`/sabor-familia/perfil/${receita.autor.perfilId}`)}
         >
-          {receita.autor.fotoPerfilUrl ? (
-            <img
-              src={receita.autor.fotoPerfilUrl}
-              className="feed-card__avatar"
-              alt={receita.autor.nome}
-            />
-          ) : (
-            <div className="feed-card__avatar feed-card__avatar--placeholder">
-              {receita.autor.nome?.[0]?.toUpperCase() ?? "?"}
-            </div>
-          )}
+          <PerfilAvatar
+            src={receita.autor.fotoPerfilUrl}
+            alt={receita.autor.nome}
+            className="feed-card__avatar"
+            placeholderClassName="feed-card__avatar feed-card__avatar--placeholder"
+          />
 
           <div>
             <span className="feed-card__username">{receita.autor.nome}</span>
-            {tempo && <span className="feed-card__time"> · {tempo}</span>}
+            {tempo ? <span className="feed-card__time"> · {tempo}</span> : null}
           </div>
         </div>
       </header>

@@ -42,4 +42,11 @@
 
 .perfil-main::-webkit-scrollbar       { width: 5px; }
 .perfil-main::-webkit-scrollbar-track { background: transparent; }
-.perfil-main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.perfil-main::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #b0a090);
+  border-radius: 4px;
+}
+
+.perfil-main::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
+}

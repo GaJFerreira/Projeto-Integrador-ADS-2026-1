@@ -7,6 +7,7 @@ import type { EstatisticasReceita } from "./EstatisticasReceita";
 export interface ReceitaResponse {
   id: number;
   curtidoPeloUsuario: boolean;
+  favoritadoPeloUsuario: boolean;
   restritaParaUsuario: boolean;
   autor: PerfilResumoResponse;
   detalhes: DetalhesReceita;
