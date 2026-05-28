@@ -48,7 +48,7 @@ public class AgendamentoController {
 
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
-                "UsuÃ¡rio local do CareHub nÃ£o encontrado para o platformUserId: " + platformUserId);
+                "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId);
     }
 
     private Long obterIdLocalOuNull(Long platformUserId) {
@@ -65,7 +65,7 @@ public class AgendamentoController {
     private String getUsername(Principal principal) {
         if (principal == null) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "UsuÃ¡rio nÃ£o autenticado");
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
         }
         return principal.getName();
     }
@@ -76,7 +76,7 @@ public class AgendamentoController {
         log.info("Criando agendamento: clienteId={}, cuidadorId={}, data={}",
                 dto.getClienteId(), dto.getCuidadorId(), dto.getDataHoraInicio());
 
-        // Resolve platform user id to local id for client
+        // Resolve platform user id para id local do cliente
         Long localClienteId = obterIdLocal(dto.getClienteId());
         dto.setClienteId(localClienteId);
 
@@ -101,8 +101,8 @@ public class AgendamentoController {
         } catch (RuntimeException ex) {
             String msg = ex.getMessage() == null ? "" : ex.getMessage();
             if (msg.toLowerCase().contains("usuário não encontrado")
-                    || msg.toLowerCase().contains("usuario nao encontrado")
-                    || msg.toLowerCase().contains("usuÃ¡rio nÃ£o encontrado")) {
+                    || msg.toLowerCase().contains("usuário não encontrado")
+                    || msg.toLowerCase().contains("usuário não encontrado")) {
                 log.warn("Fallback de atualização de status por principalName (sem ID local): actor={}",
                         principal == null ? "anonymous" : principal.getName());
                 agendamento = agendamentoService.atualizarStatusPorPrincipalName(id, status, principal);
@@ -171,7 +171,7 @@ public class AgendamentoController {
         try {
             return agendamentoService.getUserIdByUsernameOrEmail(usernameOrEmail);
         } catch (Exception e) {
-            log.warn("UsuÃ¡rio nÃ£o cadastrado no mÃ³dulo CareHub (pode ser admin): {}", usernameOrEmail);
+            log.warn("Usuário não cadastrado no módulo CareHub (pode ser admin): {}", usernameOrEmail);
             return null;
         }
     }
@@ -180,7 +180,7 @@ public class AgendamentoController {
     public ResponseEntity<List<AgendamentoResponseDTO>> listarProximos(
             Principal principal,
             @RequestParam(defaultValue = "7") int dias) {
-        // Principal.getName() retorna email ou username, nÃ£o o ID
+        // Principal.getName() retorna email ou username, não o ID
         String usernameOrEmail = getUsername(principal);
         Long userId = obterUserIdSeguro(usernameOrEmail);
         List<AgendamentoResponseDTO> agendamentos = List.of();
@@ -213,29 +213,29 @@ public class AgendamentoController {
     }
 
     /**
-     * Retorna os agendamentos concluÃ­dos que ainda nÃ£o foram avaliados (estilo
+     * Retorna os agendamentos concluidos que ainda não foram avaliados (estilo
      * Uber/99).
-     * Usado para mostrar notificaÃ§Ã£o de avaliaÃ§Ã£o pendente.
+     * Usado para mostrar notificação de avaliação pendente.
      */
     @GetMapping("/avaliacoes-pendentes")
     public ResponseEntity<List<AgendamentoResponseDTO>> listarAvaliacoesPendentes(
             Principal principal) {
         String usernameOrEmail = getUsername(principal);
         Long clienteId = obterUserIdSeguro(usernameOrEmail);
-        log.info("Listando avaliaÃ§Ãµes pendentes: clienteId={}", clienteId);
+        log.info("Listando avaliações pendentes: clienteId={}", clienteId);
 
         List<AgendamentoResponseDTO> pendentes = List.of();
         if (clienteId != null) {
             pendentes = agendamentoService.listarAvaliacoesPendentes(clienteId);
         }
-        log.info("AvaliaÃ§Ãµes pendentes encontradas: {}", pendentes.size());
+        log.info("Avaliações pendentes encontradas: {}", pendentes.size());
 
         return ResponseEntity.ok(pendentes);
     }
 
     /**
-     * Conta quantos atendimentos concluÃ­dos estÃ£o pendentes de avaliaÃ§Ã£o.
-     * Usado para badge de notificaÃ§Ã£o.
+     * Conta quantos atendimentos concluidos estão pendentes de avaliação.
+     * Usado para badge de notificação.
      */
     @GetMapping("/avaliacoes-pendentes/count")
     public ResponseEntity<Map<String, Long>> contarAvaliacoesPendentes(
@@ -252,8 +252,8 @@ public class AgendamentoController {
     }
 
     /**
-     * Conta agendamentos PENDENTES aguardando confirmaÃ§Ã£o do cuidador.
-     * Usado para badge de notificaÃ§Ã£o no grid de mÃ³dulos.
+     * Conta agendamentos PENDENTES aguardando confirmação do cuidador.
+     * Usado para badge de notificação no grid de módulos.
      */
     @GetMapping("/pendentes-cuidador/count")
     public ResponseEntity<Map<String, Long>> contarPendentesCuidador(Principal principal) {
@@ -272,7 +272,7 @@ public class AgendamentoController {
     /**
      * Conta agendamentos REAGENDADOS (contrapropostas) aguardando resposta do
      * cliente.
-     * Usado para badge de notificaÃ§Ã£o no grid de mÃ³dulos.
+     * Usado para badge de notificação no grid de módulos.
      */
     @GetMapping("/reagendados-cliente/count")
     public ResponseEntity<Map<String, Long>> contarReagendadosCliente(Principal principal) {

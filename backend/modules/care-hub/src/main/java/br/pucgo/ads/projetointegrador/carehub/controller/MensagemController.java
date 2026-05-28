@@ -42,20 +42,22 @@ public class MensagemController {
         }
 
         var c = cuidadorRepository.findByPlatformUserId(platformUserId);
-        if (c.isPresent()) return c.get().getId();
+        if (c.isPresent())
+            return c.get().getId();
 
         var cli = clienteRepository.findByPlatformUserId(platformUserId);
-        if (cli.isPresent()) return cli.get().getId();
+        if (cli.isPresent())
+            return cli.get().getId();
 
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuario local do CareHub nao encontrado para o platformUserId: " + platformUserId);
+                "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId);
     }
 
     private Long obterIdLocalAutenticado(Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario nao autenticado");
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
         }
 
         String usernameOrEmail = principal.getName();
@@ -74,17 +76,19 @@ public class MensagemController {
 
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuario local do CareHub nao encontrado para o principal autenticado: " + usernameOrEmail);
+                "Usuário local do CareHub não encontrado para o principal autenticado: " + usernameOrEmail);
     }
 
     private Long obterIdPlataforma(Long localUserId) {
         if (localUserId == null)
             return null;
         var c = cuidadorRepository.findById(localUserId);
-        if (c.isPresent() && c.get().getPlatformUserId() != null) return c.get().getPlatformUserId();
+        if (c.isPresent() && c.get().getPlatformUserId() != null)
+            return c.get().getPlatformUserId();
 
         var cli = clienteRepository.findById(localUserId);
-        if (cli.isPresent() && cli.get().getPlatformUserId() != null) return cli.get().getPlatformUserId();
+        if (cli.isPresent() && cli.get().getPlatformUserId() != null)
+            return cli.get().getPlatformUserId();
 
         return localUserId;
     }
@@ -160,7 +164,7 @@ public class MensagemController {
             mm.setData(data);
             messageMediaRepository.save(mm);
         } catch (Exception ex) {
-            System.err.println("Warning: failed to save media blob: " + ex.getMessage());
+            System.err.println("Aviso: falha ao salvar mídia: " + ex.getMessage());
         }
 
         return ResponseEntity.ok(converterParaPlataforma(mensagem));
@@ -171,7 +175,8 @@ public class MensagemController {
     public ResponseEntity<Resource> serveMedia(Principal principal,
             @PathVariable String filename) throws Exception {
         Long localUsuarioId = obterIdLocalAutenticado(principal);
-        br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = messageMediaRepository.findByStorageKey(filename);
+        br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = messageMediaRepository
+                .findByStorageKey(filename);
         if (mm == null) {
             return ResponseEntity.notFound().build();
         }
