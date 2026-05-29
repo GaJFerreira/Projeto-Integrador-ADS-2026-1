@@ -1,6 +1,6 @@
 package br.com.puc.saborfamilia.service.receita.dto.response;
 
-import br.com.puc.saborfamilia.database.enums.TipoRefeicaoEnum;
+import br.com.puc.saborfamilia.enums.TipoRefeicaoEnum;
 
 public record DetalhesReceita(
   String titulo,

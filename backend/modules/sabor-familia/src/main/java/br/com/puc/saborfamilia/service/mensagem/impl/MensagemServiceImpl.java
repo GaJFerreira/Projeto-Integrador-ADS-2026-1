@@ -8,14 +8,19 @@ import br.com.puc.saborfamilia.database.repository.MensagemRepository;
 import br.com.puc.saborfamilia.database.repository.PerfilRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
+import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.service.mensagem.MensagemService;
+import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.request.EnviarMensagemRequest;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.ConversaResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.EnviarMensagemResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemCursorResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemResponse;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
@@ -39,6 +44,7 @@ public class MensagemServiceImpl implements MensagemService {
   private final MensagemRepository mensagemRepository;
   private final ConversaRepository conversaRepository;
   private final PerfilRepository perfilRepository;
+  private final MidiaService midiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -51,7 +57,27 @@ public class MensagemServiceImpl implements MensagemService {
       pageable
     );
 
-    return conversas.map(conversa -> ConversaResponse.fromResponse(conversa, perfilUsuarioAutenticado.getId()));
+    List<ConversaEntity> conversasNaPagina = conversas.getContent();
+
+    Set<Long> perfisComFoto = conversasNaPagina.isEmpty()
+      ? Set.of()
+      : midiaService.buscarEntidadeIdsComMidia(
+        TipoEntidadeEnum.PERFIL,
+        conversasNaPagina.stream()
+          .map(c -> c.getOutroParticipante(perfilUsuarioAutenticado.getId()).getId())
+          .distinct()
+          .toList()
+      );
+
+    return conversas.map(conversa -> {
+      PerfilEntity contato = conversa.getOutroParticipante(perfilUsuarioAutenticado.getId());
+      return new ConversaResponse(
+        conversa.getId(),
+        toPerfilResumoResponse(contato, perfisComFoto),
+        conversa.getConteudoUltimaMensagem(),
+        conversa.getDataEnvioUltimaMensagem()
+      );
+    });
   }
 
   @Override
@@ -83,9 +109,14 @@ public class MensagemServiceImpl implements MensagemService {
     conversa.setConteudoUltimaMensagem(mensagemSalva.getTexto());
     conversaRepository.save(conversa);
 
+    Set<Long> perfisComFoto = midiaService.buscarEntidadeIdsComMidia(
+      TipoEntidadeEnum.PERFIL,
+      List.of(perfilUsuarioAutenticado.getId(), destinatario.getId())
+    );
+
     return new EnviarMensagemResponse(
       conversa.getId(),
-      MensagemResponse.fromEntity(mensagemSalva)
+      toMensagemResponse(mensagemSalva, perfisComFoto)
     );
   }
 
@@ -140,8 +171,20 @@ public class MensagemServiceImpl implements MensagemService {
       page = mensagemRepository.findUltimasMensagensAnteriores(conversaId, beforeId, pageable);
     }
 
-    List<MensagemResponse> mensagens = page.getContent().stream()
-      .map(MensagemResponse::fromEntity)
+    List<MensagemEntity> content = page.getContent();
+
+    Set<Long> perfilIds = new HashSet<>();
+    content.forEach(mensagem -> {
+      perfilIds.add(mensagem.getRemetente().getId());
+      perfilIds.add(mensagem.getDestinatario().getId());
+    });
+
+    Set<Long> perfisComFoto = perfilIds.isEmpty()
+      ? Set.of()
+      : midiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, perfilIds);
+
+    List<MensagemResponse> mensagens = content.stream()
+      .map(mensagem -> toMensagemResponse(mensagem, perfisComFoto))
       .toList();
 
     boolean possuiMaisPaginas = page.hasNext();
@@ -154,6 +197,24 @@ public class MensagemServiceImpl implements MensagemService {
       : null;
 
     return new MensagemCursorResponse(mensagens, possuiMaisPaginas, idUltimaMensagem);
+  }
+
+  private MensagemResponse toMensagemResponse(MensagemEntity mensagem, Set<Long> perfisComFoto) {
+    return new MensagemResponse(
+      mensagem.getId(),
+      toPerfilResumoResponse(mensagem.getRemetente(), perfisComFoto),
+      toPerfilResumoResponse(mensagem.getDestinatario(), perfisComFoto),
+      mensagem.getTexto(),
+      mensagem.getDataEnvio()
+    );
+  }
+
+  private PerfilResumoResponse toPerfilResumoResponse(PerfilEntity perfil, Set<Long> perfisComFoto) {
+    return PerfilResumoResponse.fromEntity(
+      perfil,
+      perfisComFoto.contains(perfil.getId()),
+      null
+    );
   }
 
 }

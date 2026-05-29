@@ -9,9 +9,12 @@ import br.com.puc.saborfamilia.database.repository.ReceitaRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.service.curtida.CurtidaService;
 import br.com.puc.saborfamilia.service.curtida.dto.CurtidaResponse;
+import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
+import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.receita.dto.response.PerfilCurtidaResponse;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -27,6 +30,7 @@ public class CurtidaServiceImpl implements CurtidaService {
   private final CurtidaReceitaRepository curtidaReceitaRepository;
   private final PerfilRepository perfilRepository;
   private final ReceitaRepository receitaRepository;
+  private final MidiaService midiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -34,8 +38,24 @@ public class CurtidaServiceImpl implements CurtidaService {
     receitaRepository.findById(receitaId)
       .orElseThrow(() -> new ResourceNotFoundException(RECEITA_NAO_ENCONTRADA));
 
-    return curtidaReceitaRepository.findByReceitaIdWithPerfil(receitaId).stream()
-      .map(PerfilCurtidaResponse::fromEntity)
+    List<CurtidaReceitaEntity> curtidas = curtidaReceitaRepository.findByReceitaIdWithPerfil(receitaId);
+
+    Set<Long> perfisComFoto = curtidas.isEmpty()
+      ? Set.of()
+      : midiaService.buscarEntidadeIdsComMidia(
+        TipoEntidadeEnum.PERFIL,
+        curtidas.stream().map(c -> c.getPerfil().getId()).distinct().toList()
+      );
+
+    return curtidas.stream()
+      .map(curtida -> {
+        PerfilEntity perfil = curtida.getPerfil();
+        return new PerfilCurtidaResponse(
+          perfil.getId(),
+          perfil.getNome(),
+          perfisComFoto.contains(perfil.getId())
+        );
+      })
       .toList();
   }
 

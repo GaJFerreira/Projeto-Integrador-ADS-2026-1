@@ -45,9 +45,6 @@ public class PerfilEntity {
   @Column(name = "data_nascimento", nullable = false)
   private LocalDate dataNascimento;
 
-  @Column(name = "foto_perfil_url")
-  private String fotoPerfilUrl;
-
   @OneToMany(mappedBy = "perfil")
   @Builder.Default
   private List<ReceitaEntity> receitas = new ArrayList<>();

@@ -1,4 +1,4 @@
-package br.com.puc.saborfamilia.database.enums;
+package br.com.puc.saborfamilia.enums;
 
 import lombok.Getter;
 

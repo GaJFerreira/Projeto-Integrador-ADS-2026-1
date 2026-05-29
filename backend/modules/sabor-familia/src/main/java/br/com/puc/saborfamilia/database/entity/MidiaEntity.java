@@ -1,7 +1,6 @@
 package br.com.puc.saborfamilia.database.entity;
 
-import br.com.puc.saborfamilia.enums.CategoriaPersonalizacaoEnum;
-import br.com.puc.saborfamilia.enums.StatusEnum;
+import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -21,15 +20,15 @@ import lombok.Setter;
 
 @Entity
 @Table(
-  name = "personalizacao",
+  name = "midia",
   schema = "sabor_familia",
-  indexes = {
-    @Index(name = "idx_personalizacao_categoria", columnList = "categoria"),
-    @Index(name = "idx_personalizacao_status", columnList = "status")
-  },
+  indexes = @Index(
+    name = "idx_midia_tipo_entidade",
+    columnList = "tipo_entidade, entidade_id"
+  ),
   uniqueConstraints = @UniqueConstraint(
-    name = "uk_personalizacao_codigo",
-    columnNames = {"codigo"}
+    name = "uk_midia_tipo_entidade",
+    columnNames = {"tipo_entidade", "entidade_id"}
   )
 )
 @Getter
@@ -37,28 +36,27 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PersonalizacaoEntity {
+public class MidiaEntity {
 
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
   @Enumerated(EnumType.STRING)
-  @Column(name = "categoria", nullable = false)
-  private CategoriaPersonalizacaoEnum categoria;
+  @Column(name = "tipo_entidade", nullable = false, length = 20)
+  private TipoEntidadeEnum tipoEntidade;
 
-  @Column(name = "codigo", nullable = false)
-  private String codigo;
+  @Column(name = "entidade_id", nullable = false)
+  private Long entidadeId;
 
-  @Column(name = "label_perfil", nullable = false)
-  private String labelPerfil;
+  @Column(name = "content_type", nullable = false, length = 100)
+  private String contentType;
 
-  @Column(name = "label_receita", nullable = false)
-  private String labelReceita;
+  @Column(name = "caminho_relativo", nullable = false, length = 500)
+  private String caminhoRelativo;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "status", nullable = false)
-  private StatusEnum status;
+  @Column(name = "tamanho_bytes", nullable = false)
+  private Long tamanhoBytes;
 
   @Column(name = "data_cadastro", nullable = false)
   private LocalDateTime dataCadastro;

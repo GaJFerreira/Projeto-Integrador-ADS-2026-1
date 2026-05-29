@@ -1,10 +1,25 @@
 {
   "info": {
     "name": "Sabor Família API",
-    "description": "Collection da API Sabor Família.\n\n- Base URL: {{baseUrl}} (ex.: http://localhost:8080/api/sabor-familia)\n- Autenticação: header Authorization: Bearer {{accessToken}} nas rotas que exigem usuário (JWT emitido pela plataforma; claim userId usada pelo módulo)\n- Preencha {{accessToken}} após login em /api/auth (plataforma)\n- Catálogo de personalização: /personalizacao/categorias, /personalizacao, /personalizacao/perfil e /personalizacao/receita.",
+    "description": "Collection da API Sabor Família.\n\nFluxo sugerido:\n1. Autenticação → Criar usuário (opcional) ou use usuário existente.\n2. Autenticação → Login (salva accessToken e userId).\n3. Criar perfil e demais operações com Bearer {{accessToken}}.\n\nMídia: respostas trazem possuiMidia / possuiMidia; bytes em GET /midia/perfil/{id} e GET /midia/receita/{id}. Upload na criação/edição via multipart dados + arquivo.\n\nSabor Família: {{baseUrl}}\nPlataforma: {{authBaseUrl}}",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
+  },
   "variable": [
+    {
+      "key": "authBaseUrl",
+      "value": "http://localhost:8080/api/auth",
+      "description": "API de autenticação da plataforma (login/signup)"
+    },
     {
       "key": "baseUrl",
       "value": "http://localhost:8080/api/sabor-familia"
@@ -12,17 +27,32 @@
     {
       "key": "accessToken",
       "value": "",
-      "description": "JWT retornado pelo login da plataforma (ex.: POST /api/auth/login). O módulo lê a claim userId do token."
+      "description": "Preenchido automaticamente pelo script de Login"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "description": "Preenchido automaticamente pelo script de Login (claim usada pelo Sabor Família)"
     },
     {
       "key": "perfilId",
-      "value": "41",
-      "description": "ID em perfil.id (massa de dados: costuma alinhar com o usuário da claim userId no token → perfil 1)"
+      "value": "",
+      "description": "ID do perfil (perfil.id). Preencha após criar perfil ou consultar GET /perfil."
     },
     {
       "key": "receitaId",
-      "value": "1",
-      "description": "Preencha com o id retornado ao criar receita ou um id existente"
+      "value": "",
+      "description": "ID da receita. Preencha após criar receita ou usar um id existente."
+    },
+    {
+      "key": "conversaId",
+      "value": "",
+      "description": "ID da conversa retornado em GET /conversa ou ao enviar mensagem."
+    },
+    {
+      "key": "comentarioId",
+      "value": "",
+      "description": "ID do comentário retornado ao listar ou criar comentários."
     },
     {
       "key": "personalizacaoCodigo",
@@ -42,10 +72,114 @@
   ],
   "item": [
     {
+      "name": "Autenticação",
+      "description": "Cadastro e login na plataforma. Criar usuário registra na API de auth; Login grava accessToken e userId para o Sabor Família.",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login retornou 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "",
+                  "    if (body.accessToken) {",
+                  "        pm.collectionVariables.set('accessToken', body.accessToken);",
+                  "        console.log('accessToken salvo na collection');",
+                  "    } else {",
+                  "        console.warn('Resposta sem accessToken');",
+                  "    }",
+                  "",
+                  "    if (body.userId != null) {",
+                  "        pm.collectionVariables.set('userId', String(body.userId));",
+                  "        console.log('userId salvo:', body.userId);",
+                  "    }",
+                  "",
+                  "    pm.test('accessToken presente', function () {",
+                  "        pm.expect(body.accessToken).to.be.a('string').and.not.empty;",
+                  "    });",
+                  "} else {",
+                  "    console.error('Login falhou. Verifique usuário e senha no body da request.');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"jimmy.jhonson\",\n  \"password\": \"12345\"\n}"
+            },
+            "url": "{{authBaseUrl}}/login",
+            "description": "Autentica na plataforma e salva accessToken e userId nas variáveis da collection (aba Tests).\n\nEdite usernameOrEmail e password no body JSON antes de enviar."
+          }
+        },
+        {
+          "name": "Criar usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Signup retornou 201', function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 201) {",
+                  "    console.log('Usuário criado. Execute Login com o mesmo username/email e senha.');",
+                  "} else {",
+                  "    console.error('Signup falhou. Username ou e-mail pode já existir.');",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jimmy Jhonson\",\n  \"username\": \"jimmy.jhonson\",\n  \"email\": \"jimmy.jhonson@gmail.com\",\n  \"password\": \"12345\"\n}"
+            },
+            "url": "{{authBaseUrl}}/signup",
+            "description": "Registra usuário na plataforma POST /api/auth/signup. Sem roleId, a role padrão é ROLE_IDOSO.\n\nEdite o body antes de enviar. Em seguida faça Login e Criar perfil no Sabor Família."
+          }
+        }
+      ]
+    },
+    {
       "name": "Receita",
       "item": [
         {
-          "name": "Feed - Receitas do usuário e seguidos",
+          "name": "Feed personalizado",
           "request": {
             "method": "GET",
             "header": [
@@ -78,7 +212,8 @@
                   "value": "dataCadastro,desc"
                 }
               ]
-            }
+            },
+            "description": "Receitas completas do usuário e de quem ele segue. Cada item traz possuiMidia e autor.possuiMidia. Capa: GET /midia/receita/{id}; foto do autor: GET /midia/perfil/{perfilId}."
           }
         },
         {
@@ -113,10 +248,22 @@
                 {
                   "key": "sort",
                   "value": "dataCadastro,desc"
+                },
+                {
+                  "key": "titulo",
+                  "value": "",
+                  "description": "Filtro opcional por título",
+                  "disabled": true
+                },
+                {
+                  "key": "tipoRefeicao",
+                  "value": "SOBREMESA",
+                  "description": "Filtro opcional: CAFE_DA_MANHA, ALMOCO, JANTAR, LANCHE, SOBREMESA",
+                  "disabled": true
                 }
               ]
             },
-            "description": "Explora receitas com filtros opcionais por tipo de refeição e título. A listagem prioriza receitas com mais aderência às preferências de personalização do usuário e, em empate, traz as mais recentes primeiro."
+            "description": "Lista resumida com possuiMidia e restritaParaUsuario. Ordenação por aderência às personalizações do perfil e data. Capa: GET /midia/receita/{id}."
           }
         },
         {
@@ -141,7 +288,7 @@
                 "{{receitaId}}"
               ]
             },
-            "description": "Retorna os detalhes completos da receita, incluindo autor, informações de preparo, estatísticas, restrições, personalizações e data de cadastro."
+            "description": "Detalhe da receita com possuiMidia, autor.possuiMidia, estatísticas, restrições e personalizações. Capa: GET {{baseUrl}}/midia/receita/{{receitaId}}."
           }
         },
         {
@@ -180,7 +327,7 @@
                 }
               ]
             },
-            "description": "Lista receitas de um perfil em formato resumido, com paginação. Quando o usuário é informado, também indica se cada receita é restrita para ele."
+            "description": "Lista resumida com possuiMidia e restritaParaUsuario. Capa: GET /midia/receita/{id}."
           }
         },
         {
@@ -192,16 +339,24 @@
                 "key": "Authorization",
                 "value": "Bearer {{accessToken}}",
                 "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Bolo de chocolate\",\n  \"tipoRefeicao\": \"SOBREMESA\",\n  \"ingredientes\": \"Farinha, ovos, chocolate, açúcar\",\n  \"modoPreparo\": \"Misturar tudo e assar por 40 minutos\",\n  \"historia\": \"Receita da vovó\",\n  \"tempoPreparoMin\": 60,\n  \"qtdPorcoes\": 8,\n  \"restricoesAlimentares\": [\n    \"GLUTEN\",\n    \"LACTOSE\"\n  ],\n  \"personalizacoes\": [\n    \"RAPIDA\",\n    \"CONFORTO\",\n    \"USO_FORNO\"\n  ]\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "dados",
+                  "value": "{\n  \"titulo\": \"Bolo de chocolate\",\n  \"tipoRefeicao\": \"SOBREMESA\",\n  \"ingredientes\": \"Farinha, ovos, chocolate, açúcar\",\n  \"modoPreparo\": \"Misturar tudo e assar por 40 minutos\",\n  \"historia\": \"Receita da vovó\",\n  \"tempoPreparoMin\": 60,\n  \"qtdPorcoes\": 8,\n  \"restricoesAlimentares\": [\n    \"GLUTEN\",\n    \"LACTOSE\"\n  ],\n  \"personalizacoes\": [\n    \"RAPIDA\",\n    \"CONFORTO\",\n    \"USO_FORNO\"\n  ]\n}",
+                  "contentType": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "arquivo",
+                  "description": "Capa opcional (JPEG ou PNG)",
+                  "type": "file",
+                  "src": []
+                }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/receita",
@@ -212,7 +367,7 @@
                 "receita"
               ]
             },
-            "description": "Use personalizações com códigos ativos do catálogo. As restrições alimentares continuam no campo específico de restrições."
+            "description": "Multipart: dados JSON + arquivo opcional JPEG/PNG. Resposta com possuiMidia quando arquivo enviado."
           }
         },
         {
@@ -224,16 +379,24 @@
                 "key": "Authorization",
                 "value": "Bearer {{accessToken}}",
                 "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"titulo\": \"Bolo de Capim\",\n  \"tipoRefeicao\": \"SOBREMESA\",\n  \"ingredientes\": \"Farinha, ovos, capim, açúcar e manteiga\",\n  \"modoPreparo\": \"Junte o campim em um campo de futebol ou pasto, misturar tudo e assar por 45 minutos\",\n  \"historia\": \"Era uma vez um bolo de capim\",\n  \"tempoPreparoMin\": 70,\n  \"qtdPorcoes\": 10,\n  \"restricoesAlimentares\": [\n    \"GLUTEN\"\n  ],\n  \"personalizacoes\": [\n    \"ECONOMICA\"\n  ]\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "dados",
+                  "value": "{\n  \"titulo\": \"Bolo de Capim\",\n  \"tipoRefeicao\": \"SOBREMESA\",\n  \"ingredientes\": \"Farinha, ovos, capim, açúcar e manteiga\",\n  \"modoPreparo\": \"Junte o capim em um campo, misturar tudo e assar por 45 minutos\",\n  \"historia\": \"Era uma vez um bolo de capim\",\n  \"tempoPreparoMin\": 70,\n  \"qtdPorcoes\": 10,\n  \"restricoesAlimentares\": [\n    \"GLUTEN\"\n  ],\n  \"personalizacoes\": [\n    \"ECONOMICA\"\n  ]\n}",
+                  "contentType": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "arquivo",
+                  "description": "Nova foto opcional",
+                  "type": "file",
+                  "src": []
+                }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/receita/{{receitaId}}",
@@ -245,7 +408,7 @@
                 "{{receitaId}}"
               ]
             },
-            "description": "Mesmo shape do POST **Criar receita** (campos na raiz)."
+            "description": "Mesmo formato do criar: dados + arquivo opcional. Substitui mídia quando arquivo informado."
           }
         },
         {
@@ -268,7 +431,8 @@
                 "receita",
                 "{{receitaId}}"
               ]
-            }
+            },
+            "description": "Remove a receita e a mídia associada no disco."
           }
         }
       ]
@@ -296,7 +460,7 @@
                 "perfil"
               ]
             },
-            "description": "Retorna o perfil do usuário autenticado, com detalhes, estatísticas, restrições e personalizações."
+            "description": "Perfil autenticado. detalhes.possuiMidia indica se há foto. Bytes: GET /midia/perfil/{perfilId}."
           }
         },
         {
@@ -320,7 +484,7 @@
                 "{{perfilId}}"
               ]
             },
-            "description": "Retorna o perfil público informado com contexto de visualização do usuário autenticado, incluindo indicadores de próprio perfil e seguimento."
+            "description": "Perfil público com contexto do usuário autenticado. detalhes.possuiMidia para exibir avatar."
           }
         },
         {
@@ -332,16 +496,24 @@
                 "key": "Authorization",
                 "value": "Bearer {{accessToken}}",
                 "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nome\": \"Chuck Norris\",\n  \"email\": \"chuck.norris@email.com\",\n  \"dataNascimento\": \"10/03/1940\",\n  \"bio\": \"Apaixonado por culinária e ação\",\n  \"fotoPerfilUrl\": \"https://exemplo.com/foto.jpg\",\n  \"restricoesAlimentares\": [\"GLUTEN\", \"LACTOSE\"],\n  \"personalizacoes\": [\"RAPIDA\", \"PARA_FAMILIA\", \"USO_AIR_FRYER\"]\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "dados",
+                  "value": "{\n  \"nome\": \"Chuck Norris\",\n  \"email\": \"chuck.norris@email.com\",\n  \"dataNascimento\": \"10/03/1940\",\n  \"bio\": \"Apaixonado por culinária e ação\",\n  \"restricoesAlimentares\": [\"GLUTEN\", \"LACTOSE\"],\n  \"personalizacoes\": [\"RAPIDA\", \"PARA_FAMILIA\", \"USO_AIR_FRYER\"]\n}",
+                  "contentType": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "arquivo",
+                  "description": "Foto opcional (JPEG ou PNG)",
+                  "type": "file",
+                  "src": []
+                }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/perfil",
@@ -352,7 +524,7 @@
                 "perfil"
               ]
             },
-            "description": "As listas de restrições alimentares e personalizações são opcionais e devem usar códigos ativos dos respectivos catálogos."
+            "description": "Multipart: dados JSON + arquivo opcional. Resposta com possuiMidia em detalhes quando arquivo enviado."
           }
         },
         {
@@ -364,16 +536,24 @@
                 "key": "Authorization",
                 "value": "Bearer {{accessToken}}",
                 "type": "text"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
               }
             ],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"bio\": \"Nova bio atualizada\",\n  \"fotoPerfilUrl\": \"https://exemplo.com/nova-foto.jpg\",\n  \"restricoesAlimentares\": [\"GLUTEN\", \"SODIO\"],\n  \"personalizacoes\": [\"RAPIDA\"]\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "dados",
+                  "value": "{\n  \"bio\": \"Nova bio atualizada\",\n  \"restricoesAlimentares\": [\"GLUTEN\", \"SODIO\"],\n  \"personalizacoes\": [\"RAPIDA\"]\n}",
+                  "contentType": "application/json",
+                  "type": "text"
+                },
+                {
+                  "key": "arquivo",
+                  "description": "Nova foto opcional",
+                  "type": "file",
+                  "src": []
+                }
+              ]
             },
             "url": {
               "raw": "{{baseUrl}}/perfil",
@@ -384,7 +564,7 @@
                 "perfil"
               ]
             },
-            "description": "Atualiza bio, foto de perfil, restrições alimentares e personalizações. Os vínculos informados substituem os anteriores."
+            "description": "Multipart: dados + arquivo opcional para substituir a foto."
           }
         },
         {
@@ -411,7 +591,8 @@
                   "value": "20"
                 }
               ]
-            }
+            },
+            "description": "Lista seguidores com possuiMidia e seguindoPeloUsuario por item."
           }
         },
         {
@@ -438,7 +619,64 @@
                   "value": "20"
                 }
               ]
-            }
+            },
+            "description": "Lista perfis seguidos com possuiMidia e seguindoPeloUsuario por item."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mídia",
+      "description": "Download de imagens (GET). Envio e remoção de fotos via multipart (`arquivo`) em POST/PUT /perfil e POST/PUT /receita/{id}. Ao excluir receita, a mídia é removida automaticamente.",
+      "item": [
+        {
+          "name": "Buscar mídia de perfil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/midia/perfil/{{perfilId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "midia",
+                "perfil",
+                "{{perfilId}}"
+              ]
+            },
+            "description": "Retorna bytes da imagem quando possuiMidia é true. 404 se não houver foto. Use Send and Download no Postman para salvar o arquivo."
+          }
+        },
+        {
+          "name": "Buscar mídia de receita",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/midia/receita/{{receitaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "midia",
+                "receita",
+                "{{receitaId}}"
+              ]
+            },
+            "description": "Retorna bytes da mídia quando possuiMidia é true. 404 se não houver imagem. Requer Bearer {{accessToken}}."
           }
         }
       ]
@@ -480,7 +718,8 @@
                   "value": "dataCadastro,desc"
                 }
               ]
-            }
+            },
+            "description": "Receitas favoritas completas com possuiMidia e autor.possuiMidia."
           }
         },
         {
@@ -495,17 +734,17 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/receita/1/favoritos",
+              "raw": "{{baseUrl}}/receita/{{receitaId}}/favoritos",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "receita",
-                "1",
+                "{{receitaId}}",
                 "favoritos"
               ]
             },
-            "description": "Marca a receita como favorita e retorna o resultado da operação."
+            "description": "Marca a receita como favorita."
           }
         },
         {
@@ -520,17 +759,17 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/receita/1/favoritos",
+              "raw": "{{baseUrl}}/receita/{{receitaId}}/favoritos",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "receita",
-                "1",
+                "{{receitaId}}",
                 "favoritos"
               ]
             },
-            "description": "Remove a receita dos favoritos e retorna o resultado da operação."
+            "description": "Remove a receita dos favoritos."
           }
         }
       ]
@@ -550,17 +789,17 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/receita/1/curtidas",
+              "raw": "{{baseUrl}}/receita/{{receitaId}}/curtidas",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "receita",
-                "1",
+                "{{receitaId}}",
                 "curtidas"
               ]
             },
-            "description": "Registra curtida na receita e retorna o resultado da operação."
+            "description": "Registra curtida na receita."
           }
         },
         {
@@ -575,17 +814,17 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/receita/1/curtidas",
+              "raw": "{{baseUrl}}/receita/{{receitaId}}/curtidas",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "receita",
-                "1",
+                "{{receitaId}}",
                 "curtidas"
               ]
             },
-            "description": "Remove a curtida da receita e retorna o resultado da operação."
+            "description": "Remove a curtida do usuário autenticado."
           }
         },
         {
@@ -593,16 +832,17 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/receita/1/curtidas",
+              "raw": "{{baseUrl}}/receita/{{receitaId}}/curtidas",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "receita",
-                "1",
+                "{{receitaId}}",
                 "curtidas"
               ]
-            }
+            },
+            "description": "Lista perfis que curtiram com possuiMidia por item."
           }
         }
       ]
@@ -631,16 +871,17 @@
               "raw": "{\n  \"comentario\": \"Receita deliciosa! Parabéns!\"\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/receita/1/comentarios",
+              "raw": "{{baseUrl}}/receita/{{receitaId}}/comentarios",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "receita",
-                "1",
+                "{{receitaId}}",
                 "comentarios"
               ]
-            }
+            },
+            "description": "Registra comentário na receita."
           }
         },
         {
@@ -648,16 +889,17 @@
           "request": {
             "method": "GET",
             "url": {
-              "raw": "{{baseUrl}}/receita/1/comentarios",
+              "raw": "{{baseUrl}}/receita/{{receitaId}}/comentarios",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "receita",
-                "1",
+                "{{receitaId}}",
                 "comentarios"
               ]
-            }
+            },
+            "description": "Comentários com possuiMidia do autor em cada item."
           }
         },
         {
@@ -672,18 +914,18 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/receita/1/comentarios/1",
+              "raw": "{{baseUrl}}/receita/{{receitaId}}/comentarios/{{comentarioId}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "receita",
-                "1",
+                "{{receitaId}}",
                 "comentarios",
-                "1"
+                "{{comentarioId}}"
               ]
             },
-            "description": "Remove o comentário informado e retorna o resultado da operação."
+            "description": "Remove comentário. Apenas o autor."
           }
         }
       ]
@@ -744,10 +986,10 @@
       ]
     },
     {
-      "name": "Personalização (catálogo)",
+      "name": "Personalização",
       "item": [
         {
-          "name": "Listar categorias (metadados)",
+          "name": "Listar categorias",
           "request": {
             "method": "GET",
             "header": [],
@@ -782,7 +1024,7 @@
           }
         },
         {
-          "name": "Listar personalizações (contexto perfil)",
+          "name": "Listar personalizações perfil",
           "request": {
             "method": "GET",
             "header": [],
@@ -800,7 +1042,7 @@
           }
         },
         {
-          "name": "Listar personalizações (contexto receita)",
+          "name": "Listar personalizações receita",
           "request": {
             "method": "GET",
             "header": [],
@@ -818,7 +1060,7 @@
           }
         },
         {
-          "name": "Ativar opção por código",
+          "name": "Ativar personalização",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -837,7 +1079,7 @@
           }
         },
         {
-          "name": "Editar opção por código",
+          "name": "Editar personalização",
           "request": {
             "method": "PUT",
             "header": [
@@ -865,7 +1107,7 @@
           }
         },
         {
-          "name": "Inativar opção por código",
+          "name": "Inativar personalização",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -905,7 +1147,7 @@
           }
         },
         {
-          "name": "Buscar por código",
+          "name": "Buscar restrição por código",
           "request": {
             "method": "GET",
             "url": {
@@ -922,7 +1164,7 @@
           }
         },
         {
-          "name": "Editar opção por código",
+          "name": "Editar restrição alimentar",
           "request": {
             "method": "PUT",
             "header": [
@@ -950,7 +1192,7 @@
           }
         },
         {
-          "name": "Ativar por código",
+          "name": "Ativar restrição alimentar",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -969,7 +1211,7 @@
           }
         },
         {
-          "name": "Inativar por código",
+          "name": "Inativar restrição alimentar",
           "request": {
             "method": "PATCH",
             "header": [],
@@ -1025,11 +1267,12 @@
                   "value": "dataEnvioUltimaMensagem,desc"
                 }
               ]
-            }
+            },
+            "description": "Conversas do usuário. contato traz possuiMidia."
           }
         },
         {
-          "name": "Listar mensagens da conversa (últimas)",
+          "name": "Listar mensagens da conversa",
           "request": {
             "method": "GET",
             "header": [
@@ -1040,13 +1283,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/conversa/1/mensagens?limit=20",
+              "raw": "{{baseUrl}}/conversa/{{conversaId}}/mensagens?limit=20",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "conversa",
-                "1",
+                "{{conversaId}}",
                 "mensagens"
               ],
               "query": [
@@ -1056,11 +1299,11 @@
                 }
               ]
             },
-            "description": "Retorna as últimas mensagens em ordem cronológica. Resposta: items, hasMore, nextBefore. Use nextBefore na próxima chamada para carregar histórico (mensagens mais antigas)."
+            "description": "Últimas mensagens em ordem cronológica. Resposta: items, hasMore, nextBefore. Remetente e destinatário com possuiMidia."
           }
         },
         {
-          "name": "Listar mensagens anteriores (histórico)",
+          "name": "Listar mensagens anteriores",
           "request": {
             "method": "GET",
             "header": [
@@ -1071,13 +1314,13 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/conversa/1/mensagens?limit=20&before={{nextBefore}}",
+              "raw": "{{baseUrl}}/conversa/{{conversaId}}/mensagens?limit=20&before={{nextBefore}}",
               "host": [
                 "{{baseUrl}}"
               ],
               "path": [
                 "conversa",
-                "1",
+                "{{conversaId}}",
                 "mensagens"
               ],
               "query": [
@@ -1091,7 +1334,7 @@
                 }
               ]
             },
-            "description": "Use o valor de nextBefore retornado na chamada anterior. Retorna mensagens mais antigas que o ID informado. Adicione a variável nextBefore na collection (ex.: valor do último nextBefore recebido)."
+            "description": "Paginação retroativa. Use nextBefore da chamada anterior em before."
           }
         },
         {
@@ -1123,7 +1366,8 @@
                 "conversa",
                 "mensagens"
               ]
-            }
+            },
+            "description": "destinatarioId é o usuarioId da plataforma do destinatário, não o perfilId."
           }
         }
       ]

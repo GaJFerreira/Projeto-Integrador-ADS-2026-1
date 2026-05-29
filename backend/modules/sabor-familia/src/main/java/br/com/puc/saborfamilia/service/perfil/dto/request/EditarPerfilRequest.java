@@ -8,9 +8,6 @@ public record EditarPerfilRequest(
   @Schema(description = "Biografia de perfil do usuário.", example = "Adoro cozinhar na companhia de amigos.")
   String bio,
 
-  @Schema(description = "URL do caminho da foto de perfil.", example = "https://www.exemplo-foto.com.br")
-  String fotoPerfilUrl,
-
   @Schema(description = "Códigos ativos do catálogo (GET /restricao-alimentar).", example = "[\"SOJA\", \"ACUCAR\"]")
   List<String> restricoesAlimentares,
 

@@ -1,6 +1,10 @@
 Project SaborFamilia {
   database_type: 'PostgreSQL'
-  Note: 'Sabor Família'
+  Note: '''
+    Schema PostgreSQL: sabor_familia (todas as tabelas abaixo).
+    Mídia de perfil e receita: metadados em midia + bytes em disco (perfis/, receitas/).
+    Coluna legada perfil.foto_perfil_url removida — não usar.
+  '''
 }
 
 // ---------------------------------------------------------------------------
@@ -9,16 +13,33 @@ Project SaborFamilia {
 
 Table perfil {
   id bigint [pk, increment]
-  usuario_id bigint [not null]
+  usuario_id bigint [not null, note: 'ID do usuario na plataforma (claim JWT)']
   nome varchar(255) [not null]
   email varchar(255) [not null, unique]
   bio varchar(255)
   data_nascimento date [not null]
-  foto_perfil_url varchar(255)
   data_cadastro timestamp [not null]
   ultima_atualizacao timestamp [not null]
 
-  Note: 'PerfilEntity — data_nascimento obrigatória; personalizacoes via personalizacao_perfil. API: ao criar/editar perfil, restricoes e personalizacoes (codigos) sao validadas antes de save/sync.'
+  Note: 'PerfilEntity (schema sabor_familia). Foto: no maximo 1 registro em midia (tipo_entidade=PERFIL, entidade_id=id). API expoe possuiMidia; upload em POST/PUT /perfil multipart.'
+}
+
+Table midia {
+  id bigint [pk, increment]
+  tipo_entidade varchar(20) [not null, note: 'TipoEntidadeEnum: PERFIL | RECEITA']
+  entidade_id bigint [not null, note: 'perfil.id ou receita.id conforme tipo_entidade']
+  content_type varchar(100) [not null, note: 'image/jpeg ou image/png']
+  caminho_relativo varchar(500) [not null, note: 'Ex.: perfis/{id}.jpg ou receitas/{id}.png']
+  tamanho_bytes bigint [not null, note: 'Tamanho apos redimensionamento']
+  data_cadastro timestamp [not null]
+  ultima_atualizacao timestamp [not null]
+
+  indexes {
+    (tipo_entidade, entidade_id) [name: 'idx_midia_tipo_entidade']
+    (tipo_entidade, entidade_id) [name: 'uk_midia_tipo_entidade', unique]
+  }
+
+  Note: 'MidiaEntity — sem FK fisica para perfil/receita (vinculo logico por tipo_entidade + entidade_id). UK garante uma midia por entidade. Remocao em cascata logica ao excluir receita; perfil substitui arquivo no upload.'
 }
 
 Table restricao_alimentar {
@@ -112,7 +133,7 @@ Table receita {
     perfil_id [name: 'idx_receita_perfil_id']
   }
 
-  Note: 'ReceitaEntity — restricoes e personalizacoes via tabelas N:N separadas. API: validacao de codigos de catálogo antes de persistir receita e vínculos.'
+  Note: 'ReceitaEntity — restricoes e personalizacoes via tabelas N:N. Capa: midia (tipo_entidade=RECEITA, entidade_id=id). API expoe possuiMidia; upload em POST/PUT /receita multipart.'
 }
 
 Table receita_restricao_alimentar {
@@ -158,10 +179,10 @@ Table curtida_receita {
   indexes {
     receita_id [name: 'idx_curtida_receita_receita_id']
     perfil_id [name: 'idx_curtida_receita_perfil_id']
-    (receita_id, perfil_id) [unique]
+    (receita_id, perfil_id) [name: 'uk_curtida_receita_receita_perfil', unique]
   }
 
-  Note: 'Curtidas de perfis em receitas'
+  Note: 'CurtidaReceitaEntity — listagem expoe possuiMidia do perfil via midia.'
 }
 
 Table comentario_receita {
@@ -176,7 +197,7 @@ Table comentario_receita {
     perfil_id [name: 'idx_comentario_receita_perfil_id']
   }
 
-  Note: 'Comentários de perfis em receitas'
+  Note: 'ComentarioReceitaEntity — listagem expoe possuiMidia do autor via midia.'
 }
 
 Table favorito_receita {
@@ -188,10 +209,10 @@ Table favorito_receita {
   indexes {
     receita_id [name: 'idx_favorito_receita_receita_id']
     perfil_id [name: 'idx_favorito_receita_perfil_id']
-    (receita_id, perfil_id) [unique]
+    (receita_id, perfil_id) [name: 'uk_favorito_receita_receita_perfil', unique]
   }
 
-  Note: 'Receitas favoritadas pelos perfis'
+  Note: 'FavoritoReceitaEntity'
 }
 
 Table feed_perfil_receita {
@@ -203,10 +224,10 @@ Table feed_perfil_receita {
   indexes {
     (perfil_id, data_cadastro) [name: 'idx_feed_perfil_receita_perfil_data']
     receita_id [name: 'idx_feed_perfil_receita_receita_id']
-    (perfil_id, receita_id) [unique]
+    (perfil_id, receita_id) [name: 'uk_feed_perfil_receita_perfil_receita', unique]
   }
 
-  Note: 'Feed por perfil: receitas visíveis (autor + seguidos).'
+  Note: 'FeedPerfilReceitaEntity — receitas visíveis no feed (autor + seguidos).'
 }
 
 Table seguindo {
@@ -218,10 +239,10 @@ Table seguindo {
   indexes {
     seguidor_id [name: 'idx_seguindo_seguidor_id']
     seguido_id [name: 'idx_seguindo_seguido_id']
-    (seguidor_id, seguido_id) [unique]
+    (seguidor_id, seguido_id) [name: 'uk_seguindo_seguidor_seguido', unique]
   }
 
-  Note: 'Relacionamento de seguir entre perfis'
+  Note: 'SeguindoEntity — listagens de seguidores/seguindo expõem possuiMidia via midia.'
 }
 
 Table conversa {

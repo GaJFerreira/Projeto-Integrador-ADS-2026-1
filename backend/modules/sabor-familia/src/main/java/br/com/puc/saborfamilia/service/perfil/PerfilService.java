@@ -1,8 +1,9 @@
 package br.com.puc.saborfamilia.service.perfil;
 
+import br.com.puc.saborfamilia.service.perfil.dto.request.EditarPerfilRequest;
 import br.com.puc.saborfamilia.service.perfil.dto.request.PerfilRequest;
 import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResponse;
-import br.com.puc.saborfamilia.service.perfil.dto.request.EditarPerfilRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface PerfilService {
 
@@ -10,8 +11,8 @@ public interface PerfilService {
 
   PerfilResponse buscarPerfilPublico(Long usuarioId, Long perfilId);
 
-  PerfilResponse criarPerfil(Long usuarioId, PerfilRequest request);
+  PerfilResponse criarPerfil(Long usuarioId, PerfilRequest request, MultipartFile fotoPerfil);
 
-  PerfilResponse editarPerfil(Long usuarioId, EditarPerfilRequest request);
+  PerfilResponse editarPerfil(Long usuarioId, EditarPerfilRequest request, MultipartFile fotoPerfil);
 
 }

@@ -25,10 +25,6 @@ public record PerfilRequest(
   @Schema(description = "Biografia de perfil do usuário.", example = "Adoro cozinhar ouvindo músicas.")
   String bio,
 
-  @NotBlank(message = "A URL de foto do perfil deve ser preenchida.")
-  @Schema(description = "URL do caminho da foto de perfil.", example = "https://www.exemplo.com.br")
-  String fotoPerfilUrl,
-
   @Schema(description = "Códigos ativos do catálogo (GET /restricao-alimentar).", example = "[\"SOJA\", \"ACUCAR\"]")
   List<String> restricoesAlimentares,
 

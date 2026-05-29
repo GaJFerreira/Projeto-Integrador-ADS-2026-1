@@ -13,6 +13,7 @@ public record ReceitaResponse(
   Boolean curtidoPeloUsuario,
   Boolean favoritadoPeloUsuario,
   Boolean restritaParaUsuario,
+  Boolean possuiMidia,
   PerfilResumoResponse autor,
   DetalhesReceita detalhes,
   EstatisticasReceita estatisticas,
@@ -27,8 +28,10 @@ public record ReceitaResponse(
     Integer comentarios,
     Boolean curtidoPeloUsuario,
     Boolean favoritadoPeloUsuario,
-    List<RestricaoAlimentarResumoResponse> restricoesAlimentares,
     Boolean restritaParaUsuario,
+    boolean possuiMidia,
+    PerfilResumoResponse autor,
+    List<RestricaoAlimentarResumoResponse> restricoesAlimentares,
     List<PersonalizacaoResumoResponse> personalizacao
   ) {
 
@@ -40,7 +43,8 @@ public record ReceitaResponse(
       curtidoPeloUsuario,
       favoritadoPeloUsuario,
       restritaParaUsuario,
-      PerfilResumoResponse.fromEntity(receita.getPerfil()),
+      possuiMidia,
+      autor,
       new DetalhesReceita(
         receita.getTitulo(),
         receita.getHistoria(),

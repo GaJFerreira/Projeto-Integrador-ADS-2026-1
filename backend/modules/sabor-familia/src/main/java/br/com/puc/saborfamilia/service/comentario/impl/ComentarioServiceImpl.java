@@ -12,9 +12,12 @@ import br.com.puc.saborfamilia.service.comentario.ComentarioService;
 import br.com.puc.saborfamilia.service.comentario.dto.request.ComentarioRequest;
 import br.com.puc.saborfamilia.service.comentario.dto.response.ComentarioResponse;
 import br.com.puc.saborfamilia.service.comentario.dto.response.RemoverComentarioResponse;
+import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
+import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.receita.dto.response.PerfilComentarioResponse;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,6 +34,7 @@ public class ComentarioServiceImpl implements ComentarioService {
   private final ComentarioReceitaRepository comentarioReceitaRepository;
   private final PerfilRepository perfilRepository;
   private final ReceitaRepository receitaRepository;
+  private final MidiaService midiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -38,8 +42,27 @@ public class ComentarioServiceImpl implements ComentarioService {
     ReceitaEntity receita = receitaRepository.findById(receitaId)
       .orElseThrow(() -> new ResourceNotFoundException(RECEITA_NAO_ENCONTRADA));
 
-    return comentarioReceitaRepository.findByReceitaIdWithPerfil(receita.getId()).stream()
-      .map(PerfilComentarioResponse::fromEntity)
+    List<ComentarioReceitaEntity> comentarios = comentarioReceitaRepository.findByReceitaIdWithPerfil(receita.getId());
+
+    Set<Long> perfisComFoto = comentarios.isEmpty()
+      ? Set.of()
+      : midiaService.buscarEntidadeIdsComMidia(
+        TipoEntidadeEnum.PERFIL,
+        comentarios.stream().map(c -> c.getPerfil().getId()).distinct().toList()
+      );
+
+    return comentarios.stream()
+      .map(comentario -> {
+        PerfilEntity perfil = comentario.getPerfil();
+        return new PerfilComentarioResponse(
+          comentario.getId(),
+          perfil.getId(),
+          perfil.getNome(),
+          perfisComFoto.contains(perfil.getId()),
+          comentario.getTexto(),
+          comentario.getDataCadastro()
+        );
+      })
       .toList();
   }
 

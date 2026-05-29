@@ -16,16 +16,18 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @AllArgsConstructor
@@ -63,31 +65,33 @@ public class PerfilController {
     return ResponseEntity.ok(response);
   }
 
-  @PostMapping
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
     summary = "Criar perfil do usuário",
     description = "Cria um novo perfil para o usuário informado."
   )
   public ResponseEntity<PerfilResponse> criarPerfil(
     @RequestHeader(value = "Authorization") String authorization,
-    @Valid @RequestBody PerfilRequest request
+    @Valid @RequestPart("dados") PerfilRequest request,
+    @RequestPart(value = "arquivo", required = false) MultipartFile arquivo
   ) {
     Long usuarioId = JwtClaimsUtils.getUserId(authorization);
-    PerfilResponse response = perfilService.criarPerfil(usuarioId, request);
+    PerfilResponse response = perfilService.criarPerfil(usuarioId, request, arquivo);
     return ResponseEntity.status(HttpStatus.CREATED).body(response);
   }
 
-  @PutMapping
+  @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @Operation(
     summary = "Atualizar perfil do usuário",
-    description = "Atualizar o perfil existente de um usuário autenticado."
+    description = "Atualiza bio, restrições e personalizações. Part `arquivo` opcional substitui a foto do perfil."
   )
   public ResponseEntity<PerfilResponse> editarPerfil(
     @RequestHeader(value = "Authorization") String authorization,
-    @Valid @RequestBody EditarPerfilRequest request
+    @Valid @RequestPart("dados") EditarPerfilRequest request,
+    @RequestPart(value = "arquivo", required = false) MultipartFile arquivo
   ) {
     Long usuarioId = JwtClaimsUtils.getUserId(authorization);
-    PerfilResponse response = perfilService.editarPerfil(usuarioId, request);
+    PerfilResponse response = perfilService.editarPerfil(usuarioId, request, arquivo);
     return ResponseEntity.ok(response);
   }
 

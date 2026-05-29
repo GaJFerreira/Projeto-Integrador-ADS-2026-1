@@ -1,10 +1,13 @@
 package br.com.puc.saborfamilia.service.seguindo.impl;
 
 import br.com.puc.saborfamilia.database.entity.PerfilEntity;
+import br.com.puc.saborfamilia.database.entity.SeguindoEntity;
 import br.com.puc.saborfamilia.database.repository.PerfilRepository;
 import br.com.puc.saborfamilia.database.repository.SeguindoRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
+import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.service.feed.FeedService;
+import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
 import br.com.puc.saborfamilia.service.seguindo.SeguindoService;
 import br.com.puc.saborfamilia.service.seguindo.dto.SeguindoResponse;
@@ -28,6 +31,7 @@ public class SeguindoServiceImpl implements SeguindoService {
   private final SeguindoRepository seguindoRepository;
   private final PerfilRepository perfilRepository;
   private final FeedService feedService;
+  private final MidiaService midiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -37,7 +41,7 @@ public class SeguindoServiceImpl implements SeguindoService {
 
     Page<PerfilEntity> perfis = seguindoRepository
       .findBySeguidoIdOrderByDataCadastroDesc(perfil.getId(), pageable)
-      .map(seguindo -> seguindo.getSeguidor());
+      .map(SeguindoEntity::getSeguidor);
 
     return mapComSeguindoPeloUsuario(perfis, usuarioId);
   }
@@ -50,7 +54,7 @@ public class SeguindoServiceImpl implements SeguindoService {
 
     Page<PerfilEntity> perfis = seguindoRepository
       .findBySeguidorIdOrderByDataCadastroDesc(perfil.getId(), pageable)
-      .map(seguindo -> seguindo.getSeguido());
+      .map(SeguindoEntity::getSeguido);
 
     return mapComSeguindoPeloUsuario(perfis, usuarioId);
   }
@@ -58,9 +62,10 @@ public class SeguindoServiceImpl implements SeguindoService {
   private Page<PerfilResumoResponse> mapComSeguindoPeloUsuario(Page<PerfilEntity> perfis, Long usuarioId) {
     Optional<PerfilEntity> perfilAutenticado = perfilRepository.findByUsuarioId(usuarioId);
 
+    List<Long> idsNaPagina = perfis.getContent().stream().map(PerfilEntity::getId).toList();
+
     Set<Long> seguidoIds = Set.of();
-    if (perfilAutenticado.isPresent() && !perfis.isEmpty()) {
-      List<Long> idsNaPagina = perfis.getContent().stream().map(PerfilEntity::getId).toList();
+    if (perfilAutenticado.isPresent() && !idsNaPagina.isEmpty()) {
       seguidoIds = Set.copyOf(
         seguindoRepository.findSeguidoIdsBySeguidorIdAndSeguidoIdIn(
           perfilAutenticado.get().getId(),
@@ -69,12 +74,22 @@ public class SeguindoServiceImpl implements SeguindoService {
       );
     }
 
+    Set<Long> perfisComFoto = idsNaPagina.isEmpty()
+      ? Set.of()
+      : midiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, idsNaPagina);
+
     Set<Long> seguidoIdsFinal = seguidoIds;
+
     return perfis.map(perfil -> {
       boolean seguindoPeloUsuario = perfilAutenticado
         .map(auth -> seguidoIdsFinal.contains(perfil.getId()))
         .orElse(false);
-      return PerfilResumoResponse.fromEntity(perfil, seguindoPeloUsuario);
+
+      return PerfilResumoResponse.fromEntity(
+        perfil,
+        perfisComFoto.contains(perfil.getId()),
+        seguindoPeloUsuario
+      );
     });
   }
 

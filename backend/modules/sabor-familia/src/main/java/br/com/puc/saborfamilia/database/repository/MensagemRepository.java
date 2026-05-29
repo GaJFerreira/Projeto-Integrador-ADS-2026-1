@@ -36,7 +36,8 @@ public interface MensagemRepository extends JpaRepository<MensagemEntity, Long> 
       JOIN FETCH mensagem.destinatario
       WHERE mensagem.conversa.id = :conversaId AND mensagem.id < :beforeId
     """,
-    countQuery = """
+    countQuery =
+    """
       SELECT COUNT(mensagem) FROM MensagemEntity mensagem
       WHERE mensagem.conversa.id = :conversaId
       AND mensagem.id < :beforeId

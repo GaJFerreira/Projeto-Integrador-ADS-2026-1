@@ -1,6 +1,6 @@
 package br.com.puc.saborfamilia.controller;
 
-import br.com.puc.saborfamilia.database.enums.CategoriaPersonalizacaoEnum;
+import br.com.puc.saborfamilia.enums.CategoriaPersonalizacaoEnum;
 import br.com.puc.saborfamilia.service.personalizacao.PersonalizacaoService;
 import br.com.puc.saborfamilia.service.personalizacao.dto.request.EditarPersonalizacaoRequest;
 import br.com.puc.saborfamilia.service.personalizacao.dto.response.CatalogoPersonalizacaoResponse;

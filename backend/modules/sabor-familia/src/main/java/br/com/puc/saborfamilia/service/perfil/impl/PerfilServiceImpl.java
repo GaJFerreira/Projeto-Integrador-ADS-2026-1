@@ -7,6 +7,8 @@ import br.com.puc.saborfamilia.database.repository.PerfilRepository;
 import br.com.puc.saborfamilia.database.repository.SeguindoRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
+import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
+import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.perfil.PerfilService;
 import br.com.puc.saborfamilia.service.perfil.dto.request.EditarPerfilRequest;
 import br.com.puc.saborfamilia.service.perfil.dto.request.PerfilRequest;
@@ -24,6 +26,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -41,6 +44,7 @@ public class PerfilServiceImpl implements PerfilService {
   private final RestricaoAlimentarService restricaoAlimentarService;
   private final PersonalizacaoService personalizacaoService;
   private final PersonalizacaoPerfilService personalizacaoPerfilService;
+  private final MidiaService midiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -92,7 +96,7 @@ public class PerfilServiceImpl implements PerfilService {
 
   @Override
   @Transactional
-  public PerfilResponse criarPerfil(Long usuarioId, PerfilRequest request) {
+  public PerfilResponse criarPerfil(Long usuarioId, PerfilRequest request, MultipartFile fotoPerfil) {
     log.info("Iniciando processo de cadastro do novo perfil. usuarioId={}", usuarioId);
 
     Optional<PerfilEntity> perfilCadastrado = perfilRepository.findByUsuarioId(usuarioId);
@@ -121,7 +125,6 @@ public class PerfilServiceImpl implements PerfilService {
       .email(request.email())
       .dataNascimento(request.dataNascimento())
       .bio(request.bio())
-      .fotoPerfilUrl(request.fotoPerfilUrl())
       .dataCadastro(LocalDateTime.now())
       .ultimaAtualizacao(LocalDateTime.now())
       .build();
@@ -130,6 +133,8 @@ public class PerfilServiceImpl implements PerfilService {
 
     restricaoAlimentarPerfilService.sincronizarRestricoesPerfil(perfilSalvo, restricoesValidadas);
     personalizacaoPerfilService.sincronizarPersonalizacoesPerfil(perfilSalvo, personalizacoesValidadas);
+
+    salvarMidiaPerfil(usuarioId, fotoPerfil);
 
     log.info(
       "Perfil criado com sucesso. usuarioId={}, perfilId={}, restricoes={}, personalizacoes={}",
@@ -148,7 +153,7 @@ public class PerfilServiceImpl implements PerfilService {
 
   @Override
   @Transactional
-  public PerfilResponse editarPerfil(Long usuarioId, EditarPerfilRequest request) {
+  public PerfilResponse editarPerfil(Long usuarioId, EditarPerfilRequest request, MultipartFile fotoPerfil) {
     log.info("Iniciando processo de atualização do perfil. usuarioId={}", usuarioId);
 
     PerfilEntity perfilUsuarioAutenticado = perfilRepository.findByUsuarioId(usuarioId)
@@ -161,13 +166,14 @@ public class PerfilServiceImpl implements PerfilService {
       .validarPersonalizacoes(request.personalizacoes());
 
     perfilUsuarioAutenticado.setBio(request.bio());
-    perfilUsuarioAutenticado.setFotoPerfilUrl(request.fotoPerfilUrl());
     perfilUsuarioAutenticado.setUltimaAtualizacao(LocalDateTime.now());
 
     restricaoAlimentarPerfilService.sincronizarRestricoesPerfil(perfilUsuarioAutenticado, restricoesValidadas);
     personalizacaoPerfilService.sincronizarPersonalizacoesPerfil(perfilUsuarioAutenticado, personalizacoesValidadas);
 
     perfilRepository.save(perfilUsuarioAutenticado);
+
+    salvarMidiaPerfil(usuarioId, fotoPerfil);
 
     log.info(
       "Perfil atualizado com sucesso. usuarioId={}, perfilId={}, restricoes={}, personalizacoes={}",
@@ -185,6 +191,12 @@ public class PerfilServiceImpl implements PerfilService {
       .toList();
 
     return toResponse(perfilUsuarioAutenticado, true, null, seguidores, seguindo, restricoesAlimentares);
+  }
+
+  private void salvarMidiaPerfil(Long usuarioId, MultipartFile fotoPerfil) {
+    if (fotoPerfil != null && !fotoPerfil.isEmpty()) {
+      midiaService.salvarMidia(usuarioId, TipoEntidadeEnum.PERFIL, null, fotoPerfil);
+    }
   }
 
   private PerfilResponse toResponse(
@@ -205,6 +217,7 @@ public class PerfilServiceImpl implements PerfilService {
       seguindoPerfil,
       seguidores,
       seguindo,
+      midiaService.possuiMidia(TipoEntidadeEnum.PERFIL, perfil.getId()),
       restricoes,
       personalizacao
     );

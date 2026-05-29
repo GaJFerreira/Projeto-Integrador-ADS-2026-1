@@ -1,4 +1,4 @@
-package br.com.puc.saborfamilia.database.enums;
+package br.com.puc.saborfamilia.enums;
 
 public enum TipoRefeicaoEnum {
   CAFE_DA_MANHA,

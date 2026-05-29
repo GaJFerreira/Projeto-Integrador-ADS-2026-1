@@ -1,7 +1,7 @@
 package br.com.puc.saborfamilia.database.repository;
 
 import br.com.puc.saborfamilia.database.entity.RestricaoAlimentarEntity;
-import br.com.puc.saborfamilia.database.enums.StatusEnum;
+import br.com.puc.saborfamilia.enums.StatusEnum;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
