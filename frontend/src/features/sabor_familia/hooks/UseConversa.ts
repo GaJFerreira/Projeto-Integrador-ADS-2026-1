@@ -4,6 +4,7 @@ import { conversaService } from "../service/ConversaService";
 import type { ConversaResponse } from "../dto/menssagem/response/ConversaResponse";
 import type { MensagemResponse } from "../dto/menssagem/response/MensagemResponse";
 import type { EnviarMensagemRequest } from "../dto/menssagem/request/EnviarMensagemRequest";
+import type { EnviarMensagemResponse } from "../dto/menssagem/response/EnviarMensagemResponse";
 import type { PageResponse } from "../dto/page/PageResponse";
 
 function extrairStatusCode(err: unknown): number | undefined {
@@ -16,12 +17,13 @@ export function useBuscarConversas(page = 0, size = 20) {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  const buscar = useCallback(async () => {
+  const buscar = useCallback(async (): Promise<PageResponse<ConversaResponse> | null> => {
     setLoading(true);
     setError(null);
     try {
       const data = await conversaService.buscarConversas(page, size);
       setConversas(data);
+      return data;
     } catch (err: unknown) {
       const statusCode = extrairStatusCode(err);
       if (statusCode) {
@@ -29,6 +31,7 @@ export function useBuscarConversas(page = 0, size = 20) {
       } else {
         setError("Erro ao carregar conversas.");
       }
+      return null;
     } finally {
       setLoading(false);
     }
@@ -120,7 +123,7 @@ export function useEnviarMensagem() {
 
   const enviar = async (
     request: EnviarMensagemRequest,
-    onSucesso?: (novaMensagem: MensagemResponse) => void
+    onSucesso?: (response: EnviarMensagemResponse) => void
   ) => {
     if (loading) return;
 
@@ -128,7 +131,7 @@ export function useEnviarMensagem() {
     setError(null);
     try {
       const response = await conversaService.enviarMensagem(request);
-      onSucesso?.(response.mensagem);
+      onSucesso?.(response);
     } catch (err: unknown) {
       const statusCode = extrairStatusCode(err);
       if (statusCode) {

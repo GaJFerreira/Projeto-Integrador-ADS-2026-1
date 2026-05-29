@@ -1,13 +1,12 @@
 import "./conversaAtiva.css";
 import SendIcon from "../../../icon/messagem/SendIcon";
-import { formatDataHora } from "../../../utils/formatarTempo";
+// import { formatData, formatHora } from "../../../utils/formatarTempo";
 import {
   useMensagensConversa,
   useEnviarMensagem,
 } from "../../../hooks/UseConversa";
 import { useState, useEffect, useRef } from "react";
 import type { ConversaResponse } from "../../../dto/menssagem/response/ConversaResponse";
-import { PerfilAvatar } from "../../common/PerfilAvatar";
 
 export function ConversaAtiva({
   conversa,
@@ -31,7 +30,7 @@ export function ConversaAtiva({
     if (!msg || enviando) return;
     setTexto("");
     await enviar(
-      { destinatarioId: conversa.contato.perfilId, mensagem: msg },
+      { destinatarioId: conversa.contato.usuarioId, mensagem: msg },
       () => recarregar()
     );
   };
@@ -47,12 +46,17 @@ export function ConversaAtiva({
     <div className="chat-messages-area">
       {/* ── Cabeçalho ── */}
       <div className="chat-messages-header">
-        <PerfilAvatar
-          src={conversa.contato.fotoPerfilUrl}
-          alt={conversa.contato.nome}
-          className="chat-messages-header__avatar"
-          placeholderClassName="chat-messages-header__avatar chat-messages-header__avatar--placeholder"
-        />
+        {conversa.contato.fotoPerfilUrl ? (
+          <img
+            src={conversa.contato.fotoPerfilUrl}
+            alt={conversa.contato.nome}
+            className="chat-messages-header__avatar"
+          />
+        ) : (
+          <div className="chat-messages-header__avatar--placeholder">
+            {conversa.contato.nome?.[0]?.toUpperCase() ?? "?"}
+          </div>
+        )}
         <span className="chat-messages-header__name">{conversa.contato.nome}</span>
       </div>
 
@@ -91,7 +95,7 @@ export function ConversaAtiva({
                   {msg.texto}
                 </div>
                 <span className="chat-bubble__time">
-                  {formatDataHora(msg.dataEnvio)}
+                  {msg.dataEnvio}
                 </span>
               </div>
             );

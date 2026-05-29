@@ -17,9 +17,12 @@
 }
 
 .chat-list__header {
-  padding: 1.25rem 1.25rem 0.75rem;
+  padding: 1rem 1.25rem 0.75rem;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .chat-list__title {
@@ -131,6 +134,90 @@
   line-height: 1.8;
 }
 
+.chat-nova-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  background: var(--brand-light);
+  color: var(--brand-dark);
+  border: 1px solid rgba(186,117,23,0.25);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.chat-nova-btn--active {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+
+.chat-nova-btn:hover {
+  background: #edd9a3;
+}
+
+.chat-nova-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0.6rem 1.25rem;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  font-family: var(--font-sans);
+  border-left: 2px solid transparent;
+}
+
+.chat-nova-item:hover {
+  background: var(--bg);
+  border-left-color: var(--brand);
+}
+
+.chat-nova-item--active {
+  background: var(--brand-light);
+  border-left-color: var(--brand);
+}
+
+.chat-nova-item__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+}
+
+.chat-nova-item__avatar--placeholder {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+
+.chat-nova-item__hint {
+  font-size: 11px;
+  color: var(--brand);
+  white-space: nowrap;
+}
+
+.chat-nova-item__nome {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .chat-placeholder {
   flex: 1;
   display: flex;
@@ -148,6 +235,16 @@
   opacity: 0.3;
   width: 48px;
   height: 48px;
+}
+
+.chat-section-label {
+  padding: 0.5rem 1.25rem 0.3rem;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
 }
 
 @media (max-width: 768px) {
