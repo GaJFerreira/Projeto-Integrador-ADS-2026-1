@@ -1,6 +1,7 @@
 package br.pucgo.ads.projetointegrador.remember.service;
 
 import br.pucgo.ads.projetointegrador.remember.domain.StatusPergunta;
+import br.pucgo.ads.projetointegrador.remember.dto.conquista.ConquistaResponseDTO;
 import br.pucgo.ads.projetointegrador.remember.dto.Pergunta.RespostaPerguntaUsuarioRequestDTO;
 import br.pucgo.ads.projetointegrador.remember.dto.Pergunta.RespostaPerguntaUsuarioResponseDTO;
 import br.pucgo.ads.projetointegrador.remember.entity.PerguntaCognitiva;
@@ -21,6 +22,7 @@ public class RespostaPerguntaUsuarioService {
 
     private final RespostaPerguntaUsuarioRepository respostaRepository;
     private final PerguntaCognitivaRepository perguntaRepository;
+    private final GameService gamificationService;
 
     @Transactional
     public RespostaPerguntaUsuarioResponseDTO salvarResposta(RespostaPerguntaUsuarioRequestDTO requestDTO) {
@@ -49,7 +51,12 @@ public class RespostaPerguntaUsuarioService {
         pergunta.setStatus(StatusPergunta.RESPONDIDA.getCodigo());
         perguntaRepository.save(pergunta);
 
-        return new RespostaPerguntaUsuarioResponseDTO(respostaSalva);
+        RespostaPerguntaUsuarioResponseDTO response = new RespostaPerguntaUsuarioResponseDTO(respostaSalva);
+        List<ConquistaResponseDTO> conquistasGanhas = gamificationService
+                .verificarConquistasPerguntaRespondida(identificadorUsuario);
+        response.setConquistasDesbloqueadas(conquistasGanhas);
+
+        return response;
     }
 
     public List<RespostaPerguntaUsuarioResponseDTO> listarRespostasPorUsuario(Long identificadorUsuario) {

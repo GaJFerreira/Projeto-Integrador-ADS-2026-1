@@ -17,7 +17,7 @@ import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useSnackbar } from 'notistack';
 import { lembrancasApi, type Lembranca, type CreateLembrancaPayload, type UpdateLembrancaPayload } from '../api/lembrancas';
-import type {Conquista} from '../api/conquistas';
+import type { ConquistaDetalhes } from '../api/conquistasUsuario';
 import {
     iniciarReconhecimentoVoz,
     type SpeechRecognitionInstance,
@@ -52,7 +52,7 @@ interface LembrancaModalProps {
     onSuccess: () => void;
     usuarioId: number;
     lembrancaParaEditar?: Lembranca | null;
-    onConquistaGanhas?: (conquistas: Conquista[]) => void;
+    onConquistaGanhas?: (conquistas: ConquistaDetalhes[]) => void;
 }
 
 export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, lembrancaParaEditar, onConquistaGanhas }: LembrancaModalProps) {

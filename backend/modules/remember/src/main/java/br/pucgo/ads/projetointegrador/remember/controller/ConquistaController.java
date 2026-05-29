@@ -29,7 +29,7 @@ public class ConquistaController {
      * Endpoint tipicamente restrito a administradores.
      */
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CUIDADOR')")
     public ResponseEntity<ConquistaResponseDTO> salvarConquista(@Valid @RequestBody ConquistaRequestDTO requestDTO) {
         ConquistaResponseDTO novaConquista = conquistaService.salvarConquista(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(novaConquista);
@@ -58,6 +58,7 @@ public class ConquistaController {
      * Endpoint tipicamente restrito a administradores.
      */
     @PutMapping("/{identificador}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CUIDADOR')")
     public ResponseEntity<ConquistaResponseDTO> atualizarConquista(
             @PathVariable Long identificador,
             @Valid @RequestBody ConquistaRequestEditDTO requestDTO
@@ -71,6 +72,7 @@ public class ConquistaController {
      * Endpoint tipicamente restrito a administradores.
      */
     @DeleteMapping("/{identificador}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CUIDADOR')")
     public ResponseEntity<Void> deletarConquista(@PathVariable Long identificador) {
         conquistaService.deletarConquista(identificador);
         return ResponseEntity.noContent().build();

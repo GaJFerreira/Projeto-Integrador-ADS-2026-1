@@ -1,4 +1,5 @@
 import http from '@/lib/http';
+import type { ConquistaDetalhes } from './conquistasUsuario';
 
 const REMEMBER_API = '/api/remember';
 
@@ -40,6 +41,7 @@ export interface RespostaPergunta {
     identificadorUsuario: number;
     textoResposta: string;
     dataResposta: string;
+    conquistasDesbloqueadas?: ConquistaDetalhes[];
 }
 
 export interface CreateRespostaPerguntaPayload {

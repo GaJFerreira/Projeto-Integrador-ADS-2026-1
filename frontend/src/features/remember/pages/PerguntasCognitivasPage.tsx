@@ -21,10 +21,15 @@ import {
     type StatusPerguntaFiltro
 } from '../api/perguntas';
 import { formatarDataRemember } from '../utils/date';
+import type { ConquistaDetalhes } from '../api/conquistasUsuario';
 
 type Visualizacao = StatusPerguntaFiltro | 'RESPOSTAS';
 
-export default function PerguntasCognitivasPage() {
+interface PerguntasCognitivasPageProps {
+    onConquistaGanhas?: (conquistas: ConquistaDetalhes[]) => void;
+}
+
+export default function PerguntasCognitivasPage({ onConquistaGanhas }: PerguntasCognitivasPageProps) {
     const { enqueueSnackbar } = useSnackbar();
 
     const [visualizacao, setVisualizacao] = useState<Visualizacao>('PENDENTES');
@@ -70,10 +75,13 @@ export default function PerguntasCognitivasPage() {
 
         setSalvandoResposta(true);
         try {
-            await perguntasApi.responder({
+            const response = await perguntasApi.responder({
                 identificadorPergunta: perguntaSelecionada.identificadorPerguntaCognitiva,
                 textoResposta,
             });
+            if (response.conquistasDesbloqueadas?.length) {
+                onConquistaGanhas?.(response.conquistasDesbloqueadas);
+            }
             enqueueSnackbar('Resposta salva com sucesso!', { variant: 'success' });
             setModalRespostaAberto(false);
             setPerguntaSelecionada(null);

@@ -6,7 +6,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.pucgo.ads.projetointegrador.remember.dto.conquista.RankingProjection;
 import br.pucgo.ads.projetointegrador.remember.dto.conquista.RankingResponseDTO;
+import br.pucgo.ads.projetointegrador.remember.dto.conquista.ConquistaResponseDTO;
 import br.pucgo.ads.projetointegrador.remember.dto.conquista.UsuarioConquistaResponseDTO;
 import br.pucgo.ads.projetointegrador.remember.entity.Conquista;
 import br.pucgo.ads.projetointegrador.remember.entity.Usuario;
@@ -82,8 +85,26 @@ public class UsuarioConquistaService {
      */
     @Transactional(readOnly = true)
     public List<UsuarioConquistaResponseDTO> listarConquistasPorUsuario(Long identificadorUsuario) {
-        return usuarioConquistaRepository.findByUsuarioConquistaKey_IdentificadorUsuarioOrderByDataObtencaoAsc(identificadorUsuario)
-                .stream().map(this::prepararDTO)
+        Map<Long, UsuarioConquista> conquistasObtidas = usuarioConquistaRepository
+                .findByUsuarioConquistaKey_IdentificadorUsuarioOrderByDataObtencaoAsc(identificadorUsuario)
+                .stream()
+                .collect(Collectors.toMap(
+                        uc -> uc.getConquista().getIdentificadorConquista(),
+                        uc -> uc
+                ));
+
+        return conquistaRepository.findAll()
+                .stream()
+                .sorted(Comparator.comparing(Conquista::getIdentificadorConquista))
+                .map(conquista -> {
+                    UsuarioConquista obtida = conquistasObtidas.get(conquista.getIdentificadorConquista());
+                    if (obtida != null) {
+                        return prepararDTO(obtida);
+                    }
+
+                    ConquistaResponseDTO conquistaDTO = prepararConquistaDTO(conquista);
+                    return new UsuarioConquistaResponseDTO(identificadorUsuario, null, conquistaDTO);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -102,20 +123,27 @@ public class UsuarioConquistaService {
 
     private UsuarioConquistaResponseDTO prepararDTO(UsuarioConquista usuarioConquista) {
         UsuarioConquistaResponseDTO dto = new UsuarioConquistaResponseDTO(usuarioConquista);
+        dto.setConquista(prepararConquistaDTO(usuarioConquista.getConquista()));
+
+        return dto;
+    }
+
+    private ConquistaResponseDTO prepararConquistaDTO(Conquista conquista) {
+        ConquistaResponseDTO dto = new ConquistaResponseDTO(conquista);
 
         try {
             Path caminhoArquivo = Paths.get(CAMINHO_CONQUISTAS,
-                    getNomeArquivoConquista(usuarioConquista.getConquista().getIdentificadorConquista()));
+                    getNomeArquivoConquista(conquista.getIdentificadorConquista()));
 
             if (Files.exists(caminhoArquivo)) {
                 byte[] bytes = Files.readAllBytes(caminhoArquivo);
-                dto.getConquista().setIcone("data:image/png;base64," + Base64.getEncoder().encodeToString(bytes));
+                dto.setIcone("data:image/png;base64," + Base64.getEncoder().encodeToString(bytes));
             } else {
-                dto.getConquista().setIcone(null);
+                dto.setIcone(null);
             }
         } catch (IOException e) {
             e.printStackTrace();
-            dto.getConquista().setIcone(null);
+            dto.setIcone(null);
         }
 
         return dto;

@@ -17,7 +17,8 @@ import {
     Typography,
     Stack,
     Avatar,
-    Paper
+    Paper,
+    Alert
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
@@ -26,6 +27,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 // Importando a API que criamos acima
 import { adminConquistasApi, type Conquista } from '../api/conquistas';
+import { usuarioPodeGerenciarConquistas } from '../utils/auth';
 
 export default function AdminConquistasPage() {
     const { enqueueSnackbar } = useSnackbar();
@@ -38,6 +40,7 @@ export default function AdminConquistasPage() {
     const [selected, setSelected] = useState<Conquista | null>(null);
 
     const openMenu = Boolean(anchorEl);
+    const podeGerenciar = usuarioPodeGerenciarConquistas();
 
     // Carrega dados ao montar o componente
     useEffect(() => {
@@ -102,6 +105,11 @@ export default function AdminConquistasPage() {
 
     return (
         <Container sx={{ py: 3 }}>
+            {!podeGerenciar && (
+                <Alert severity="warning" sx={{ mb: 3 }}>
+                    Apenas administradores e cuidadores podem cadastrar conquistas.
+                </Alert>
+            )}
             {/* Cabeçalho da Página */}
             <Box display="flex" alignItems="center" mb={3}>
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
@@ -109,11 +117,13 @@ export default function AdminConquistasPage() {
                     <Typography variant="h3">Conquistas</Typography>
                 </Stack>
 
-                <Stack direction="row" spacing={1}>
-                    <Button variant="contained" onClick={goNew}>
-                        Nova Conquista
-                    </Button>
-                </Stack>
+                {podeGerenciar && (
+                    <Stack direction="row" spacing={1}>
+                        <Button variant="contained" onClick={goNew}>
+                            Nova Conquista
+                        </Button>
+                    </Stack>
+                )}
             </Box>
 
             {/* Tabela de Dados */}
@@ -126,13 +136,13 @@ export default function AdminConquistasPage() {
                             <TableCell>Nome</TableCell>
                             <TableCell>Descrição</TableCell>
                             <TableCell width={100} align="right">Pontos</TableCell>
-                            <TableCell width={80} align="right">Ações</TableCell>
+                            {podeGerenciar && <TableCell width={80} align="right">Ações</TableCell>}
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {loading && (
                             <TableRow>
-                                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                                <TableCell colSpan={podeGerenciar ? 6 : 5} align="center" sx={{ py: 3 }}>
                                     Carregando conquistas...
                                 </TableCell>
                             </TableRow>
@@ -140,7 +150,7 @@ export default function AdminConquistasPage() {
 
                         {!loading && rows.length === 0 && (
                             <TableRow>
-                                <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                                <TableCell colSpan={podeGerenciar ? 6 : 5} align="center" sx={{ py: 3 }}>
                                     Nenhuma conquista encontrada.
                                 </TableCell>
                             </TableRow>
@@ -188,11 +198,13 @@ export default function AdminConquistasPage() {
                                         {row.pontos}
                                     </Box>
                                 </TableCell>
-                                <TableCell align="right">
-                                    <IconButton size="small" onClick={(e) => handleMenu(e, row)}>
-                                        <MoreVertIcon />
-                                    </IconButton>
-                                </TableCell>
+                                {podeGerenciar && (
+                                    <TableCell align="right">
+                                        <IconButton size="small" onClick={(e) => handleMenu(e, row)}>
+                                            <MoreVertIcon />
+                                        </IconButton>
+                                    </TableCell>
+                                )}
                             </TableRow>
                         ))}
                     </TableBody>

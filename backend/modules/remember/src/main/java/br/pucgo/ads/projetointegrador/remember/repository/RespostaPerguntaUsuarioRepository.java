@@ -11,4 +11,6 @@ public interface RespostaPerguntaUsuarioRepository extends JpaRepository<Respost
     boolean existsByIdentificadorPergunta(Long identificadorPergunta);
 
     List<RespostaPerguntaUsuario> findByIdentificadorUsuarioOrderByDataRespostaDesc(Long identificadorUsuario);
+
+    long countByIdentificadorUsuario(Long identificadorUsuario);
 }

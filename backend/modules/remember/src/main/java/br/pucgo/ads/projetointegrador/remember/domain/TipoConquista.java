@@ -14,7 +14,8 @@ public enum TipoConquista {
     DIARIO(1, "Diário"),
     LEMBRANCA(2, "lembrança"),
     DIAS_CONSECUTIVOS(3, "Dias Consecutivos"),
-    MESES_ATIVOS(4, "Meses Ativos"),;
+    MESES_ATIVOS(4, "Meses Ativos"),
+    PERGUNTA_COGNITIVA(5, "Perguntas Cognitivas");
 
     private final int codigo;
     private final String descricao;

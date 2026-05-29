@@ -14,7 +14,7 @@ import MicIcon from '@mui/icons-material/Mic';
 import SaveIcon from '@mui/icons-material/Save';
 import { useSnackbar } from 'notistack';
 import { diariosApi, type CreateDiarioPayload, type UpdateDiarioPayload, type Diario } from '../api/diarios';
-import type {Conquista} from '../api/conquistas';
+import type { ConquistaDetalhes } from '../api/conquistasUsuario';
 import {
     iniciarReconhecimentoVoz,
     type SpeechRecognitionInstance,
@@ -32,7 +32,7 @@ interface DiarioModalProps {
     usuarioId: number;
     diarioParaEditar?: Diario | null;
     // NOVO: Callback para avisar o pai sobre conquistas ganhas
-    onConquistaGanhas?: (conquistas: Conquista[]) => void;
+    onConquistaGanhas?: (conquistas: ConquistaDetalhes[]) => void;
 }
 
 export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diarioParaEditar, onConquistaGanhas }: DiarioModalProps) {
