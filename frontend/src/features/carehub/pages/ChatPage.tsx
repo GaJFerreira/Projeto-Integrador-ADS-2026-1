@@ -28,7 +28,7 @@ import { PageHeader } from '../components/PageHeader';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br';
-import { Chat, Send, Person, Search, FilterList, Close, PlayArrow, Pause } from '@mui/icons-material';
+import { Chat, Send, Person, Search, FilterList, Close, PlayArrow, Pause, ArrowBack } from '@mui/icons-material';
 import { Mic } from '@mui/icons-material';
 import { getUserId, isCuidador, checkAndCacheUserType } from '../components/auth';
 import { parseDate } from '../utils/dateUtils';
@@ -36,6 +36,13 @@ import { parseDate } from '../utils/dateUtils';
 // Configurar dayjs para mostrar tempo relativo em português
 dayjs.extend(relativeTime);
 dayjs.locale('pt-br');
+
+const formatarPerfil = (perfil?: string) => {
+  if (!perfil) return '';
+  if (perfil.includes('CUIDADOR')) return 'Cuidador';
+  if (perfil.includes('CLIENTE') || perfil.includes('USER') || perfil.includes('IDOSO')) return 'Cliente';
+  return perfil;
+};
 
 export default function ChatPage() {
   // feature-level accessibility styles
@@ -515,10 +522,15 @@ export default function ChatPage() {
           height: { xs: '100%', md: 'auto' },
           maxHeight: { xs: 'none', md: '100%' }
         }}>
-          <Paper variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <Box sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'primary.main', color: 'white', flexShrink: 0 }}>
-              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' } }}>Conversas</Typography>
-              <Typography variant="caption">
+          <Paper variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: 2, boxShadow: 2 }}>
+            <Box sx={{ 
+              p: { xs: 1.5, sm: 2 }, 
+              bgcolor: 'primary.main', 
+              color: 'white', 
+              flexShrink: 0
+            }}>
+              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' }, fontWeight: 600 }}>Conversas</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9, display: 'block', mt: 0.5 }}>
                 {contatosFiltrados.length} {contatosFiltrados.length === 1 ? 'contato' : 'contatos'}
                 {filtroNaoLidas && ' não lidas'}
               </Typography>
@@ -546,16 +558,29 @@ export default function ChatPage() {
                     </InputAdornment>
                   )
                 }}
-                sx={{ mb: 1 }}
+                sx={{ 
+                  mb: 1.5,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    bgcolor: 'background.paper',
+                    transition: 'all 0.2s',
+                  }
+                }}
               />
               
               <Chip
-                icon={<FilterList />}
+                icon={<FilterList sx={{ fontSize: '0.9rem !important' }} />}
                 label={filtroNaoLidas ? 'Mostrar todas' : 'Apenas não lidas'}
                 onClick={() => setFiltroNaoLidas(!filtroNaoLidas)}
                 color={filtroNaoLidas ? 'primary' : 'default'}
                 size="small"
                 variant={filtroNaoLidas ? 'filled' : 'outlined'}
+                sx={{ 
+                  fontWeight: 'medium',
+                  px: 0.5,
+                  transition: 'all 0.2s',
+                  '&:hover': { transform: 'scale(1.02)' }
+                }}
               />
             </Box>
             
@@ -591,7 +616,10 @@ export default function ChatPage() {
                     selected={contatoSelecionado === contato.id}
                     onClick={() => setContatoSelecionado(contato.id)}
                     sx={{
-                      py: 2,
+                      py: 0.75,
+                      px: 2,
+                      height: 60,
+                      transition: 'all 0.15s',
                       '&.Mui-selected': {
                         bgcolor: 'primary.light',
                         borderLeft: '4px solid',
@@ -599,6 +627,9 @@ export default function ChatPage() {
                         '&:hover': {
                           bgcolor: 'primary.light',
                         }
+                      },
+                      '&:hover': {
+                        bgcolor: 'action.hover',
                       }
                     }}
                   >
@@ -607,10 +638,30 @@ export default function ChatPage() {
                       color="error"
                       overlap="circular"
                       invisible={!contato.mensagensNaoLidas || contato.mensagensNaoLidas === 0}
-                      sx={{ mr: 2 }}
+                      sx={{ 
+                        mr: 1.5,
+                        '@keyframes pulse': {
+                          '0%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)' },
+                          '70%': { boxShadow: '0 0 0 6px rgba(211, 47, 47, 0)' },
+                          '100%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0)' }
+                        },
+                        '& .MuiBadge-badge': {
+                          boxShadow: '0 0 0 2px #fff',
+                          animation: contato.mensagensNaoLidas ? 'pulse 2s infinite' : 'none'
+                        }
+                      }}
                     >
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        <Person />
+                      <Avatar 
+                        sx={{ 
+                          bgcolor: contatoSelecionado === contato.id ? 'primary.main' : 'primary.light',
+                          color: contatoSelecionado === contato.id ? 'primary.contrastText' : 'primary.main',
+                          fontWeight: 'bold',
+                          width: 36,
+                          height: 36,
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        {contato.nome ? contato.nome.charAt(0).toUpperCase() : <Person />}
                       </Avatar>
                     </Badge>
                     <ListItemText
@@ -618,7 +669,9 @@ export default function ChatPage() {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography 
                             variant="body1" 
-                            fontWeight={contato.mensagensNaoLidas ? 'bold' : 'medium'}
+                            fontWeight={contato.mensagensNaoLidas ? 700 : 500}
+                            color="text.primary"
+                            sx={{ fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                           >
                             {contato.nome}
                           </Typography>
@@ -626,7 +679,7 @@ export default function ChatPage() {
                             <Typography 
                               variant="caption" 
                               color="text.secondary"
-                              sx={{ ml: 1, whiteSpace: 'nowrap' }}
+                              sx={{ ml: 1, whiteSpace: 'nowrap', fontSize: '0.7rem' }}
                             >
                               {(() => {
                                 const d = parseDate(contato.dataUltimaMensagem);
@@ -637,29 +690,22 @@ export default function ChatPage() {
                         </Box>
                       }
                       secondary={
-                        <Box>
+                        contato.ultimaMensagem ? (
                           <Typography 
-                            variant="caption" 
-                            color="primary"
-                            sx={{ display: 'block', mb: 0.5 }}
+                            variant="body2" 
+                            color="text.secondary"
+                            fontWeight={contato.mensagensNaoLidas ? 600 : 'normal'}
+                            sx={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              fontSize: '0.775rem',
+                              mt: 0.25
+                            }}
                           >
-                            {contato.perfil}
+                            {contato.ultimaMensagem}
                           </Typography>
-                          {contato.ultimaMensagem && (
-                            <Typography 
-                              variant="body2" 
-                              color="text.secondary"
-                              fontWeight={contato.mensagensNaoLidas ? 'bold' : 'normal'}
-                              sx={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {contato.ultimaMensagem}
-                            </Typography>
-                          )}
-                        </Box>
+                        ) : null
                       }
                       primaryTypographyProps={{ component: 'div' }}
                       secondaryTypographyProps={{ component: 'div' }}
@@ -708,30 +754,61 @@ export default function ChatPage() {
             {contatoSelecionado && (
               <>
                 {/* Header da Conversa */}
-                <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
+                <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, flexShrink: 0, borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
                   <Stack direction="row" alignItems="center" gap={{ xs: 1, sm: 2 }}>
-                    <Button
-                      variant="text"
+                    <IconButton
                       onClick={() => setContatoSelecionado(undefined)}
                       sx={{ 
                         display: { xs: 'flex', md: 'none' }, 
-                        minWidth: 'auto',
                         p: 0.5,
-                        fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                        mr: 0.5
+                      }}
+                      color="primary"
+                    >
+                      <ArrowBack fontSize="small" />
+                    </IconButton>
+                    <Avatar 
+                      sx={{ 
+                        bgcolor: 'primary.main', 
+                        fontWeight: 'bold',
+                        width: { xs: 38, sm: 44 }, 
+                        height: { xs: 38, sm: 44 },
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        fontSize: { xs: '0.95rem', sm: '1.1rem' }
                       }}
                     >
-                      ← Voltar
-                    </Button>
-                    <Avatar sx={{ bgcolor: 'primary.main', width: { xs: 36, sm: 40 }, height: { xs: 36, sm: 40 } }}>
-                      <Person sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                      {contatoAtual?.nome ? contatoAtual.nome.charAt(0).toUpperCase() : <Person />}
                     </Avatar>
                     <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' }, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {contatoAtual?.nome}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {contatoAtual?.perfil}
-                      </Typography>
+                      <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.2rem' }, 
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap', 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis' 
+                          }}
+                        >
+                          {contatoAtual?.nome}
+                        </Typography>
+                        {contatoAtual?.perfil && (
+                          <Chip 
+                            label={formatarPerfil(contatoAtual.perfil)} 
+                            size="small" 
+                            color={contatoAtual.perfil.includes('CUIDADOR') ? 'primary' : 'secondary'}
+                            variant="outlined"
+                            sx={{ 
+                              height: 20, 
+                              fontSize: '0.65rem', 
+                              fontWeight: 700,
+                              borderRadius: '6px',
+                              textTransform: 'uppercase'
+                            }}
+                          />
+                        )}
+                      </Stack>
                     </Box>
                   </Stack>
                 </Paper>

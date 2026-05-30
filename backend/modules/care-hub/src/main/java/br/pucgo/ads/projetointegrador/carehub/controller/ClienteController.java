@@ -13,8 +13,8 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/carehub/clientes")
-// administration is handled by plataforma; allow clients/family and caregivers
-// appropriate access
+// administrador é controlado pela plataforma; permitir acesso apropriado para
+// idosos/família e cuidadores
 @PreAuthorize("hasRole('IDOSO') or hasRole('FAMILIAR') or hasRole('CUIDADOR')")
 public class ClienteController {
 
@@ -22,8 +22,8 @@ public class ClienteController {
     private ClienteService clienteService;
 
     @GetMapping
-    // listing all clients should be restricted to caregivers (or platform admins
-    // managed outside)
+    // administrador é controlado pela plataforma; permitir acesso apropriado para
+    // idosos/família e cuidadores
     @PreAuthorize("hasRole('CUIDADOR')")
     public ResponseEntity<List<ClienteResponseDTO>> listarTodos() {
         List<ClienteResponseDTO> clientes = clienteService.listarTodos();

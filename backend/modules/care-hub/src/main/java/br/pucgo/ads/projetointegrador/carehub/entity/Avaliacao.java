@@ -11,7 +11,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.OffsetDateTime;
 
 /**
- * AvaliaÃ§Ã£o de um atendimento â€” feita pelo Cliente ao Cuidador apÃ³s conclusÃ£o.
+ * Avaliação de um atendimento é feita pelo Cliente ao Cuidador após conclusão.
  */
 @Entity
 @Table(name = "ch_avaliacao", schema = "care_hub")
@@ -48,4 +48,3 @@ public class Avaliacao {
     @Column(name = "data_avaliacao", nullable = false, updatable = false)
     private OffsetDateTime dataAvaliacao;
 }
-

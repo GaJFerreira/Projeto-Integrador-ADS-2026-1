@@ -69,25 +69,26 @@ public class CuidadorService {
     public Page<CuidadorResponseDTO> buscarComFiltros(String nome, String localizacao, String especialidade,
             Boolean disponibilidade,
             Pageable pageable) {
-        // Detect column types first; if columns are binary (bytea) JPQL LIKE will fail
+        // Detecte primeiro os tipos das colunas; se as colunas forem binárias (bytea),
+        // a consulta JPQL LIKE irá falhar
         // — skip JPQL
         initColumnTypePreferenceIfNeeded();
         if (Boolean.TRUE.equals(preferConvertFrom)) {
-            // prefer native convert_from path
+            // caminho preferido convert_from nativo
             Pageable pageableNoSort = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             try {
                 org.springframework.data.domain.Page<CuidadorProjection> proj = cuidadorRepository
                         .buscarProjectionNative(nome, localizacao, especialidade, disponibilidade, pageableNoSort);
                 return mapProjectionPageWithEspecialidades(proj, pageableNoSort);
             } catch (org.springframework.dao.InvalidDataAccessResourceUsageException ex) {
-                LOG.warn("Native convert_from query failed, falling back to simple native ILIKE", ex);
+                LOG.warn("Falha na consulta nativa `convert_from`; recorrendo à consulta nativa simples `ILIKE`", ex);
                 org.springframework.data.domain.Page<CuidadorProjection> proj = cuidadorRepository
                         .buscarProjectionNative(nome, localizacao, especialidade, disponibilidade, pageableNoSort);
                 return mapProjectionPageWithEspecialidades(proj, pageableNoSort);
             }
         }
-        // preferConvertFrom == false (text columns) — try JPQL first and fallback to
-        // native ILIKE if JPQL fails
+        // preferConvertFrom == false (colunas de texto) — tente JPQL primeiro e recorra
+        // a ILIKE nativo se JPQL falhar
         try {
             Page<Cuidador> page = cuidadorRepository.buscarComFiltros(nome, localizacao, especialidade, disponibilidade,
                     pageable);
@@ -99,7 +100,9 @@ public class CuidadorService {
                         .buscarProjectionNative(nome, localizacao, especialidade, disponibilidade, pageableNoSort);
                 return mapProjectionPageWithEspecialidades(proj, pageableNoSort);
             } catch (org.springframework.dao.InvalidDataAccessResourceUsageException ex2) {
-                LOG.warn("Native ILIKE query failed, trying convert_from native as last resort", ex2);
+                LOG.warn(
+                        "Falha na consulta nativa ILIKE, recorrendo à consulta nativa convert_from como último recurso",
+                        ex2);
                 org.springframework.data.domain.Page<CuidadorProjection> proj = cuidadorRepository
                         .buscarProjectionNative(nome, localizacao, especialidade, disponibilidade, pageableNoSort);
                 return mapProjectionPageWithEspecialidades(proj, pageableNoSort);
@@ -129,7 +132,7 @@ public class CuidadorService {
                         String udt = null;
                         try {
                             udt = jdbcTemplate.queryForObject(sql, String.class, table, column);
-                            LOG.debug("Detected udt for {}.{} in current_schema: {}", table, column, udt);
+                            LOG.debug("UDT detectado para {}.{}: {}", table, column, udt);
                         } catch (Exception e) {
                             // ignore
                         }
@@ -138,42 +141,41 @@ public class CuidadorService {
                             try {
                                 String sql2 = "select udt_name from information_schema.columns where table_schema = 'public' and table_name = ? and column_name = ? limit 1";
                                 udt = jdbcTemplate.queryForObject(sql2, String.class, table, column);
-                                LOG.debug("Detected udt for {}.{} in public schema: {}", table, column, udt);
+                                LOG.debug("UDT detectado para {}.{} no esquema public: {}", table, column, udt);
                             } catch (Exception e) {
                                 // ignore
                             }
                         }
-                        // 3) broad search across schemas/table name variants (case-insensitive)
+                        // 3) busca ampla em esquemas/variantes de nome de tabela (case-insensitive)
                         if (udt == null) {
                             try {
                                 String sql3 = "select udt_name from information_schema.columns where lower(table_name) = lower(?) and lower(column_name) = lower(?) limit 1";
                                 udt = jdbcTemplate.queryForObject(sql3, String.class, table, column);
-                                LOG.debug("Detected udt for {}.{} via broad search: {}", table, column, udt);
+                                LOG.debug("UDT detectado para {}.{} via busca ampla: {}", table, column, udt);
                             } catch (Exception e) {
                                 // ignore
                             }
                         }
                         if (udt != null && udt.equalsIgnoreCase("bytea")) {
                             anyBytea = true;
-                            LOG.debug("Column {}.{} is bytea -> will prefer convert_from", table, column);
+                            LOG.debug("Coluna {}.{} é bytea -> preferirá convert_from", table, column);
                             break;
                         }
                     } catch (Exception e) {
-                        LOG.debug("Error while probing column type for {}.{}: {}", table, column, e.getMessage());
-                        // ignore per-column errors, continue
+                        LOG.debug("Erro ao sondar o tipo da coluna para {}.{}: {}", table, column, e.getMessage());
                     }
                 }
                 preferConvertFrom = anyBytea;
-                LOG.info("CuidadorService column detection finished. preferConvertFrom={}", preferConvertFrom);
+                LOG.info("Detecção de colunas do CuidadorService concluída. preferConvertFrom={}", preferConvertFrom);
             } catch (Exception e) {
                 preferConvertFrom = false;
-                LOG.warn("Error while detecting column types for carehub; defaulting preferConvertFrom=false", e);
+                LOG.warn("Erro ao detectar tipos de colunas do carehub; padronizando preferConvertFrom=false", e);
             }
         }
     }
 
     public CuidadorResponseDTO buscarPorId(Long id) {
-        Objects.requireNonNull(id, "Cuidador ID cannot be null");
+        Objects.requireNonNull(id, "Cuidador ID não pode ser null");
 
         Cuidador cuidador = cuidadorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cuidador não encontrado"));
@@ -184,7 +186,7 @@ public class CuidadorService {
 
     @Transactional
     public CuidadorResponseDTO atualizar(Long id, CuidadorRequestDTO dto) {
-        Objects.requireNonNull(id, "Cuidador ID cannot be null");
+        Objects.requireNonNull(id, "Cuidador ID não pode ser null");
 
         Cuidador cuidador = cuidadorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cuidador não encontrado"));
@@ -232,7 +234,7 @@ public class CuidadorService {
         if (dto.getFotoPerfil() != null)
             cuidador.setFotoPerfil(dto.getFotoPerfil());
 
-        Objects.requireNonNull(cuidador, "Cuidador cannot be null");
+        Objects.requireNonNull(cuidador, "Cuidador não pode ser null");
         cuidador = cuidadorRepository.save(cuidador);
         List<Object[]> rows = especialidadeRepository.findNamesByCuidadorIds(java.util.List.of(cuidador.getId()));
         List<String> nomes = rows.stream().map(r -> (String) r[1]).collect(Collectors.toList());
@@ -241,7 +243,7 @@ public class CuidadorService {
 
     @Transactional
     public void deletar(Long id) {
-        Objects.requireNonNull(id, "Cuidador ID cannot be null");
+        Objects.requireNonNull(id, "Cuidador ID não pode ser null");
 
         Cuidador cuidador = cuidadorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cuidador não encontrado"));

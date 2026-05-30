@@ -28,29 +28,30 @@ public class RegistroAcompanhamentoController {
     private Long obterIdLocalAutenticado(Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario nao autenticado");
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
         }
 
         String usernameOrEmail = principal.getName();
 
         var cuidador = cuidadorRepository.findByUsername(usernameOrEmail)
                 .or(() -> cuidadorRepository.findByEmail(usernameOrEmail));
-        if (cuidador.isPresent()) return cuidador.get().getId();
+        if (cuidador.isPresent())
+            return cuidador.get().getId();
 
         var cliente = clienteRepository.findByUsername(usernameOrEmail)
                 .or(() -> clienteRepository.findByEmail(usernameOrEmail));
-        if (cliente.isPresent()) return cliente.get().getId();
+        if (cliente.isPresent())
+            return cliente.get().getId();
 
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuario local do CareHub nao encontrado para o principal autenticado: " + usernameOrEmail);
+                "Usuário local do CareHub não encontrado para o principal autenticado: " + usernameOrEmail);
     }
 
     @PostMapping
     public ResponseEntity<RegistroAcompanhamentoResponseDTO> criarRegistro(
             Principal principal,
-            @Valid @RequestBody RegistroAcompanhamentoRequestDTO dto
-    ) {
+            @Valid @RequestBody RegistroAcompanhamentoRequestDTO dto) {
         Long localCuidadorId = obterIdLocalAutenticado(principal);
         RegistroAcompanhamentoResponseDTO registro = registroService.criarRegistro(localCuidadorId, dto);
         return ResponseEntity.ok(registro);
@@ -69,7 +70,8 @@ public class RegistroAcompanhamentoController {
     }
 
     @GetMapping("/agendamento/{agendamentoId}")
-    public ResponseEntity<List<RegistroAcompanhamentoResponseDTO>> listarPorAgendamento(@PathVariable Long agendamentoId) {
+    public ResponseEntity<List<RegistroAcompanhamentoResponseDTO>> listarPorAgendamento(
+            @PathVariable Long agendamentoId) {
         List<RegistroAcompanhamentoResponseDTO> registros = registroService.listarPorAgendamento(agendamentoId);
         return ResponseEntity.ok(registros);
     }

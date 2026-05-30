@@ -97,7 +97,7 @@ export default function DiariosPage({ usuarioId }: DiariosPageProps) {
             ) : (
                 <Grid container spacing={3} sx={{ mt: 2 }}>
                     {diarios.map((item) => (
-                        <Grid item xs={12} sm={6} md={4} key={item.identificadorDiario}>
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.identificadorDiario}>
                             <DiarioCard
                                 diario={item}
                                 onClick={handleEditDiario}   // Clicar no card edita

@@ -14,8 +14,7 @@ public class ContatoDTO {
     private String nome;
     private String perfil; // "CLIENTE" ou "CUIDADOR"
     private String email;
-    private Long mensagensNaoLidas; // Contador de mensagens nÃ£o lidas deste contato
-    private String ultimaMensagem; // PrÃ©via da Ãºltima mensagem
-    private OffsetDateTime dataUltimaMensagem; // Data/hora da Ãºltima mensagem
+    private Long mensagensNaoLidas; // Contador de mensagens não lidas deste contato
+    private String ultimaMensagem; // Prévia da última mensagem
+    private OffsetDateTime dataUltimaMensagem; // Data/hora da última mensagem
 }
-

@@ -10,26 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repositório de Mensagens do CareHub.
- *
- * <p>
- * <strong>Mudança de arquitetura:</strong> as queries foram adaptadas para usar
- * {@code m.remetenteId} e {@code m.destinatarioId} (Long) em vez de
- * {@code m.remetente.id} e {@code m.destinatario.id} (navegação por entidade),
- * pois a entidade {@link Mensagem} agora armazena apenas os IDs.
- *
- * <p>
- * A query nativa {@code findContatoIds} permanece inalterada pois
- * já operava sobre colunas nativas ({@code remetente_id} /
- * {@code destinatario_id}).
- *
- * <p>
- * O método {@code findByDestinatarioAndLidaFalseOrderByDataEnvioDesc} foi
- * removido
- * (recebia {@code User} como parâmetro). Substituído por
- * {@code findByDestinatarioIdAndLidaFalseOrderByDataEnvioDesc}.
- */
 @Repository
 public interface CareHubMensagemRepository extends JpaRepository<Mensagem, Long> {
 
@@ -50,7 +30,7 @@ public interface CareHubMensagemRepository extends JpaRepository<Mensagem, Long>
        List<Mensagem> findByRemetenteIdOrDestinatarioIdOrderByDataEnvioDesc(@Param("usuarioId") Long usuarioId);
 
        /**
-        * Busca mensagens não lidas de um destinatário (substitui o método com User).
+        * Busca mensagens não lidas de um destinatário.
         */
        List<Mensagem> findByDestinatarioIdAndLidaFalseOrderByDataEnvioDesc(Long destinatarioId);
 

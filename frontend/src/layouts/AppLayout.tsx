@@ -27,6 +27,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useSnackbar } from 'notistack';
 import { adminUsersApi, type UpdateUserPayload } from '../features/admin/api/users';
 import { setAuthToken } from '@/lib/http';
+import { GlobalAlertListener } from '@/features/carehub';
 
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ export default function AppLayout() {
     name: '',
     username: '',
   });
+  const [userRole, setUserRole] = useState<string | null>(null);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [form, setForm] = useState<UpdateUserPayload>({
@@ -63,6 +65,7 @@ export default function AppLayout() {
         name: parsed?.name ?? '',
         username: parsed?.username ?? '',
       });
+      setUserRole(parsed?.roleCode || parsed?.roleName || null);
     } catch {
       // ignore parse errors
     }
@@ -205,6 +208,10 @@ export default function AppLayout() {
       <Container sx={{ py: 3 }}>
         <Outlet />
       </Container>
+
+      {userRole && userRole.toUpperCase().includes('CUIDADOR') && (
+        <GlobalAlertListener />
+      )}
 
       <Dialog
         open={openProfile}

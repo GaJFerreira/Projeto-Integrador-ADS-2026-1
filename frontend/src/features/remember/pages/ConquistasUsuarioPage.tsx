@@ -188,7 +188,7 @@ export default function ConquistasUsuarioPage({ usuarioId }: ConquistasUsuarioPa
             {/* GRID DE MEDALHAS */}
             <Grid container spacing={3}>
                 {items.map((item, index) => (
-                    <Grid item xs={12} sm={6} md={4} lg={4} key={item.conquista.identificadorConquista || index}>
+                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={item.conquista.identificadorConquista || index}>
                         <ConquistaCard item={item} />
                     </Grid>
                 ))}

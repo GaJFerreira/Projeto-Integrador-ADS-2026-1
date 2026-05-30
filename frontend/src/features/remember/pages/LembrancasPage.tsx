@@ -97,7 +97,7 @@ export default function LembrancasPage({ usuarioId }: LembrancasPageProps) {
             ) : (
                 <Grid container spacing={3} sx={{ mt: 1 }}>
                     {lembrancas.map((item) => (
-                        <Grid item xs={12} sm={6} md={4} key={item.identificadorLembranca}>
+                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.identificadorLembranca}>
                             <LembrancaCard
                                 lembranca={item}
                                 onClick={handleEditLembranca}   // Clicar no card edita

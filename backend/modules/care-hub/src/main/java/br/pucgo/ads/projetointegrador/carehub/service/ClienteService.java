@@ -24,14 +24,14 @@ public class ClienteService {
     private PasswordEncoder passwordEncoder;
 
     public List<ClienteResponseDTO> listarTodos() {
-    return clienteRepository.findByDeletedAtIsNull().stream()
+        return clienteRepository.findByDeletedAtIsNull().stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
     public ClienteResponseDTO buscarPorId(Long id) {
-        Objects.requireNonNull(id, "Cliente ID cannot be null");
-        
+        Objects.requireNonNull(id, "Cliente ID não pode ser null");
+
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         return toResponseDTO(cliente);
@@ -39,28 +39,35 @@ public class ClienteService {
 
     @Transactional
     public ClienteResponseDTO atualizar(Long id, ClienteRequestDTO dto) {
-        Objects.requireNonNull(id, "Cliente ID cannot be null");
-        
+        Objects.requireNonNull(id, "Cliente ID não pode ser null");
+
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
-        if (dto.getNome() != null) cliente.setName(dto.getNome());
-        if (dto.getEmail() != null) cliente.setEmail(dto.getEmail());
-        if (dto.getTelefone() != null) cliente.setTelefone(dto.getTelefone());
-        if (dto.getNecessidades() != null) cliente.setNecessidades(dto.getNecessidades());
-        if (dto.getEndereco() != null) cliente.setEndereco(dto.getEndereco());
-        if (dto.getContatoEmergencia() != null) cliente.setContatoEmergencia(dto.getContatoEmergencia());
-        if (dto.getTipoCliente() != null) cliente.setTipoCliente(dto.getTipoCliente());
+        if (dto.getNome() != null)
+            cliente.setName(dto.getNome());
+        if (dto.getEmail() != null)
+            cliente.setEmail(dto.getEmail());
+        if (dto.getTelefone() != null)
+            cliente.setTelefone(dto.getTelefone());
+        if (dto.getNecessidades() != null)
+            cliente.setNecessidades(dto.getNecessidades());
+        if (dto.getEndereco() != null)
+            cliente.setEndereco(dto.getEndereco());
+        if (dto.getContatoEmergencia() != null)
+            cliente.setContatoEmergencia(dto.getContatoEmergencia());
+        if (dto.getTipoCliente() != null)
+            cliente.setTipoCliente(dto.getTipoCliente());
 
-        Objects.requireNonNull(cliente, "Cliente cannot be null");
+        Objects.requireNonNull(cliente, "Cliente não pode ser null");
         cliente = clienteRepository.save(cliente);
         return toResponseDTO(cliente);
     }
 
     @Transactional
     public void deletar(Long id) {
-        Objects.requireNonNull(id, "Cliente ID cannot be null");
-        
+        Objects.requireNonNull(id, "Cliente ID não pode ser null");
+
         Cliente cliente = clienteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
         cliente.setAtivo(false);
