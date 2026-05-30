@@ -3,7 +3,6 @@ export interface PerfilRequest {
   email: string;
   bio?: string;
   dataNascimento: string; 
-  fotoPerfilUrl: string;
   restricoesAlimentares?: string[];
   personalizacoes?: string[];
 }

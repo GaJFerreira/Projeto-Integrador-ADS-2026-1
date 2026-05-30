@@ -8,6 +8,7 @@ import { InformacoesBasicas } from "../../components/page/adicionarReceitaCompon
 import { ConteudoReceita } from "../../components/page/adicionarReceitaComponents/ConteudoReceita";
 import { Restricoes } from "../../components/page/adicionarReceitaComponents/Restricoes";
 import { Personalizacoes } from "../../components/page/adicionarReceitaComponents/Personalizacoes";
+import { ImagemUploadField } from "../../components/common/ImagemUploadField";
 import type { TipoRefeicaoEnum } from "../../dto/enums/TipoRefeicaoEnum";
 import type { PersonalizacaoResumoResponse } from "../../dto/personalizacao/response/PersonalizacaoResumoResponse";
 import "./adicionarReceita.css";
@@ -25,6 +26,7 @@ export function AdicionarReceita() {
   const [ingredientes,    setIngredientes]    = useState("");
   const [modoPreparo,     setModoPreparo]     = useState("");
   const [historia,        setHistoria]        = useState("");
+  const [fotoReceita,     setFotoReceita]     = useState<File | null>(null);
   const [restricoesSelecionadas,      setRestricoesSelecionadas]      = useState<Set<string>>(new Set());
   const [personalizacoesSelecionadas, setPersonalizacoesSelecionadas] = useState<Set<string>>(new Set());
 
@@ -63,6 +65,7 @@ export function AdicionarReceita() {
         restricoesAlimentares: Array.from(restricoesSelecionadas),
         personalizacoes:       Array.from(personalizacoesSelecionadas),
       },
+      fotoReceita,
       () => navigate(`/sabor-familia/home`)
     );
   };
@@ -88,6 +91,16 @@ export function AdicionarReceita() {
               modoPreparo={modoPreparo}   onModoPreparoChange={setModoPreparo}
               historia={historia}         onHistoriaChange={setHistoria}
             />
+
+            <section className="ar-section">
+              <h2 className="ar-section__title">Foto da receita</h2>
+              <ImagemUploadField
+                label="Imagem de capa (opcional)"
+                arquivo={fotoReceita}
+                onArquivoChange={setFotoReceita}
+                disabled={salvando}
+              />
+            </section>
 
             <Restricoes
               restricoes={restricoes}

@@ -76,7 +76,8 @@ export function Chat() {
                         }}
                       >
                         <PerfilAvatar
-                          src={c.contato.fotoPerfilUrl}
+                          perfilId={c.contato.perfilId}
+                          possuiMidia={c.contato.possuiMidia}
                           alt={c.contato.nome}
                           className="chat-list__avatar"
                           placeholderClassName="chat-list__avatar chat-list__avatar--placeholder"
@@ -117,7 +118,8 @@ export function Chat() {
                           }}
                         >
                           <PerfilAvatar
-                            src={p.fotoPerfilUrl}
+                            perfilId={p.perfilId}
+                            possuiMidia={p.possuiMidia}
                             alt={p.nome}
                             className="chat-nova-item__avatar"
                             placeholderClassName="chat-nova-item__avatar chat-nova-item__avatar--placeholder"

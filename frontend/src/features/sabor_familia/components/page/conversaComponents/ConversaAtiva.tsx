@@ -7,6 +7,7 @@ import {
 } from "../../../hooks/UseConversa";
 import { useState, useEffect, useRef } from "react";
 import type { ConversaResponse } from "../../../dto/menssagem/response/ConversaResponse";
+import { PerfilAvatar } from "../../common/PerfilAvatar";
 
 export function ConversaAtiva({
   conversa,
@@ -46,17 +47,13 @@ export function ConversaAtiva({
     <div className="chat-messages-area">
       {/* ── Cabeçalho ── */}
       <div className="chat-messages-header">
-        {conversa.contato.fotoPerfilUrl ? (
-          <img
-            src={conversa.contato.fotoPerfilUrl}
-            alt={conversa.contato.nome}
-            className="chat-messages-header__avatar"
-          />
-        ) : (
-          <div className="chat-messages-header__avatar--placeholder">
-            {conversa.contato.nome?.[0]?.toUpperCase() ?? "?"}
-          </div>
-        )}
+        <PerfilAvatar
+          perfilId={conversa.contato.perfilId}
+          possuiMidia={conversa.contato.possuiMidia}
+          alt={conversa.contato.nome}
+          className="chat-messages-header__avatar"
+          placeholderClassName="chat-messages-header__avatar chat-messages-header__avatar--placeholder"
+        />
         <span className="chat-messages-header__name">{conversa.contato.nome}</span>
       </div>
 

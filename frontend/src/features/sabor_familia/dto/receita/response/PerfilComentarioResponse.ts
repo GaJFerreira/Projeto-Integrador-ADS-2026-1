@@ -2,7 +2,7 @@ export interface PerfilComentarioResponse {
   id: number;
   perfilId: number;
   nomePerfil: string;
-  fotoPerfilUrl: string | null;
+  possuiMidia: boolean;
   comentario: string;
   dataComentario: string;
 }

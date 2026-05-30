@@ -12,6 +12,7 @@ import { useAuth } from "../../../hooks/UseAuth";
 import CommentIcon from "../../../icon/menu/CommentIcon";
 import BookmarkIcon from "../../../icon/menu/BookmarkIcon";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
+import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import HeartFillIcon from "../../../icon/menu/HeartFillIcon";
 import { formatarTempo } from "../../../utils/formatarTempo";
 import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
@@ -48,9 +49,6 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
   const navigate = useNavigate();
   const tempo = formatarTempo(receita.dataCadastro);
 
-  const fotoCapaUrl =
-    (receita as ReceitaResponse & { fotoCapaUrl?: string | null }).fotoCapaUrl ?? null;
-
   const handleAdicionarComentario = async () => {
     if (!textoComentario.trim()) return;
     await adicionar(textoComentario, () => {
@@ -76,7 +74,8 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
           onKeyDown={(e) => e.key === "Enter" && navigate(`/sabor-familia/perfil/${receita.autor.perfilId}`)}
         >
           <PerfilAvatar
-            src={receita.autor.fotoPerfilUrl}
+            perfilId={receita.autor.perfilId}
+            possuiMidia={receita.autor.possuiMidia}
             alt={receita.autor.nome}
             className="feed-card__avatar"
             placeholderClassName="feed-card__avatar feed-card__avatar--placeholder"
@@ -89,20 +88,15 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
         </div>
       </header>
 
-      {/* ── Imagem da receita ── */}
-      <div className="feed-card__image-wrap" onClick={onClick}>
-        {fotoCapaUrl ? (
-          <img
-            src={fotoCapaUrl}
-            alt={receita.detalhes.titulo}
-            className="feed-card__image"
-          />
-        ) : (
-          <div className="feed-card__image feed-card__image--empty">
-            <span>Sem imagem</span>
-          </div>
-        )}
-      </div>
+      <ReceitaMidiaImage
+        receitaId={receita.id}
+        possuiMidia={receita.possuiMidia}
+        alt={receita.detalhes.titulo}
+        wrapClassName="feed-card__image-wrap"
+        className="feed-card__image"
+        emptyClassName="feed-card__image feed-card__image--empty"
+        onClick={onClick}
+      />
 
       {showComments && (
         <section className="feed-card__comments">

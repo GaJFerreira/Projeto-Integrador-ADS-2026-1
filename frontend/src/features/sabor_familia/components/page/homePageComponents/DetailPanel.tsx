@@ -1,5 +1,6 @@
 import "./detailPanel.css";
 import { formatDataPublicacaoCompleta } from "../../../utils/formatarTempo";
+import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
 import type { RestricaoAlimentarResumoResponse } from "../../../dto/restricao/response/RestricaoAlimentarResumoResponse";
 import type { PersonalizacaoResumoResponse } from "../../../dto/personalizacao/response/PersonalizacaoResumoResponse";
@@ -22,6 +23,15 @@ function DetailPanel({ receita, onClose }: DetailPanelProps) {
       </button>
 
       <div className="detail-panel__scroll">
+        <ReceitaMidiaImage
+          receitaId={receita.id}
+          possuiMidia={receita.possuiMidia}
+          alt={receita.detalhes.titulo}
+          wrapClassName="detail-panel__image-wrap"
+          className="detail-panel__image"
+          emptyClassName="detail-panel__image detail-panel__image--empty"
+        />
+
         {/* ── Título ── */}
         <h2 className="detail-panel__title">{receita.detalhes.titulo}</h2>
 

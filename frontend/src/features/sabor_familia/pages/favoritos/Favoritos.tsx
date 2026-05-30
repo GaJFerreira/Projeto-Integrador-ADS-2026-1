@@ -11,11 +11,10 @@ import { ExplorarCard } from "../../components/page/explorarComponents/ExplorarC
 import { ExplorarReceitaFocus } from "../../components/page/explorarComponents/ExplorarReceitaFocus";
 
 function receitaToResumo(receita: ReceitaResponse): ReceitaResumoResponse {
-  const comFoto = receita as ReceitaResponse & { fotoCapaUrl?: string | null };
   return {
     id: receita.id,
     titulo: receita.detalhes.titulo,
-    fotoCapaUrl: comFoto.fotoCapaUrl ?? null,
+    possuiMidia: receita.possuiMidia,
     restritaParaUsuario: receita.restritaParaUsuario,
     dataCadastro: receita.dataCadastro,
   };

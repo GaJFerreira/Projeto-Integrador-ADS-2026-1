@@ -39,7 +39,8 @@ export function PerfilHeader({
         <div className="ph-avatar-row">
           <div className="ph-avatar-wrap">
             <PerfilAvatar
-              src={perfil.detalhes.fotoPerfilUrl}
+              perfilId={perfil.id}
+              possuiMidia={perfil.detalhes.possuiMidia}
               alt={perfil.detalhes.nome}
               className="ph-avatar"
               placeholderClassName="ph-avatar ph-avatar--placeholder"

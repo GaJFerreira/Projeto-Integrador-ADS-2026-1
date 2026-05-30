@@ -1,5 +1,6 @@
 import "./explorarCard.css";
 import { formatDataGrid } from "../../../utils/formatarTempo";
+import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import type { ReceitaResumoResponse } from "../../../dto/receita/response/ReceitaResumoResponse";
 
 export function ExplorarCard({
@@ -21,19 +22,14 @@ export function ExplorarCard({
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onClick()}
     >
-      <div className="explorar-card__image-wrap">
-        {receita.fotoCapaUrl ? (
-          <img
-            src={receita.fotoCapaUrl}
-            alt={receita.titulo}
-            className="explorar-card__image"
-          />
-        ) : (
-          <div className="explorar-card__image explorar-card__image--empty">
-            Sem imagem
-          </div>
-        )}
-      </div>
+      <ReceitaMidiaImage
+        receitaId={receita.id}
+        possuiMidia={receita.possuiMidia}
+        alt={receita.titulo}
+        wrapClassName="explorar-card__image-wrap"
+        className="explorar-card__image"
+        emptyClassName="explorar-card__image explorar-card__image--empty"
+      />
 
       <div className="explorar-card__body">
         <p className="explorar-card__title">{receita.titulo}</p>

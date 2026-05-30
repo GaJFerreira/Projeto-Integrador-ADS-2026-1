@@ -56,7 +56,8 @@ function Sidebar() {
       <div className="sidebar-bottom">
         <button className="sidebar-link" onClick={() => perfilId && navigate(`/sabor-familia/perfil/${perfilId}`)}>
           <PerfilAvatar
-            src={perfil?.detalhes?.fotoPerfilUrl}
+            perfilId={perfilId ?? undefined}
+            possuiMidia={perfil?.detalhes?.possuiMidia}
             alt={perfil?.detalhes?.nome ?? "Perfil"}
             className="sidebar-avatar"
             placeholderClassName="sidebar-avatar sidebar-avatar--placeholder"

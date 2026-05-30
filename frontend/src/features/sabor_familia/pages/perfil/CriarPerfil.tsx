@@ -7,6 +7,7 @@ import { useAuth } from "../../hooks/UseAuth";
 import { CategoriaPersonalizacaoInfo } from "../../dto/enums/CategoriaPersonalizacaoEnum";
 import type { PersonalizacaoResumoResponse } from "../../dto/personalizacao/response/PersonalizacaoResumoResponse";
 import { isoParaBR } from "../../utils/dateUtils";
+import { ImagemUploadField } from "../../components/common/ImagemUploadField";
 import "./criarPerfil.css";
 
 function toggleSet(set: Set<string>, setter: (s: Set<string>) => void) {
@@ -33,7 +34,7 @@ export function CriarPerfil() {
   const [email,           setEmail]           = useState("");
   const [dataNascimento,  setDataNascimento]  = useState("");
   const [bio,          setBio]          = useState("");
-  const [fotoPerfilUrl, setFotoPerfilUrl] = useState("");
+  const [fotoPerfil, setFotoPerfil] = useState<File | null>(null);
   const [restricoesSelecionadas,      setRestricoesSelecionadas]      = useState<Set<string>>(new Set());
   const [personalizacoesSelecionadas, setPersonalizacoesSelecionadas] = useState<Set<string>>(new Set());
 
@@ -54,10 +55,10 @@ export function CriarPerfil() {
         email,
         dataNascimento:       isoParaBR(dataNascimento),
         bio:                  bio          || undefined,
-        fotoPerfilUrl:        fotoPerfilUrl,
         restricoesAlimentares: Array.from(restricoesSelecionadas),
         personalizacoes:       Array.from(personalizacoesSelecionadas),
       },
+      fotoPerfil,
       (perfil) => {
         salvarPerfil(perfil);
         navigate("/sabor-familia/home");
@@ -127,13 +128,11 @@ export function CriarPerfil() {
           </div>
 
           <div className="field">
-            <label>URL da foto de perfil <span className="cp-optional">(opcional)</span></label>
-            <input
-              type="url"
-              placeholder="https://exemplo.com/minha-foto.jpg"
-              value={fotoPerfilUrl}
-              onChange={(e) => setFotoPerfilUrl(e.target.value)}
-              required
+            <ImagemUploadField
+              label="Foto de perfil (opcional)"
+              arquivo={fotoPerfil}
+              onArquivoChange={setFotoPerfil}
+              disabled={salvando}
             />
           </div>
 

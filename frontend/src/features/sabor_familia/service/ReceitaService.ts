@@ -1,4 +1,5 @@
 import api from "../lib/Api";
+import { criarFormDataMultipart } from "../lib/multipartUtils";
 import type { ReceitaRequest } from "../dto/receita/request/ReceitaRequest";
 import type { ReceitaResponse } from "../dto/receita/response/ReceitaResponse";
 import type { ReceitaResumoResponse } from "../dto/receita/response/ReceitaResumoResponse";
@@ -60,16 +61,22 @@ export const receitaService = {
     return data;
   },
 
-  criarReceita: async (request: ReceitaRequest): Promise<ReceitaResponse> => {
-    const { data } = await api.post<ReceitaResponse>("/receita", request);
+  criarReceita: async (
+    request: ReceitaRequest,
+    arquivo?: File | null
+  ): Promise<ReceitaResponse> => {
+    const formData = criarFormDataMultipart(request, arquivo);
+    const { data } = await api.post<ReceitaResponse>("/receita", formData);
     return data;
   },
 
   editarReceita: async (
     receitaId: number,
-    request: ReceitaRequest
+    request: ReceitaRequest,
+    arquivo?: File | null
   ): Promise<ReceitaResponse> => {
-    const { data } = await api.put<ReceitaResponse>(`/receita/${receitaId}`, request);
+    const formData = criarFormDataMultipart(request, arquivo);
+    const { data } = await api.put<ReceitaResponse>(`/receita/${receitaId}`, formData);
     return data;
   },
 

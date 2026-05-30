@@ -3,6 +3,7 @@ import SendIcon from "../../../icon/messagem/SendIcon";
 import { useState } from "react";
 import { useEnviarMensagem } from "../../../hooks/UseConversa";
 import type { PerfilResumoResponse } from "../../../dto/perfil/response/PerfilResumoResponse";
+import { PerfilAvatar } from "../../common/PerfilAvatar";
 
 interface Props {
   destinatario: PerfilResumoResponse;
@@ -34,17 +35,13 @@ export function NovaConversa({ destinatario, onConversaCriada }: Props) {
     <div className="chat-messages-area">
       {/* Cabeçalho com o destinatário */}
       <div className="chat-messages-header">
-        {destinatario.fotoPerfilUrl ? (
-          <img
-            src={destinatario.fotoPerfilUrl}
-            alt={destinatario.nome}
-            className="chat-messages-header__avatar"
-          />
-        ) : (
-          <div className="chat-messages-header__avatar--placeholder">
-            {destinatario.nome?.[0]?.toUpperCase() ?? "?"}
-          </div>
-        )}
+        <PerfilAvatar
+          perfilId={destinatario.perfilId}
+          possuiMidia={destinatario.possuiMidia}
+          alt={destinatario.nome}
+          className="chat-messages-header__avatar"
+          placeholderClassName="chat-messages-header__avatar chat-messages-header__avatar--placeholder"
+        />
         <div>
           <span style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-sans)" }}>
             Nova mensagem para

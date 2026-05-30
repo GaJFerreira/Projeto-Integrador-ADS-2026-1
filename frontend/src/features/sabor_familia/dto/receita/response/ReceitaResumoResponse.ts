@@ -1,7 +1,7 @@
 export interface ReceitaResumoResponse {
   id: number;
   titulo: string;
-  fotoCapaUrl: string | null;
+  possuiMidia: boolean;
   restritaParaUsuario: boolean;
   dataCadastro: string;
 }

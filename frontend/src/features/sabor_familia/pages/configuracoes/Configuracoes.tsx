@@ -8,6 +8,7 @@ import { useListarCatalogo, useListarCatalogoContextoPerfil } from "../../hooks/
 import { useBuscarRestricoesAlimentares } from "../../hooks/UseRestricaoAlimentar";
 import Sidebar from "../../components/page/homePageComponents/SideBar";
 import { PerfilAvatar } from "../../components/common/PerfilAvatar";
+import { ImagemUploadField } from "../../components/common/ImagemUploadField";
 
 export function Configuracoes() {
   const navigate = useNavigate();
@@ -18,15 +19,15 @@ export function Configuracoes() {
   const { personalizacoes: personalizacoesPerfil } = useListarCatalogoContextoPerfil();
   const { restricoes: catalogoRestricoes } = useBuscarRestricoesAlimentares();
   const [bio, setBio] = useState(perfil?.detalhes?.bio ?? "");
-  const [fotoUrl, setFotoUrl] = useState(perfil?.detalhes?.fotoPerfilUrl ?? "");
+  const [fotoPerfil, setFotoPerfil] = useState<File | null>(null);
   const [restricoesSelecionadas, setRestricoesSelecionadas] = useState<Set<string>>(new Set());
   const [personalizacoesSelecionadas, setPersonalizacoesSelecionadas] = useState<Set<string>>(new Set());
   const [sucesso, setSucesso] = useState(false);
 
   useEffect(() => {
     setBio(perfil?.detalhes?.bio ?? "");
-    setFotoUrl(perfil?.detalhes?.fotoPerfilUrl ?? "");
-  }, [perfil?.id, perfil?.detalhes?.bio, perfil?.detalhes?.fotoPerfilUrl]);
+    setFotoPerfil(null);
+  }, [perfil?.id, perfil?.detalhes?.bio, perfil?.detalhes?.possuiMidia]);
 
   const restricoesPerfilKey =
     perfil?.restricoesAlimentares?.map((r) => r.codigo).sort().join(",") ?? "";
@@ -51,15 +52,15 @@ export function Configuracoes() {
     await editar(
       {
         bio: bio || undefined,
-        fotoPerfilUrl: fotoUrl || undefined,
         restricoesAlimentares: Array.from(restricoesSelecionadas),
         personalizacoes: Array.from(personalizacoesSelecionadas),
       },
+      fotoPerfil,
       async (perfilAtualizado) => {
         setSucesso(true);
         if (perfilAtualizado) {
           setBio(perfilAtualizado.detalhes?.bio ?? "");
-          setFotoUrl(perfilAtualizado.detalhes?.fotoPerfilUrl ?? "");
+          setFotoPerfil(null);
         }
       }
     );
@@ -99,7 +100,8 @@ export function Configuracoes() {
 
             <div className="config-profile-header">
               <PerfilAvatar
-                src={perfil?.detalhes?.fotoPerfilUrl}
+                perfilId={perfil?.id}
+                possuiMidia={perfil?.detalhes?.possuiMidia}
                 alt={perfil?.detalhes?.nome ?? "Perfil"}
                 className="config-avatar"
                 placeholderClassName="config-avatar config-avatar--placeholder"
@@ -131,15 +133,12 @@ export function Configuracoes() {
               />
             </div>
 
-            {/* Foto URL */}
             <div className="config-field">
-              <label className="config-label">URL da foto de perfil</label>
-              <input
-                className="config-input"
-                type="url"
-                placeholder="https://exemplo.com/foto.jpg"
-                value={fotoUrl}
-                onChange={(e) => setFotoUrl(e.target.value)}
+              <ImagemUploadField
+                label="Foto de perfil"
+                arquivo={fotoPerfil}
+                onArquivoChange={setFotoPerfil}
+                disabled={salvando}
               />
             </div>
 

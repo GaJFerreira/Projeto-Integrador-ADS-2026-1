@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { useAuth } from "./UseAuth";
 import { perfilService } from "../service/PerfilService";
+import { invalidarMidia } from "../lib/midiaCache";
 import type { PerfilRequest } from "../dto/perfil/request/PerfilRequest";
 import type { EditarPerfilRequest } from "../dto/perfil/request/EditarPerfilRequest";
 import type { PerfilResponse } from "../dto/perfil/response/PerfilResponse";
@@ -92,12 +93,16 @@ export function useCriarPerfil() {
 
   const criar = async (
     request: PerfilRequest,
+    arquivo?: File | null,
     onSucesso?: (perfil: PerfilResponse) => void
   ) => {
     setLoading(true);
     setError(null);
     try {
-      const perfil = await perfilService.criarPerfil(request);
+      const perfil = await perfilService.criarPerfil(request, arquivo);
+      if (arquivo) {
+        invalidarMidia("perfil", perfil.id);
+      }
       onSucesso?.(perfil);
     } catch (err: unknown) {
       if (isApiError(err)) {
@@ -121,12 +126,16 @@ export function useEditarPerfil() {
 
   const editar = async (
     request: EditarPerfilRequest,
+    arquivo?: File | null,
     onSucesso?: (perfil: PerfilResponse) => void
   ) => {
     setLoading(true);
     setError(null);
     try {
-      const perfil = await perfilService.editarPerfil(request);
+      const perfil = await perfilService.editarPerfil(request, arquivo);
+      if (arquivo) {
+        invalidarMidia("perfil", perfil.id);
+      }
       salvarPerfil(perfil);
       onSucesso?.(perfil);
     } catch (err: unknown) {

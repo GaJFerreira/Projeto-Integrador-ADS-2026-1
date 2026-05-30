@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { receitaService } from "../service/ReceitaService";
+import { invalidarMidia } from "../lib/midiaCache";
 import type { ReceitaRequest } from "../dto/receita/request/ReceitaRequest";
 import type { ReceitaResponse } from "../dto/receita/response/ReceitaResponse";
 import type { ReceitaResumoResponse } from "../dto/receita/response/ReceitaResumoResponse";
@@ -152,12 +153,16 @@ export function useCriarReceita() {
 
   const criar = async (
     request: ReceitaRequest,
+    arquivo?: File | null,
     onSucesso?: (receita: ReceitaResponse) => void
   ) => {
     setLoading(true);
     setError(null);
     try {
-      const receita = await receitaService.criarReceita(request);
+      const receita = await receitaService.criarReceita(request, arquivo);
+      if (arquivo) {
+        invalidarMidia("receita", receita.id);
+      }
       onSucesso?.(receita);
     } catch (err: unknown) {
       const statusCode = extrairStatusCode(err);
@@ -179,12 +184,16 @@ export function useEditarReceita() {
   const editar = async (
     receitaId: number,
     request: ReceitaRequest,
+    arquivo?: File | null,
     onSucesso?: (receita: ReceitaResponse) => void
   ) => {
     setLoading(true);
     setError(null);
     try {
-      const receita = await receitaService.editarReceita(receitaId, request);
+      const receita = await receitaService.editarReceita(receitaId, request, arquivo);
+      if (arquivo) {
+        invalidarMidia("receita", receita.id);
+      }
       onSucesso?.(receita);
     } catch (err: unknown) {
       const statusCode = extrairStatusCode(err);

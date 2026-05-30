@@ -23,7 +23,8 @@ export function PerfilItem({ perfil }: { perfil: PerfilResumoResponse }) {
         onClick={() => navigate(`/sabor-familia/perfil/${perfil.perfilId}`)}
       >
         <PerfilAvatar
-          src={perfil.fotoPerfilUrl}
+          perfilId={perfil.perfilId}
+          possuiMidia={perfil.possuiMidia}
           alt={perfil.nome}
           className="lista-perfis-avatar"
           placeholderClassName="lista-perfis-avatar lista-perfis-avatar--placeholder"

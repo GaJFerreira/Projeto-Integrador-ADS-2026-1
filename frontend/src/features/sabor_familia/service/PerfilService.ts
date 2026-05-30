@@ -1,4 +1,5 @@
 import api from "../lib/Api";
+import { criarFormDataMultipart } from "../lib/multipartUtils";
 import type { PerfilResponse } from "../dto/perfil/response/PerfilResponse";
 import type { PerfilRequest } from "../dto/perfil/request/PerfilRequest";
 import type { EditarPerfilRequest } from "../dto/perfil/request/EditarPerfilRequest";
@@ -17,13 +18,21 @@ export const perfilService = {
     return data;
   },
 
-  criarPerfil: async (request: PerfilRequest): Promise<PerfilResponse> => {
-    const { data } = await api.post<PerfilResponse>("/perfil", request);
+  criarPerfil: async (
+    request: PerfilRequest,
+    arquivo?: File | null
+  ): Promise<PerfilResponse> => {
+    const formData = criarFormDataMultipart(request, arquivo);
+    const { data } = await api.post<PerfilResponse>("/perfil", formData);
     return data;
   },
  
-  editarPerfil: async (request: EditarPerfilRequest): Promise<PerfilResponse> => {
-    const { data } = await api.put<PerfilResponse>("/perfil", request);
+  editarPerfil: async (
+    request: EditarPerfilRequest,
+    arquivo?: File | null
+  ): Promise<PerfilResponse> => {
+    const formData = criarFormDataMultipart(request, arquivo);
+    const { data } = await api.put<PerfilResponse>("/perfil", formData);
     return data;
   },
  

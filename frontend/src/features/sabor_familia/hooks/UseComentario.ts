@@ -64,7 +64,7 @@ export function useAdicionarComentario(receitaId: number) {
         id: response.id,
         perfilId: response.usuarioId,
         nomePerfil: response.nomeAutor,
-        fotoPerfilUrl: null,
+        possuiMidia: false,
         comentario: response.comentario,
         dataComentario: response.dataCadastro,
       };

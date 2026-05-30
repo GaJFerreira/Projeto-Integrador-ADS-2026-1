@@ -1,23 +1,35 @@
 import { useEffect, useState } from "react";
+import { useMidiaUrl } from "../../hooks/UseMidia";
 import { AvatarPlaceholderIcon } from "../../icon/placeholder/AvatarPlaceholderIcon";
 import "./perfilAvatar.css";
 
 interface Props {
-  src?: string | null;
+  perfilId?: number;
+  possuiMidia?: boolean;
+  previewSrc?: string | null;
   alt: string;
   className?: string;
   placeholderClassName?: string;
 }
 
 export function PerfilAvatar({
-  src,
+  perfilId,
+  possuiMidia = false,
+  previewSrc,
   alt,
   className = "",
   placeholderClassName = "",
 }: Props) {
   const [failed, setFailed] = useState(false);
-  const url = src?.trim() ?? "";
-  const showImage = url.length > 0 && !failed;
+  const { url: midiaUrl, failed: midiaFailed } = useMidiaUrl(
+    "perfil",
+    perfilId,
+    possuiMidia && !previewSrc
+  );
+
+  const preview = previewSrc?.trim() ?? "";
+  const url = preview || midiaUrl || "";
+  const showImage = url.length > 0 && !failed && !midiaFailed;
 
   useEffect(() => {
     setFailed(false);

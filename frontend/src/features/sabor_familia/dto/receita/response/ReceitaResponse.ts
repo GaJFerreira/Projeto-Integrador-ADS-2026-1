@@ -9,6 +9,7 @@ export interface ReceitaResponse {
   curtidoPeloUsuario: boolean;
   favoritadoPeloUsuario: boolean;
   restritaParaUsuario: boolean;
+  possuiMidia: boolean;
   autor: PerfilResumoResponse;
   detalhes: DetalhesReceita;
   estatisticas: EstatisticasReceita;
