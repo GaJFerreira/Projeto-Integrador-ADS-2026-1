@@ -70,16 +70,10 @@ function CareHubPerfilGate() {
         const { data } = await http.get<PerfilResponse>('/api/carehub/perfil');
         if (!mounted) return;
 
-        const userStr = localStorage.getItem('user');
-        const localUserId = userStr ? JSON.parse(userStr)?.userId : null;
-        const confirmKey = `carehub_profile_confirmed_${data?.platformUserId ?? localUserId ?? 'unknown'}`;
-        const confirmouPrimeiroAcesso = localStorage.getItem(confirmKey) === 'true';
-
-        const precisaConfirmarPrimeiroAcesso = !confirmouPrimeiroAcesso;
         const precisaCompletarCuidador = cuidadorIncompleto(data);
         const precisaCompletarCliente = clienteIncompleto(data);
 
-        setStatus((precisaConfirmarPrimeiroAcesso || precisaCompletarCuidador || precisaCompletarCliente) ? 'need-profile' : 'ok');
+        setStatus((precisaCompletarCuidador || precisaCompletarCliente) ? 'need-profile' : 'ok');
       } catch {
         if (!mounted) return;
         // Se a API falhar (ex: backend offline ou erro 500), NÃO devemos liberar o acesso.
