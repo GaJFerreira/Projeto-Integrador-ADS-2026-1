@@ -14,6 +14,7 @@ import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
 import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.midia.dto.MidiaResponse;
+import br.com.puc.saborfamilia.service.midia.storage.MidiaPathResolver;
 import br.com.puc.saborfamilia.utils.MidiaUtils;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,6 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +60,7 @@ public class MidiaServiceImpl implements MidiaService {
   private final PerfilRepository perfilRepository;
   private final ReceitaRepository receitaRepository;
   private final UploadMediaConfig uploadMediaConfig;
+  private final MidiaPathResolver midiaPathResolver;
 
   @Value("${sabor-familia.upload.max-upload-bytes}")
   private long maxUploadBytes;
@@ -77,7 +80,6 @@ public class MidiaServiceImpl implements MidiaService {
       .orElseThrow(() -> switch (tipoEntidade) {
         case PERFIL -> new ResourceNotFoundException(MIDIA_PERFIL_NAO_ENCONTRADA);
         case RECEITA -> new ResourceNotFoundException(MIDIA_RECEITA_NAO_ENCONTRADA);
-        default -> new ServiceException(TIPO_ENTIDADE_INVALIDO);
       });
 
     return ResponseEntity.ok()
@@ -94,7 +96,12 @@ public class MidiaServiceImpl implements MidiaService {
         PerfilEntity perfil = perfilRepository.findByUsuarioId(usuarioId)
           .orElseThrow(() -> new ResourceNotFoundException(PERFIL_NAO_ENCONTRADO));
 
-        persistirMidia(tipoEntidade, perfil.getId(), arquivo, UploadMediaConfig.DIRETORIO_PERFIS);
+        persistirMidia(
+          TipoEntidadeEnum.PERFIL,
+          perfil.getId(),
+          arquivo,
+          formato -> midiaPathResolver.caminhoRelativoAvatar(perfil.getId(), formato)
+        );
       }
       case RECEITA -> {
         PerfilEntity perfil = perfilRepository.findByUsuarioId(usuarioId)
@@ -107,7 +114,12 @@ public class MidiaServiceImpl implements MidiaService {
           throw new ServiceException(SEM_PERMISSAO_REMOCAO);
         }
 
-        persistirMidia(tipoEntidade, receita.getId(), arquivo, UploadMediaConfig.DIRETORIO_RECEITAS);
+        persistirMidia(
+          TipoEntidadeEnum.RECEITA,
+          receita.getId(),
+          arquivo,
+          formato -> midiaPathResolver.caminhoRelativoCapaReceita(perfil.getId(), receita.getId(), formato)
+        );
       }
       default -> throw new ServiceException(TIPO_ENTIDADE_INVALIDO);
     }
@@ -168,7 +180,12 @@ public class MidiaServiceImpl implements MidiaService {
       });
   }
 
-  private void persistirMidia(TipoEntidadeEnum tipoEntidade, Long entidadeId, MultipartFile arquivo, String diretorio) {
+  private void persistirMidia(
+    TipoEntidadeEnum tipoEntidade,
+    Long entidadeId,
+    MultipartFile arquivo,
+    Function<FormatoMidiaEnum, String> resolverCaminho
+  ) {
     validarArquivo(arquivo);
 
     FormatoMidiaEnum formato;
@@ -198,7 +215,7 @@ public class MidiaServiceImpl implements MidiaService {
       throw new ServiceException(TAMANHO_EXCEDIDO);
     }
 
-    String caminhoRelativo = diretorio + "/" + entidadeId + formato.getExtensao();
+    String caminhoRelativo = resolverCaminho.apply(formato);
     Path destino = validarCaminhoArquivo(caminhoRelativo);
 
     midiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
@@ -248,11 +265,11 @@ public class MidiaServiceImpl implements MidiaService {
             return Optional.empty();
           }
 
-          byte[] original = Files.readAllBytes(arquivo);
+          byte[] midiaOriginal = Files.readAllBytes(arquivo);
           FormatoMidiaEnum formato = MidiaUtils.ajustarFormato(midia.getContentType());
-          byte[] ajustada = MidiaUtils.redimensionarMidia(original, contexto.getLarguraMaximaPx(), formato);
+          byte[] midiaAjustada = MidiaUtils.redimensionarMidia(midiaOriginal, contexto.getLarguraMaximaPx(), formato);
 
-          return Optional.of(new MidiaResponse(ajustada, formato.getContentType()));
+          return Optional.of(new MidiaResponse(midiaAjustada, formato.getContentType()));
         }
         catch (IOException e) {
           log.error("Falha ao ler mídia: tipo={}, entidadeId={}, contexto={}", tipoEntidade, entidadeId, contexto, e);

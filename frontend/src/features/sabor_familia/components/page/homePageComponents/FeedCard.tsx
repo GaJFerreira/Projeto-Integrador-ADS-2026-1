@@ -205,11 +205,15 @@ function FeedCard({
 
         {/* Favoritar */}
         <button
-          className={`feed-card__action feed-card__action--bookmark ${favoritado ? "feed-card__action--bookmarked" : ""}`}
+          type="button"
+          className={`feed-card__action feed-card__action--favorito ${favoritado ? "feed-card__action--favoritado" : ""}`}
           onClick={(e) => { e.stopPropagation(); alternarFavorito(); }}
-          title="Salvar nos favoritos"
+          aria-pressed={favoritado}
+          aria-label={favoritado ? "Remover receita dos favoritos" : "Salvar receita nos favoritos"}
+          title={favoritado ? "Remover dos favoritos" : "Salvar nos favoritos"}
         >
           <BookmarkIcon active={favoritado} />
+          <span>{favoritado ? "Salva nos favoritos" : "Salvar nos favoritos"}</span>
         </button>
       </footer>
     </article>

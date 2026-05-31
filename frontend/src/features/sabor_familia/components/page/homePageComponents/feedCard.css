@@ -259,10 +259,10 @@
   color: var(--danger);
 }
 
-.feed-card__action--bookmark {
+.feed-card__action--favorito {
   margin-left: auto;
 }
 
-.feed-card__action--bookmarked {
+.feed-card__action--favoritado {
   color: var(--brand);
 }

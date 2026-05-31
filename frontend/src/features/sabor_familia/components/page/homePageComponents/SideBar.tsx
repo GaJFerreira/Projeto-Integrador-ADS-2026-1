@@ -4,7 +4,7 @@ import { useAuth } from "../../../hooks/UseAuth";
 import HomeIcon from "../../../icon/menu/HomeIcon";
 import CompassIcon from "../../../icon/menu/CompassIcon";
 import ChatIcon from "../../../icon/menu/ChatIcon";
-import HeartIcon from "../../../icon/menu/HeartIcon"; 
+import BookmarkIcon from "../../../icon/menu/BookmarkIcon";
 import PlusIcon from "../../../icon/menu/PlusIcon";
 import SettingsIcon from "../../../icon/menu/SettingsIcon";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
@@ -18,7 +18,7 @@ function Sidebar() {
     { label: "Início",          icon: <HomeIcon />,     path: "/sabor-familia/home" },
     { label: "Explorar",        icon: <CompassIcon />,  path: "/sabor-familia/explorar" }, 
     { label: "Mensagens",       icon: <ChatIcon />,     path: "/sabor-familia/mensagens" },
-    { label: "Favoritos",       icon: <HeartIcon />,    path: "/sabor-familia/favoritos" },
+    { label: "Favoritos",       icon: <BookmarkIcon active={pathname === "/sabor-familia/favoritos"} />, path: "/sabor-familia/favoritos" },
     { label: "Adicionar receita", icon: <PlusIcon />,   path: "/sabor-familia/receita/nova" },
   ];
 

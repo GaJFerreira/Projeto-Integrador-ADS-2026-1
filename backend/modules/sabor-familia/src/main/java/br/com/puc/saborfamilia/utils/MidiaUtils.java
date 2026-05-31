@@ -64,6 +64,7 @@ public final class MidiaUtils {
 
   public static byte[] redimensionarMidia(byte[] imagemOriginal, int larguraMaximaPx, FormatoMidiaEnum formato)
     throws IOException {
+
     BufferedImage original = ImageIO.read(new java.io.ByteArrayInputStream(imagemOriginal));
 
     if (original == null) {

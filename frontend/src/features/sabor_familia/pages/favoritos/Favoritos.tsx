@@ -55,7 +55,7 @@ export function Favoritos() {
     <main className="explorar-main favoritos-main">
         <div className="favoritos-header">
           <BookmarkIcon active />
-          <h2 className="favoritos-header__title">Receitas Favoritas</h2>
+          <h2 className="favoritos-header__title">Receitas salvas nos favoritos</h2>
         </div>
 
         {loading && page === 0 && (
@@ -78,7 +78,10 @@ export function Favoritos() {
           <div className="favoritos-empty">
             <BookmarkIcon active={false} />
             <p>Você ainda não salvou nenhuma receita.</p>
-            <p>Toque no ícone 🔖 em qualquer receita para salvar.</p>
+            <p>
+              Nas receitas do feed, toque em <strong>Salvar nos favoritos</strong> para
+              guardá-las aqui — o mesmo ícone de marcador do menu ao lado.
+            </p>
           </div>
         )}
 

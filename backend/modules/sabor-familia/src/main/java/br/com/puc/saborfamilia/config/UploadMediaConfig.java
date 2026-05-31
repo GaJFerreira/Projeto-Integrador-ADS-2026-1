@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.config;
 
+import br.com.puc.saborfamilia.service.midia.storage.MidiaPathResolver;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,19 +14,13 @@ import org.springframework.util.StringUtils;
 @Configuration
 public class UploadMediaConfig {
 
-  public static final String DIRETORIO_PERFIS = "perfis";
-  public static final String DIRETORIO_RECEITAS = "receitas";
-
   @Value("${sabor-familia.upload.base-dir}")
   private String baseDir;
 
   @PostConstruct
   void configurarDiretorio() throws IOException {
     Path diretorioBase = configurarDiretorioBase();
-
-    Files.createDirectories(diretorioBase.resolve(DIRETORIO_PERFIS));
-    Files.createDirectories(diretorioBase.resolve(DIRETORIO_RECEITAS));
-
+    Files.createDirectories(diretorioBase.resolve(MidiaPathResolver.DIRETORIO_RAIZ));
     log.info("Armazenamento de mídia Sabor Família: {}", diretorioBase);
   }
 

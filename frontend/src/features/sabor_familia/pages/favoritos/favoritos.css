@@ -9,6 +9,11 @@
   margin-bottom: 1.25rem;
 }
 
+.favoritos-header svg {
+  color: var(--brand);
+  flex-shrink: 0;
+}
+
 .favoritos-header__title {
   font-size: 18px;
   font-weight: 700;

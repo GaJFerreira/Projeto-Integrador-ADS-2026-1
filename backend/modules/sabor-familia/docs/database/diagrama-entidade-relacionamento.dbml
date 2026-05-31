@@ -2,7 +2,7 @@ Project SaborFamilia {
   database_type: 'PostgreSQL'
   Note: '''
     Schema PostgreSQL: sabor_familia (todas as tabelas abaixo).
-    Mídia de perfil e receita: metadados em midia + bytes em disco (perfis/, receitas/).
+    Mídia de perfil e receita: metadados em midia + bytes em disco (perfil/{perfilId}/).
     Coluna legada perfil.foto_perfil_url removida — não usar.
   '''
 }
@@ -29,7 +29,7 @@ Table midia {
   tipo_entidade varchar(20) [not null, note: 'TipoEntidadeEnum: PERFIL | RECEITA']
   entidade_id bigint [not null, note: 'perfil.id ou receita.id conforme tipo_entidade']
   content_type varchar(100) [not null, note: 'image/jpeg ou image/png']
-  caminho_relativo varchar(500) [not null, note: 'Ex.: perfis/{id}.jpg ou receitas/{id}.png']
+  caminho_relativo varchar(500) [not null, note: 'Ex.: perfil/1515/avatar.jpg ou perfil/1515/receitas/8842.png']
   tamanho_bytes bigint [not null, note: 'Tamanho apos redimensionamento']
   data_cadastro timestamp [not null]
   ultima_atualizacao timestamp [not null]
