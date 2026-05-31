@@ -4,22 +4,34 @@
 
 .favoritos-header {
   display: flex;
-  align-items: center;
-  gap: 0.6rem;
+  align-items: flex-start;
+  gap: 0.75rem;
   margin-bottom: 1.25rem;
 }
 
 .favoritos-header svg {
   color: var(--brand);
   flex-shrink: 0;
+  margin-top: 0.2rem;
+}
+
+.favoritos-header__text {
+  min-width: 0;
 }
 
 .favoritos-header__title {
-  font-size: 18px;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text);
   font-family: var(--font-sans);
+  margin: 0 0 0.35rem;
+}
+
+.favoritos-header__subtitle {
   margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.45;
 }
 
 .favoritos-empty {

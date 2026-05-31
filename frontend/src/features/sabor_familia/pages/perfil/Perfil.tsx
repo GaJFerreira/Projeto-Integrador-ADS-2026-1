@@ -22,7 +22,8 @@ export function Perfil() {
   } = useAlternarSeguir(
     id,
     perfil?.seguindoPerfil ?? false,
-    perfil?.estatisticas?.countSeguidores ?? 0
+    perfil?.estatisticas?.countSeguidores ?? 0,
+    perfil?.detalhes?.nome
   );
 
   const listaReceitas = receitas?.content ?? [];

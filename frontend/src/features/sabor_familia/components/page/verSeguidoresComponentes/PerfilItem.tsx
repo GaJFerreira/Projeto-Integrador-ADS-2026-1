@@ -11,7 +11,8 @@ export function PerfilItem({ perfil }: { perfil: PerfilResumoResponse }) {
   const { perfilId: meuPerfilId } = useAuth();
   const { seguindo, alternar, loading } = useAlternarSeguirLista(
     perfil.perfilId,
-    perfil.seguindoPeloUsuario ?? false
+    perfil.seguindoPeloUsuario ?? false,
+    perfil.nome
   );
 
   const exibirSeguir =

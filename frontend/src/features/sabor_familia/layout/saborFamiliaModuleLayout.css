@@ -17,6 +17,15 @@
   min-height: 0;
 }
 
+/* Login, cadastro etc. — rolagem interna dentro da área fixa do módulo */
+.sf-module-layout > .cp-main,
+.sf-module-layout > .sf-fullpage-scroll {
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .sf-module-layout ::-webkit-scrollbar {
   width: 8px;
 }

@@ -8,6 +8,7 @@ import BookmarkIcon from "../../../icon/menu/BookmarkIcon";
 import PlusIcon from "../../../icon/menu/PlusIcon";
 import SettingsIcon from "../../../icon/menu/SettingsIcon";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 
 function Sidebar() {
   const navigate = useNavigate();
@@ -15,11 +16,15 @@ function Sidebar() {
   const { perfil, perfilId  } = useAuth();
 
   const links = [
-    { label: "Início",          icon: <HomeIcon />,     path: "/sabor-familia/home" },
-    { label: "Explorar",        icon: <CompassIcon />,  path: "/sabor-familia/explorar" }, 
-    { label: "Mensagens",       icon: <ChatIcon />,     path: "/sabor-familia/mensagens" },
-    { label: "Favoritos",       icon: <BookmarkIcon active={pathname === "/sabor-familia/favoritos"} />, path: "/sabor-familia/favoritos" },
-    { label: "Adicionar receita", icon: <PlusIcon />,   path: "/sabor-familia/receita/nova" },
+    { ...TEXTOS_INTERFACE.menu.inicio,          icon: <HomeIcon />,     path: "/sabor-familia/home" },
+    { ...TEXTOS_INTERFACE.menu.descobrir,       icon: <CompassIcon />,  path: "/sabor-familia/explorar" },
+    { ...TEXTOS_INTERFACE.menu.mensagens,       icon: <ChatIcon />,     path: "/sabor-familia/mensagens" },
+    {
+      ...TEXTOS_INTERFACE.menu.favoritos,
+      icon: <BookmarkIcon active={pathname === "/sabor-familia/favoritos"} />,
+      path: "/sabor-familia/favoritos",
+    },
+    { ...TEXTOS_INTERFACE.menu.publicarReceita, icon: <PlusIcon />,     path: "/sabor-familia/receita/nova" },
   ];
 
   return (
@@ -40,14 +45,18 @@ function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {links.map(({ label, icon, path }) => (
+        {links.map(({ titulo, explicacao, icon, path }) => (
           <button
             key={path}
             className={`sidebar-link ${pathname === path ? "active" : ""}`}
             onClick={() => navigate(path)}
+            title={`${titulo} — ${explicacao}`}
           >
             {icon}
-            <span>{label}</span>
+            <span className="sidebar-link__text">
+              <span className="sidebar-link__label">{titulo}</span>
+              <span className="sidebar-link__hint">{explicacao}</span>
+            </span>
           </button>
         ))}
       </nav>
@@ -61,11 +70,21 @@ function Sidebar() {
             className="sidebar-avatar"
             placeholderClassName="sidebar-avatar sidebar-avatar--placeholder"
           />
-          <span>Perfil</span>
+          <span className="sidebar-link__text">
+            <span className="sidebar-link__label">{TEXTOS_INTERFACE.menu.meuPerfil.titulo}</span>
+            <span className="sidebar-link__hint">{TEXTOS_INTERFACE.menu.meuPerfil.explicacao}</span>
+          </span>
         </button>
-        <button className="sidebar-link" onClick={() => navigate("/sabor-familia/configuracoes")}>
+        <button
+          className="sidebar-link"
+          onClick={() => navigate("/sabor-familia/configuracoes")}
+          title={`${TEXTOS_INTERFACE.menu.configuracoes.titulo} — ${TEXTOS_INTERFACE.menu.configuracoes.explicacao}`}
+        >
           <SettingsIcon />
-          <span>Configurações</span>
+          <span className="sidebar-link__text">
+            <span className="sidebar-link__label">{TEXTOS_INTERFACE.menu.configuracoes.titulo}</span>
+            <span className="sidebar-link__hint">{TEXTOS_INTERFACE.menu.configuracoes.explicacao}</span>
+          </span>
         </button>
       </div>
     </aside>

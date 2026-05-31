@@ -1,4 +1,5 @@
 import "./explorarSegmentedSwitch.css";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 
 export type ExplorarModo = "receitas" | "perfis";
 
@@ -14,7 +15,7 @@ export function ExplorarSegmentedSwitch({ modo, onChange }: Props) {
     <div
       className={`explorar-segmented ${isReceitas ? "" : "explorar-segmented--perfis"}`}
       role="tablist"
-      aria-label="Explorar receitas ou perfis"
+      aria-label={TEXTOS_INTERFACE.descobrir.rotuloAbas}
     >
       <div className="explorar-segmented__thumb" aria-hidden />
       <button
@@ -24,7 +25,7 @@ export function ExplorarSegmentedSwitch({ modo, onChange }: Props) {
         className={`explorar-segmented__option ${isReceitas ? "explorar-segmented__option--active" : ""}`}
         onClick={() => onChange("receitas")}
       >
-        Receitas
+        {TEXTOS_INTERFACE.descobrir.abaReceitas}
       </button>
       <button
         type="button"
@@ -33,7 +34,7 @@ export function ExplorarSegmentedSwitch({ modo, onChange }: Props) {
         className={`explorar-segmented__option ${!isReceitas ? "explorar-segmented__option--active" : ""}`}
         onClick={() => onChange("perfis")}
       >
-        Perfis
+        {TEXTOS_INTERFACE.descobrir.abaPessoas}
       </button>
     </div>
   );

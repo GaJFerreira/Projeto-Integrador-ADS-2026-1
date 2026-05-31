@@ -14,6 +14,8 @@ import {
   type ExplorarModo,
 } from "../../components/page/explorarComponents/ExplorarSegmentedSwitch";
 import SearchIcon from "../../icon/menu/SearchIcon";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
+import { IndicadorCarregamento } from "../../components/common/IndicadorCarregamento";
 
 const TIPO_LABELS: Record<TipoRefeicaoEnum, string> = {
   CAFE_DA_MANHA: "Café da manhã",
@@ -114,6 +116,11 @@ export function Explorar() {
 
   return (
     <main className="explorar-main">
+        <header className="explorar-page-header">
+          <h1 className="explorar-page-header__title">{TEXTOS_INTERFACE.descobrir.titulo}</h1>
+          <p className="explorar-page-header__subtitle">{TEXTOS_INTERFACE.descobrir.subtitulo}</p>
+        </header>
+
         <ExplorarSegmentedSwitch modo={modo} onChange={handleModo} />
 
         <div className="explorar-filters">
@@ -124,8 +131,8 @@ export function Explorar() {
               type="text"
               placeholder={
                 isReceitas
-                  ? "Buscar receita por nome…"
-                  : "Buscar perfil por nome…"
+                  ? TEXTOS_INTERFACE.descobrir.buscaReceita
+                  : TEXTOS_INTERFACE.descobrir.buscaPessoa
               }
               value={titulo}
               onChange={(e) => handleSearch(e.target.value)}
@@ -149,10 +156,14 @@ export function Explorar() {
         </div>
 
         {loading && page === 0 && (
-          <div className="explorar-loading">
-            <div className="explorar-spinner" />
-            <span>{isReceitas ? "Buscando receitas…" : "Buscando perfis…"}</span>
-          </div>
+          <IndicadorCarregamento
+            estilo="grade"
+            texto={
+              isReceitas
+                ? TEXTOS_INTERFACE.carregamento.receitas
+                : TEXTOS_INTERFACE.carregamento.pessoas
+            }
+          />
         )}
 
         {error && (
@@ -164,17 +175,17 @@ export function Explorar() {
             {totalElements}{" "}
             {isReceitas
               ? `receita${totalElements !== 1 ? "s" : ""} encontrada${totalElements !== 1 ? "s" : ""}`
-              : `perfil${totalElements !== 1 ? "is" : ""} encontrado${totalElements !== 1 ? "s" : ""}`}
+              : `pessoa${totalElements !== 1 ? "s" : ""} encontrada${totalElements !== 1 ? "s" : ""}`}
           </p>
         )}
 
         {!loading && !error && (isReceitas ? listaReceitas.length === 0 : listaPerfis.length === 0) && (
           <div className="explorar-empty">
-            <p>{isReceitas ? "Nenhuma receita encontrada." : "Nenhum perfil encontrado."}</p>
+            <p>{isReceitas ? "Nenhuma receita encontrada." : "Nenhuma pessoa encontrada."}</p>
             <p>
               {isReceitas
                 ? "Tente buscar por outro nome ou tipo de refeição."
-                : "Tente buscar por outro nome."}
+                : "Tente buscar por outro nome ou siga pessoas pelo botão Seguir esta pessoa."}
             </p>
           </div>
         )}
@@ -205,9 +216,15 @@ export function Explorar() {
         )}
 
         {loading && page > 0 && (
-          <div className="explorar-loading" style={{ margin: "1rem auto" }}>
-            <div className="explorar-spinner" />
-          </div>
+          <IndicadorCarregamento
+            estilo="grade"
+            className="explorar-loading--inline"
+            texto={
+              isReceitas
+                ? TEXTOS_INTERFACE.carregamento.maisReceitas
+                : TEXTOS_INTERFACE.carregamento.pessoas
+            }
+          />
         )}
     </main>
   );

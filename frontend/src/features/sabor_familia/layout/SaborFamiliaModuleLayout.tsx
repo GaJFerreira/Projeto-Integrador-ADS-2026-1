@@ -2,6 +2,7 @@ import { useRef } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import { limparCacheMidia } from "../lib/midiaCache";
 import Sidebar from "../components/page/homePageComponents/SideBar";
+import { ProvedorDialogoConfirmacao } from "../context/DialogoConfirmacao";
 import "../pages/home/homeSaborFamilia.css";
 import "./saborFamiliaModuleLayout.css";
 
@@ -22,16 +23,18 @@ export function SaborFamiliaModuleLayout() {
   }
 
   return (
-    <div className="sf-module-layout">
-      {comSidebar ? (
-        <div className="home-layout">
-          <Sidebar />
+    <ProvedorDialogoConfirmacao>
+      <div className="sf-module-layout">
+        {comSidebar ? (
+          <div className="home-layout">
+            <Sidebar />
+            <Outlet />
+          </div>
+        ) : (
           <Outlet />
-        </div>
-      ) : (
-        <Outlet />
-      )}
-    </div>
+        )}
+      </div>
+    </ProvedorDialogoConfirmacao>
   );
 }
 

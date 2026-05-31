@@ -1,7 +1,12 @@
 import "../../pages/home/homeSaborFamilia.css";
 import { useState } from "react";
 import { useBuscarReceita, useRemoverReceita } from "../../hooks/UseReceita";
-import { confirmarApagarReceita } from "../../utils/confirmarApagarReceita";
+import {
+  TEXTOS_INTERFACE,
+  opcoesDialogoApagarReceita,
+} from "../../utils/textosInterface";
+import { useDialogoConfirmacao } from "../../context/DialogoConfirmacao";
+import { IndicadorCarregamento } from "./IndicadorCarregamento";
 import type { ReceitaResponse } from "../../dto/receita/response/ReceitaResponse";
 import type { VoltarDestino } from "../../utils/voltarDestino";
 import FeedCard from "../page/homePageComponents/FeedCard";
@@ -28,11 +33,13 @@ export function ReceitaFocusView({
 }: Props) {
   const { receita, loading, error, recarregar } = useBuscarReceita(receitaId);
   const { remover, loading: removendo } = useRemoverReceita();
+  const pedirConfirmacao = useDialogoConfirmacao();
   const [selecionada, setSelecionada] = useState<ReceitaResponse | null>(null);
 
-  const handleRemoverReceita = (id: number) => {
+  const handleRemoverReceita = async (id: number) => {
     const titulo = receita?.id === id ? receita.detalhes.titulo : undefined;
-    if (!confirmarApagarReceita(titulo)) return;
+    const confirmado = await pedirConfirmacao(opcoesDialogoApagarReceita(titulo));
+    if (!confirmado) return;
 
     remover(id, () => {
       setSelecionada(null);
@@ -51,10 +58,7 @@ export function ReceitaFocusView({
         />
 
         {loading && (
-          <div className="home-loading">
-            <div className="home-loading__spinner" />
-            <span>Carregando receita…</span>
-          </div>
+          <IndicadorCarregamento texto={TEXTOS_INTERFACE.carregamento.receita} />
         )}
 
         {error && (

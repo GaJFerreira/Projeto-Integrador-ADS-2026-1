@@ -10,6 +10,8 @@ import { ConteudoReceita } from "../../components/page/adicionarReceitaComponent
 import { Restricoes } from "../../components/page/adicionarReceitaComponents/Restricoes";
 import { Personalizacoes } from "../../components/page/adicionarReceitaComponents/Personalizacoes";
 import { ImagemUploadField } from "../../components/common/ImagemUploadField";
+import { IndicadorCarregamento } from "../../components/common/IndicadorCarregamento";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 import { ContextoMidiaReceita } from "../../dto/enums/ContextoMidiaEnum";
 import type { TipoRefeicaoEnum } from "../../dto/enums/TipoRefeicaoEnum";
 import type { PersonalizacaoResumoResponse } from "../../dto/personalizacao/response/PersonalizacaoResumoResponse";
@@ -132,9 +134,8 @@ export function EditarReceita() {
   if (carregando) {
     return (
       <main className="ar-main">
-        <div className="ar-container home-loading">
-          <div className="home-loading__spinner" />
-          <span>Carregando receita…</span>
+        <div className="ar-container">
+          <IndicadorCarregamento texto={TEXTOS_INTERFACE.carregamento.receita} />
         </div>
       </main>
     );

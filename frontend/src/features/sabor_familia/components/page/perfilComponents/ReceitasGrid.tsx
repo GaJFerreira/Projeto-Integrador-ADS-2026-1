@@ -1,6 +1,8 @@
 import "./receitaGrid.css";
 import type { ReceitaResumoResponse } from "../../../dto/receita/response/ReceitaResumoResponse";
 import { ReceitaGridCard } from "./ReceitaGridCard";
+import { IndicadorCarregamento } from "../../common/IndicadorCarregamento";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 
 interface Props {
   receitas: ReceitaResumoResponse[];
@@ -17,9 +19,10 @@ export function ReceitasGrid({ receitas, loading, onAbrirReceita }: Props) {
       </div>
 
       {loading && (
-        <div className="rg-loading">
-          <div className="home-loading__spinner" />
-        </div>
+        <IndicadorCarregamento
+          estilo="grade"
+          texto={TEXTOS_INTERFACE.carregamento.receitas}
+        />
       )}
 
       {!loading && receitas.length === 0 && (

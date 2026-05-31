@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
+import { useSnackbar } from "notistack";
 import { useAuth } from "./UseAuth";
 import { perfilService } from "../service/PerfilService";
 import { invalidarMidia } from "../lib/midiaCache";
@@ -8,11 +9,17 @@ import {
   tratarErroListagem,
   tratarErroAcao,
 } from "../utils/tratarErroRequisicao";
+import {
+  textoSucessoDeixarSeguir,
+  textoSucessoSeguir,
+} from "../utils/textosInterface";
 import type { PerfilRequest } from "../dto/perfil/request/PerfilRequest";
 import type { EditarPerfilRequest } from "../dto/perfil/request/EditarPerfilRequest";
 import type { PerfilResponse } from "../dto/perfil/response/PerfilResponse";
 import type { PerfilResumoResponse } from "../dto/perfil/response/PerfilResumoResponse";
 import type { PageResponse } from "../dto/page/PageResponse";
+
+const DURACAO_FEEDBACK_MS = 5000;
 
 export function useBuscarMeuPerfil() {
   const { salvarPerfil } = useAuth();
@@ -253,12 +260,14 @@ export function useBuscarSeguindo(perfilId: number, page = 0, size = 20) {
 export function useAlternarSeguir(
   perfilId: number,
   seguindoInicial: boolean,
-  totalSeguidoresInicial: number
+  totalSeguidoresInicial: number,
+  nomePerfil?: string
 ) {
   const [seguindo, setSeguindo] = useState(seguindoInicial);
   const [totalSeguidores, setTotalSeguidores] = useState(totalSeguidoresInicial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     setSeguindo(seguindoInicial);
@@ -277,8 +286,16 @@ export function useAlternarSeguir(
     try {
       if (novoEstado) {
         await perfilService.seguirPerfil(perfilId);
+        enqueueSnackbar(textoSucessoSeguir(nomePerfil), {
+          variant: "success",
+          autoHideDuration: DURACAO_FEEDBACK_MS,
+        });
       } else {
         await perfilService.deixarSeguirPerfil(perfilId);
+        enqueueSnackbar(textoSucessoDeixarSeguir(nomePerfil), {
+          variant: "info",
+          autoHideDuration: DURACAO_FEEDBACK_MS,
+        });
       }
     } catch (err: unknown) {
       setSeguindo(seguindoInicial);
@@ -293,10 +310,15 @@ export function useAlternarSeguir(
   return { seguindo, totalSeguidores, alternar, loading, error };
 }
 
-export function useAlternarSeguirLista(perfilId: number, seguindoInicial: boolean) {
+export function useAlternarSeguirLista(
+  perfilId: number,
+  seguindoInicial: boolean,
+  nomePerfil?: string
+) {
   const [seguindo, setSeguindo] = useState(seguindoInicial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     setSeguindo(seguindoInicial);
@@ -313,8 +335,16 @@ export function useAlternarSeguirLista(perfilId: number, seguindoInicial: boolea
     try {
       if (novoEstado) {
         await perfilService.seguirPerfil(perfilId);
+        enqueueSnackbar(textoSucessoSeguir(nomePerfil), {
+          variant: "success",
+          autoHideDuration: DURACAO_FEEDBACK_MS,
+        });
       } else {
         await perfilService.deixarSeguirPerfil(perfilId);
+        enqueueSnackbar(textoSucessoDeixarSeguir(nomePerfil), {
+          variant: "info",
+          autoHideDuration: DURACAO_FEEDBACK_MS,
+        });
       }
     } catch (err: unknown) {
       setSeguindo(seguindoInicial);

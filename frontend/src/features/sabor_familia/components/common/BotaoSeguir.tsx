@@ -1,4 +1,5 @@
 import type { MouseEvent } from "react";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 import "./btnSeguir.css";
 
 interface Props {
@@ -25,6 +26,16 @@ export function BotaoSeguir({
     .filter(Boolean)
     .join(" ");
 
+  const label = loading
+    ? "…"
+    : seguindo
+      ? compacto
+        ? TEXTOS_INTERFACE.seguir.botaoSeguindoCurto
+        : TEXTOS_INTERFACE.seguir.botaoSeguindo
+      : compacto
+        ? TEXTOS_INTERFACE.seguir.botaoSeguirCurto
+        : TEXTOS_INTERFACE.seguir.botaoSeguir;
+
   return (
     <button
       type="button"
@@ -32,8 +43,9 @@ export function BotaoSeguir({
       onClick={onClick}
       disabled={loading}
       aria-pressed={seguindo}
+      title={seguindo ? TEXTOS_INTERFACE.seguir.botaoSeguindo : TEXTOS_INTERFACE.seguir.botaoSeguir}
     >
-      {loading ? "…" : seguindo ? "Seguindo" : "Seguir"}
+      {label}
     </button>
   );
 }

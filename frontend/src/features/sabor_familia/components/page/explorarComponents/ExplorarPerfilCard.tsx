@@ -16,7 +16,8 @@ export function ExplorarPerfilCard({ perfil }: Props) {
   const { perfilId: meuPerfilId } = useAuth();
   const { seguindo, alternar, loading } = useAlternarSeguirLista(
     perfil.perfilId,
-    perfil.seguindoPeloUsuario ?? false
+    perfil.seguindoPeloUsuario ?? false,
+    perfil.nome
   );
 
   const exibirSeguir = meuPerfilId !== null && perfil.perfilId !== meuPerfilId;

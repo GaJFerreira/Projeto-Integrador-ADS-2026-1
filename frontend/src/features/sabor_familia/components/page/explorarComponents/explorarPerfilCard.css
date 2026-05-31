@@ -54,6 +54,15 @@
   word-break: break-word;
 }
 
+.explorar-perfil-card .sf-seguir-btn--compacto {
+  white-space: normal;
+  text-align: center;
+  max-width: 100%;
+  font-size: 12px;
+  line-height: 1.25;
+  padding: 0.35rem 0.65rem;
+}
+
 .explorar-perfil-card__main:hover .explorar-perfil-card__nome {
   color: var(--brand-dark);
 }

@@ -48,6 +48,28 @@
   gap: 1.75rem;
 }
 
+.home-page-header {
+  width: 100%;
+  max-width: min(var(--feed-w), 100%);
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.home-page-header__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.home-page-header__subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
 .home-loading {
   display: flex;
   flex-direction: column;
@@ -82,11 +104,79 @@
 }
 
 .home-empty {
-  text-align: center;
-  color: var(--text-muted);
+  text-align: left;
+  color: var(--text);
+  font-size: 15px;
+  margin: 2rem 0 3rem;
+  line-height: 1.65;
+  max-width: 520px;
+  width: 100%;
+  padding: 1.5rem 1.35rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.home-empty__title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 1rem;
+  line-height: 1.35;
+}
+
+.home-empty__lead {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text);
+  margin: 0 0 0.85rem;
+}
+
+.home-empty__steps {
+  margin: 1.25rem 0;
+  padding-left: 1.35rem;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text);
+}
+
+.home-empty__steps li {
+  margin-bottom: 0.75rem;
+  padding-left: 0.25rem;
+}
+
+.home-empty__steps li:last-child {
+  margin-bottom: 0;
+}
+
+.home-empty__hint {
+  font-family: var(--font-sans);
   font-size: 14px;
-  margin: 4rem 0;
-  line-height: 1.8;
+  color: var(--text-muted);
+  margin: 1rem 0 1.25rem;
+}
+
+.home-empty__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.65rem 1.35rem;
+  border: none;
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(186, 117, 23, 0.2);
+  transition: background 0.15s;
+}
+
+.home-empty__cta:hover {
+  background: var(--brand-dark);
 }
 
 .home-main::-webkit-scrollbar,
@@ -121,7 +211,7 @@
 @media (max-width: 900px) {
   .sidebar-brand,
   .sidebar-brand-sub,
-  .sidebar-link span {
+  .sidebar-link__text {
     display: none;
   }
 

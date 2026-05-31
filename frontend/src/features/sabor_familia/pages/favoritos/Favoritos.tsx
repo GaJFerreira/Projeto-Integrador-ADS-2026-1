@@ -6,6 +6,8 @@ import { useBuscarReceitasFavoritas } from "../../hooks/UseReceita";
 import type { ReceitaResponse } from "../../dto/receita/response/ReceitaResponse";
 import type { ReceitaResumoResponse } from "../../dto/receita/response/ReceitaResumoResponse";
 import BookmarkIcon from "../../icon/menu/BookmarkIcon";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
+import { IndicadorCarregamento } from "../../components/common/IndicadorCarregamento";
 import { ExplorarCard } from "../../components/page/explorarComponents/ExplorarCard";
 import { ExplorarReceitaFocus } from "../../components/page/explorarComponents/ExplorarReceitaFocus";
 
@@ -53,16 +55,19 @@ export function Favoritos() {
 
   return (
     <main className="explorar-main favoritos-main">
-        <div className="favoritos-header">
+        <header className="favoritos-header">
           <BookmarkIcon active />
-          <h2 className="favoritos-header__title">Receitas salvas nos favoritos</h2>
-        </div>
+          <div className="favoritos-header__text">
+            <h1 className="favoritos-header__title">{TEXTOS_INTERFACE.favoritos.titulo}</h1>
+            <p className="favoritos-header__subtitle">{TEXTOS_INTERFACE.favoritos.subtitulo}</p>
+          </div>
+        </header>
 
         {loading && page === 0 && (
-          <div className="explorar-loading">
-            <div className="explorar-spinner" />
-            <span>Carregando favoritos…</span>
-          </div>
+          <IndicadorCarregamento
+            estilo="grade"
+            texto={TEXTOS_INTERFACE.carregamento.receitasSalvas}
+          />
         )}
 
         {error && <div className="explorar-error">{error}</div>}
@@ -77,11 +82,8 @@ export function Favoritos() {
         {!loading && !error && lista.length === 0 && (
           <div className="favoritos-empty">
             <BookmarkIcon active={false} />
-            <p>Você ainda não salvou nenhuma receita.</p>
-            <p>
-              Nas receitas do feed, toque em <strong>Salvar nos favoritos</strong> para
-              guardá-las aqui — o mesmo ícone de marcador do menu ao lado.
-            </p>
+            <p>{TEXTOS_INTERFACE.favoritos.mensagemVazia}</p>
+            <p>{TEXTOS_INTERFACE.favoritos.dicaVazia}</p>
           </div>
         )}
 
@@ -103,9 +105,11 @@ export function Favoritos() {
         )}
 
         {loading && page > 0 && (
-          <div className="explorar-loading" style={{ margin: "1rem auto" }}>
-            <div className="explorar-spinner" />
-          </div>
+          <IndicadorCarregamento
+            estilo="grade"
+            className="explorar-loading--inline"
+            texto={TEXTOS_INTERFACE.carregamento.maisReceitas}
+          />
         )}
     </main>
   );

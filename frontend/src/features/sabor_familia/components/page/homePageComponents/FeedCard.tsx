@@ -15,6 +15,7 @@ import { ContextoMidiaPerfil } from "../../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
 import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import HeartFillIcon from "../../../icon/menu/HeartFillIcon";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 import { formatarTempo } from "../../../utils/formatarTempo";
 import { ReceitaAcoesAutor } from "../../common/ReceitaAcoesAutor";
 import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
@@ -123,7 +124,9 @@ function FeedCard({
         <section className="feed-card__comments">
           <div className="feed-card__comments-list">
             {carregandoComentarios ? (
-              <p className="feed-card__comments-empty">Carregando comentários...</p>
+              <p className="feed-card__comments-empty">
+                {TEXTOS_INTERFACE.carregamento.comentarios}
+              </p>
             ) : comentarios.length === 0 ? (
               <p className="feed-card__comments-empty">Nenhum comentário ainda.</p> 
             ) : (
@@ -209,11 +212,23 @@ function FeedCard({
           className={`feed-card__action feed-card__action--favorito ${favoritado ? "feed-card__action--favoritado" : ""}`}
           onClick={(e) => { e.stopPropagation(); alternarFavorito(); }}
           aria-pressed={favoritado}
-          aria-label={favoritado ? "Remover receita dos favoritos" : "Salvar receita nos favoritos"}
-          title={favoritado ? "Remover dos favoritos" : "Salvar nos favoritos"}
+          aria-label={
+            favoritado
+              ? TEXTOS_INTERFACE.receita.descricaoRemoverFavoritos
+              : TEXTOS_INTERFACE.receita.descricaoSalvarFavoritos
+          }
+          title={
+            favoritado
+              ? TEXTOS_INTERFACE.receita.descricaoRemoverFavoritos
+              : TEXTOS_INTERFACE.receita.descricaoSalvarFavoritos
+          }
         >
           <BookmarkIcon active={favoritado} />
-          <span>{favoritado ? "Salva nos favoritos" : "Salvar nos favoritos"}</span>
+          <span>
+            {favoritado
+              ? TEXTOS_INTERFACE.receita.salvaFavoritos
+              : TEXTOS_INTERFACE.receita.salvarFavoritos}
+          </span>
         </button>
       </footer>
     </article>

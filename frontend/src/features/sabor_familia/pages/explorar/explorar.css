@@ -7,6 +7,25 @@
   align-items: stretch;
 }
 
+.explorar-page-header {
+  margin-bottom: 1.25rem;
+}
+
+.explorar-page-header__title {
+  margin: 0 0 0.35rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-sans);
+}
+
+.explorar-page-header__subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
 .explorar-main::-webkit-scrollbar {
   width: 5px;
 }
@@ -113,6 +132,10 @@
   margin: 4rem auto;
   color: var(--text-muted);
   font-size: 14px;
+}
+
+.explorar-loading--inline {
+  margin: 1rem auto;
 }
 
 .explorar-empty {

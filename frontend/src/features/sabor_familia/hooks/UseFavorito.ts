@@ -1,9 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSnackbar } from "notistack";
 import { favoritoService } from "../service/FavoritoService";
+import { TEXTOS_INTERFACE } from "../utils/textosInterface";
+
+const DURACAO_FEEDBACK_MS = 5000;
 
 export function useAlternarFavorito(receitaId: number, favoritadoInicial: boolean) {
   const [favoritado, setFavoritado] = useState(favoritadoInicial);
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     setFavoritado(favoritadoInicial);
@@ -23,8 +28,16 @@ export function useAlternarFavorito(receitaId: number, favoritadoInicial: boolea
     try {
       if (novoEstado) {
         await favoritoService.adicionarFavorito(receitaId);
+        enqueueSnackbar(TEXTOS_INTERFACE.sucesso.receitaSalvaFavoritos, {
+          variant: "success",
+          autoHideDuration: DURACAO_FEEDBACK_MS,
+        });
       } else {
         await favoritoService.removerFavorito(receitaId);
+        enqueueSnackbar(TEXTOS_INTERFACE.sucesso.receitaRemovidaFavoritos, {
+          variant: "info",
+          autoHideDuration: DURACAO_FEEDBACK_MS,
+        });
       }
     } catch (err: unknown) {
       setFavoritado(favoritado);
