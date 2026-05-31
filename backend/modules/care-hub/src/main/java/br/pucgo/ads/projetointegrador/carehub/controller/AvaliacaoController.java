@@ -22,12 +22,9 @@ public class AvaliacaoController {
     private AvaliacaoService avaliacaoService;
 
     @Autowired
-    private br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository cuidadorRepository;
-
-    @Autowired
     private br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository clienteRepository;
 
-    private Long obterIdLocalAutenticado(Principal principal) {
+    private Long obterClienteIdAutenticado(Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
             throw new org.springframework.web.server.ResponseStatusException(
                     org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
@@ -35,11 +32,8 @@ public class AvaliacaoController {
 
         String usernameOrEmail = principal.getName();
 
-        var cuidador = cuidadorRepository.findByUsername(usernameOrEmail)
-                .or(() -> cuidadorRepository.findByEmail(usernameOrEmail));
-        if (cuidador.isPresent())
-            return cuidador.get().getId();
-
+        // Para avaliações, quem avalia é sempre o Cliente.
+        // Portanto, devemos buscar o usuário exclusivamente no clienteRepository.
         var cliente = clienteRepository.findByUsername(usernameOrEmail)
                 .or(() -> clienteRepository.findByEmail(usernameOrEmail));
         if (cliente.isPresent())
@@ -47,14 +41,14 @@ public class AvaliacaoController {
 
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuário local do CareHub não encontrado para o principal autenticado: " + usernameOrEmail);
+                "Cliente local do CareHub não encontrado para o principal autenticado: " + usernameOrEmail);
     }
 
     @PostMapping
     public ResponseEntity<AvaliacaoResponseDTO> criarAvaliacao(
             Principal principal,
             @Valid @RequestBody AvaliacaoRequestDTO dto) {
-        Long localClienteId = obterIdLocalAutenticado(principal);
+        Long localClienteId = obterClienteIdAutenticado(principal);
         log.info("Criando avaliação: clienteId={}, cuidadorId={}, nota={}",
                 localClienteId, dto.getCuidadorId(), dto.getNota());
 

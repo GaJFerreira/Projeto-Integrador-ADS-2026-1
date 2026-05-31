@@ -46,10 +46,18 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
            "AND a.status IN ('CONFIRMADO', 'EM_ANDAMENTO')")
     boolean existsAgendamentoAtivoHoje(Long cuidadorId, Long clienteId, OffsetDateTime inicio, OffsetDateTime fim);
 
+    /** Retorna true somente se houver agendamento ATIVO entre os usuários (permite envio de mensagens). */
+    @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END " +
+           "FROM Agendamento a WHERE ((a.cuidador.id = :user1Id AND a.cliente.id = :user2Id) " +
+           "OR (a.cuidador.id = :user2Id AND a.cliente.id = :user1Id)) " +
+           "AND a.status IN ('PENDENTE', 'CONFIRMADO', 'EM_ANDAMENTO')")
+    boolean existsBetweenUsers(Long user1Id, Long user2Id);
+
+    /** Retorna true se já houve QUALQUER agendamento entre os usuários (permite visualizar histórico). */
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END " +
            "FROM Agendamento a WHERE (a.cuidador.id = :user1Id AND a.cliente.id = :user2Id) " +
            "OR (a.cuidador.id = :user2Id AND a.cliente.id = :user1Id)")
-    boolean existsBetweenUsers(Long user1Id, Long user2Id);
+    boolean existsAnyBetweenUsers(Long user1Id, Long user2Id);
 
     @Query("SELECT a FROM Agendamento a " +
            "WHERE a.cliente.id = :clienteId " +

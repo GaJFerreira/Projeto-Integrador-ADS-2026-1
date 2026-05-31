@@ -27,3 +27,17 @@ export async function listarContatos(): Promise<ContatoDTO[]> {
 export async function marcarConversaComoLida(remetenteId: number): Promise<void> {
   await http.put(`/api/carehub/mensagens/marcar-lidas/${remetenteId}`);
 }
+
+/**
+ * Verifica se o chat com o usuário informado está ativo (permite enviar mensagens).
+ * Retorna { ativo: false } em caso de erro para não bloquear a UI inesperadamente.
+ */
+export async function verificarChatAtivo(usuarioId: number): Promise<{ ativo: boolean }> {
+  try {
+    const response = await http.get<{ ativo: boolean }>(`/api/carehub/mensagens/chat-ativo/${usuarioId}`);
+    return response.data;
+  } catch {
+    // Em caso de erro de rede, consideramos ativo para não travar o usuário
+    return { ativo: true };
+  }
+}

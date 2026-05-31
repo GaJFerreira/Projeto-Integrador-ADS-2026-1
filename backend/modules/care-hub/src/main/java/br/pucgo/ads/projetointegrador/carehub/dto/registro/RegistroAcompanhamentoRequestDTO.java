@@ -27,4 +27,5 @@ public class RegistroAcompanhamentoRequestDTO {
 
     private String intercorrencias;
     private String sinaisVitais;
+    private String humorEstado;
 }

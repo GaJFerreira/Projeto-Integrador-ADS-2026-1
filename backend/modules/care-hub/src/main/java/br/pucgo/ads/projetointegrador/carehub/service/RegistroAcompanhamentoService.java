@@ -50,6 +50,7 @@ public class RegistroAcompanhamentoService {
         registro.setObservacoes(dto.getObservacoes());
         registro.setIntercorrencias(dto.getIntercorrencias());
         registro.setSinaisVitais(dto.getSinaisVitais());
+        registro.setHumorEstado(dto.getHumorEstado());
 
         registro = registroRepository.save(registro);
 
@@ -107,6 +108,7 @@ public class RegistroAcompanhamentoService {
         dto.setObservacoes(registro.getObservacoes());
         dto.setIntercorrencias(registro.getIntercorrencias());
         dto.setSinaisVitais(registro.getSinaisVitais());
+        dto.setHumorEstado(registro.getHumorEstado());
         dto.setDataCriacao(registro.getDataCriacao());
         return dto;
     }

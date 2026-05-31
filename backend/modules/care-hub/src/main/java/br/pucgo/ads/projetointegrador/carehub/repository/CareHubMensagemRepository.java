@@ -79,4 +79,11 @@ public interface CareHubMensagemRepository extends JpaRepository<Mensagem, Long>
        int marcarComoLidas(@Param("usuarioId") Long usuarioId, @Param("remetenteId") Long remetenteId);
 
        Optional<Mensagem> findByMediaUrl(String mediaUrl);
+
+       /** Apaga TODAS as mensagens trocadas entre dois usu\u00e1rios (usado ao cancelar agendamento). */
+       @Modifying
+       @Query("DELETE FROM Mensagem m WHERE " +
+                     "(m.remetenteId = :user1Id AND m.destinatarioId = :user2Id) OR " +
+                     "(m.remetenteId = :user2Id AND m.destinatarioId = :user1Id)")
+       void deleteConversaBetween(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
 }

@@ -265,6 +265,9 @@ public class AgendamentoService {
                             "Somente o cliente ou o cuidador podem cancelar este agendamento");
                 }
                 agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
+                // Apaga todo o histórico de mensagens ao cancelar
+                mensagemRepository.deleteConversaBetween(
+                        agendamento.getCuidador().getId(), agendamento.getCliente().getId());
                 break;
 
             case CONCLUIDO:
@@ -338,6 +341,9 @@ public class AgendamentoService {
                             "Somente o cliente ou o cuidador podem cancelar este agendamento");
                 }
                 agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
+                // Apaga todo o histórico de mensagens ao cancelar
+                mensagemRepository.deleteConversaBetween(
+                        agendamento.getCuidador().getId(), agendamento.getCliente().getId());
                 break;
             case CONCLUIDO:
                 if (!isCuidadorCaller) {
@@ -464,10 +470,13 @@ public class AgendamentoService {
 
     @Transactional
     public void cancelarAgendamento(Long id) {
-        Objects.requireNonNull(id, "Agendamento ID não pode ser nulo");
+        Objects.requireNonNull(id, "Agendamento ID n\u00e3o pode ser nulo");
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Agendamento n\u00e3o encontrado"));
         agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
+        // Apaga todo o hist\u00f3rico de mensagens ao cancelar
+        mensagemRepository.deleteConversaBetween(
+                agendamento.getCuidador().getId(), agendamento.getCliente().getId());
         agendamentoRepository.save(agendamento);
     }
 

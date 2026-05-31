@@ -64,6 +64,9 @@ public class RegistroAcompanhamento {
     @Column(name = "sinais_vitais", columnDefinition = "TEXT")
     private String sinaisVitais;
 
+    @Column(name = "humor_estado", columnDefinition = "TEXT")
+    private String humorEstado;
+
     @CreationTimestamp
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private OffsetDateTime dataCriacao;

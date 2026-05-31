@@ -16,8 +16,6 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.security.access.AccessDeniedException;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/carehub/agendamentos")

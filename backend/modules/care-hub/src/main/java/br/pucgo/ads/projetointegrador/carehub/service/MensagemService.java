@@ -70,13 +70,14 @@ public class MensagemService {
 
     @Transactional(readOnly = true)
     public List<MensagemResponseDTO> buscarConversa(Long usuario1Id, Long usuario2Id) {
-        Objects.requireNonNull(usuario1Id, "Usuario1 ID não pode ser nulo");
-        Objects.requireNonNull(usuario2Id, "Usuario2 ID não pode ser nulo");
+        Objects.requireNonNull(usuario1Id, "Usuario1 ID n\u00e3o pode ser nulo");
+        Objects.requireNonNull(usuario2Id, "Usuario2 ID n\u00e3o pode ser nulo");
 
-        boolean existe = agendamentoRepository.existsBetweenUsers(usuario1Id, usuario2Id);
+        // Usa existsAnyBetweenUsers para permitir visualizar hist\u00f3rico mesmo ap\u00f3s conclus\u00e3o
+        boolean existe = agendamentoRepository.existsAnyBetweenUsers(usuario1Id, usuario2Id);
         if (!existe) {
             throw new OperacaoNaoPermitidaException(
-                    "Acesso à conversa negado: sem atendimento entre as partes");
+                    "Acesso \u00e0 conversa negado: sem atendimento entre as partes");
         }
 
         return mensagemRepository.findConversaBetween(usuario1Id, usuario2Id)
@@ -115,7 +116,7 @@ public class MensagemService {
     }
 
     @Transactional(readOnly = true)
-    public List<ContatoDTO> listarContatos(Long usuarioId) {
+    public List<ContatoDTO> listarContatos(Long usuarioId, boolean usuarioEhCuidador) {
         Objects.requireNonNull(usuarioId, "Usuario ID não pode ser nulo");
 
         List<Long> contatoIds = mensagemRepository.findContatoIds(usuarioId);
@@ -128,12 +129,7 @@ public class MensagemService {
                     String name;
                     String role;
                     String email;
-                    Optional<Cuidador> oc = cuidadorRepository.findById(id);
-                    if (oc.isPresent()) {
-                        name = oc.get().getName();
-                        role = oc.get().getRole();
-                        email = oc.get().getEmail();
-                    } else {
+                    if (usuarioEhCuidador) {
                         Optional<Cliente> ocl = clienteRepository.findById(id);
                         if (ocl.isPresent()) {
                             name = ocl.get().getName();
@@ -141,7 +137,18 @@ public class MensagemService {
                             email = ocl.get().getEmail();
                         } else {
                             name = "Usuário desconhecido";
-                            role = "USUARIO";
+                            role = "CAREHUB_CLIENTE";
+                            email = "";
+                        }
+                    } else {
+                        Optional<Cuidador> oc = cuidadorRepository.findById(id);
+                        if (oc.isPresent()) {
+                            name = oc.get().getName();
+                            role = oc.get().getRole();
+                            email = oc.get().getEmail();
+                        } else {
+                            name = "Usuário desconhecido";
+                            role = "CAREHUB_CUIDADOR";
                             email = "";
                         }
                     }
@@ -179,9 +186,20 @@ public class MensagemService {
 
     @Transactional
     public void marcarConversaComoLida(Long usuarioId, Long remetenteId) {
-        Objects.requireNonNull(usuarioId, "Usuario ID não pode ser nulo");
-        Objects.requireNonNull(remetenteId, "Remetente ID não pode ser nulo");
+        Objects.requireNonNull(usuarioId, "Usu\u00e1rio ID n\u00e3o pode ser nulo");
+        Objects.requireNonNull(remetenteId, "Remetente ID n\u00e3o pode ser nulo");
         mensagemRepository.marcarComoLidas(usuarioId, remetenteId);
+    }
+
+    /**
+     * Verifica se o chat entre dois usu\u00e1rios est\u00e1 ativo (permite envio de novas mensagens).
+     * Retorna true apenas quando h\u00e1 agendamento PENDENTE, CONFIRMADO ou EM_ANDAMENTO.
+     */
+    @Transactional(readOnly = true)
+    public boolean chatAtivo(Long usuario1Id, Long usuario2Id) {
+        Objects.requireNonNull(usuario1Id, "Usu\u00e1rio1 ID n\u00e3o pode ser nulo");
+        Objects.requireNonNull(usuario2Id, "Usu\u00e1rio2 ID n\u00e3o pode ser nulo");
+        return agendamentoRepository.existsBetweenUsers(usuario1Id, usuario2Id);
     }
 
     private MensagemResponseDTO toResponseDTO(Mensagem mensagem) {
