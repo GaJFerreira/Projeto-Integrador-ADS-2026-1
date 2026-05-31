@@ -146,8 +146,19 @@ public class ProdutoService {
         categoriaService.buscarPorId(produto.getCategoria().getId()),
         produto.getCreatedAt(),
         produto.getUpdatedAt(),
-        null,
-        null
+        produto.getDescricao(),
+        produto.getUnidadeMedida(),
+        produto.getCustoMedio(),
+        produto.getMarca(),
+        produto.getPorcaoReferenciaGramas(),
+        produto.getCalorias(),
+        produto.getProteinas(),
+        produto.getCarboidratos(),
+        produto.getGordurasTotais(),
+        produto.getGordurasSaturadas(),
+        produto.getFibras(),
+        produto.getSodio(),
+        produto.getAcucares()
     );
   }
 
