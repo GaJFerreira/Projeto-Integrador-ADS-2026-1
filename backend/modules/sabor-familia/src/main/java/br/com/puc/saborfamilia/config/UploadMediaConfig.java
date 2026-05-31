@@ -1,6 +1,6 @@
 package br.com.puc.saborfamilia.config;
 
-import br.com.puc.saborfamilia.service.midia.storage.MidiaPathResolver;
+import br.com.puc.saborfamilia.utils.MidiaPathResolver;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.nio.file.Files;

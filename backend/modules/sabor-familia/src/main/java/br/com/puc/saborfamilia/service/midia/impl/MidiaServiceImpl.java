@@ -14,7 +14,7 @@ import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
 import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.midia.dto.MidiaResponse;
-import br.com.puc.saborfamilia.service.midia.storage.MidiaPathResolver;
+import br.com.puc.saborfamilia.utils.MidiaPathResolver;
 import br.com.puc.saborfamilia.utils.MidiaUtils;
 import java.io.IOException;
 import java.nio.file.Files;
