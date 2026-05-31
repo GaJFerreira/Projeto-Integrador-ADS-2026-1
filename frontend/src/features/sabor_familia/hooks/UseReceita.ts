@@ -2,14 +2,15 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { receitaService } from "../service/ReceitaService";
 import { invalidarMidia } from "../lib/midiaCache";
+import { extrairErroApi } from "../utils/extrairErroApi";
+import {
+  tratarErroListagem,
+  tratarErroNavegacao,
+} from "../utils/tratarErroRequisicao";
 import type { ReceitaRequest } from "../dto/receita/request/ReceitaRequest";
 import type { ReceitaResponse } from "../dto/receita/response/ReceitaResponse";
 import type { ReceitaResumoResponse } from "../dto/receita/response/ReceitaResumoResponse";
 import type { PageResponse } from "../dto/page/PageResponse";
-
-function extrairStatusCode(err: unknown): number | undefined {
-  return (err as { response?: { status: number } })?.response?.status;
-}
 
 export function useFeedPersonalizado(page = 0, size = 20) {
   const [feed, setFeed] = useState<PageResponse<ReceitaResponse> | null>(null);
@@ -24,9 +25,7 @@ export function useFeedPersonalizado(page = 0, size = 20) {
       const data = await receitaService.feedPersonalizado(page, size);
       setFeed(data);
     } catch (err: unknown) {
-      const statusCode = extrairStatusCode(err);
-      if (statusCode) navigate("/sabor-familia/error", { state: { statusCode } });
-      else setError("Erro ao carregar o feed.");
+      tratarErroListagem(err, setError, navigate, "feed");
     } finally {
       setLoading(false);
     }
@@ -41,10 +40,11 @@ export function useExplorarReceitas(
   page = 0,
   size = 20,
   titulo?: string,
-  tipoRefeicao?: string
+  tipoRefeicao?: string,
+  enabled = true
 ) {
   const [receitas, setReceitas] = useState<PageResponse<ReceitaResumoResponse> | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(enabled);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -55,15 +55,19 @@ export function useExplorarReceitas(
       const data = await receitaService.explorarReceitas(page, size, titulo, tipoRefeicao);
       setReceitas(data);
     } catch (err: unknown) {
-      const statusCode = extrairStatusCode(err);
-      if (statusCode) navigate("/sabor-familia/error", { state: { statusCode } });
-      else setError("Erro ao explorar receitas.");
+      tratarErroListagem(err, setError, navigate, "explorar");
     } finally {
       setLoading(false);
     }
   }, [page, size, titulo, tipoRefeicao, navigate]);
 
-  useEffect(() => { buscar(); }, [buscar]);
+  useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+    buscar();
+  }, [buscar, enabled]);
 
   return { receitas, loading, error, recarregar: buscar };
 }
@@ -81,9 +85,7 @@ export function useBuscarReceitasPerfil(perfilId: number, page = 0, size = 20) {
       const data = await receitaService.buscarReceitasPerfil(perfilId, page, size);
       setReceitas(data);
     } catch (err: unknown) {
-      const statusCode = extrairStatusCode(err);
-      if (statusCode) navigate("/sabor-familia/error", { state: { statusCode } });
-      else setError("Erro ao buscar receitas do perfil.");
+      tratarErroListagem(err, setError, navigate, "perfil");
     } finally {
       setLoading(false);
     }
@@ -107,9 +109,7 @@ export function useBuscarReceita(receitaId: number) {
       const data = await receitaService.buscarReceita(receitaId);
       setReceita(data);
     } catch (err: unknown) {
-      const statusCode = extrairStatusCode(err);
-      if (statusCode) navigate("/sabor-familia/error", { state: { statusCode } });
-      else setError("Erro ao buscar receita.");
+      tratarErroListagem(err, setError, navigate, "receita");
     } finally {
       setLoading(false);
     }
@@ -133,9 +133,7 @@ export function useBuscarReceitasFavoritas(page = 0, size = 20) {
       const data = await receitaService.buscarReceitasFavoritas(page, size);
       setFavoritas(data);
     } catch (err: unknown) {
-      const statusCode = extrairStatusCode(err);
-      if (statusCode) navigate("/sabor-familia/error", { state: { statusCode } });
-      else setError("Erro ao buscar receitas favoritas.");
+      tratarErroListagem(err, setError, navigate, "favoritos");
     } finally {
       setLoading(false);
     }
@@ -149,7 +147,12 @@ export function useBuscarReceitasFavoritas(page = 0, size = 20) {
 export function useCriarReceita() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const limparErro = useCallback(() => {
+    setError(null);
+    setFieldErrors({});
+  }, []);
 
   const criar = async (
     request: ReceitaRequest,
@@ -158,6 +161,7 @@ export function useCriarReceita() {
   ) => {
     setLoading(true);
     setError(null);
+    setFieldErrors({});
     try {
       const receita = await receitaService.criarReceita(request, arquivo);
       if (arquivo) {
@@ -165,21 +169,26 @@ export function useCriarReceita() {
       }
       onSucesso?.(receita);
     } catch (err: unknown) {
-      const statusCode = extrairStatusCode(err);
-      if (statusCode) navigate("/sabor-familia/error", { state: { statusCode } });
-      else setError("Erro ao criar receita.");
+      const { mensagem, errosCampo } = extrairErroApi(err);
+      setError(mensagem);
+      setFieldErrors(errosCampo);
     } finally {
       setLoading(false);
     }
   };
 
-  return { criar, loading, error };
+  return { criar, loading, error, fieldErrors, limparErro };
 }
 
 export function useEditarReceita() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const limparErro = useCallback(() => {
+    setError(null);
+    setFieldErrors({});
+  }, []);
 
   const editar = async (
     receitaId: number,
@@ -189,6 +198,7 @@ export function useEditarReceita() {
   ) => {
     setLoading(true);
     setError(null);
+    setFieldErrors({});
     try {
       const receita = await receitaService.editarReceita(receitaId, request, arquivo);
       if (arquivo) {
@@ -196,15 +206,15 @@ export function useEditarReceita() {
       }
       onSucesso?.(receita);
     } catch (err: unknown) {
-      const statusCode = extrairStatusCode(err);
-      if (statusCode) navigate("/sabor-familia/error", { state: { statusCode } });
-      else setError("Erro ao editar receita.");
+      const { mensagem, errosCampo } = extrairErroApi(err);
+      setError(mensagem);
+      setFieldErrors(errosCampo);
     } finally {
       setLoading(false);
     }
   };
 
-  return { editar, loading, error };
+  return { editar, loading, error, fieldErrors, limparErro };
 }
 
 export function useRemoverReceita() {
@@ -220,11 +230,10 @@ export function useRemoverReceita() {
     setError(null);
     try {
       await receitaService.removerReceita(receitaId);
+      invalidarMidia("receita", receitaId);
       onSucesso?.(receitaId);
     } catch (err: unknown) {
-      const statusCode = extrairStatusCode(err);
-      if (statusCode) navigate("/sabor-familia/error", { state: { statusCode } });
-      else setError("Erro ao remover receita.");
+      tratarErroNavegacao(err, navigate, "receita");
     } finally {
       setLoading(false);
     }

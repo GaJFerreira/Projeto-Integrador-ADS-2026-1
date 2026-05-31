@@ -4,4 +4,5 @@ export interface ErrorInfo {
   title: string;
   description: string;
   icon: ErrorIconType;
+  dicas?: string[];
 }

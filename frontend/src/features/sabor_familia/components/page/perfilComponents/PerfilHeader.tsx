@@ -1,7 +1,14 @@
 import "./perfilHeader.css";
 import { useNavigate } from "react-router-dom";
 import type { PerfilResponse } from "../../../dto/perfil/response/PerfilResponse";
+import { ContextoMidiaPerfil } from "../../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
+import { BotaoSeguir } from "../../common/BotaoSeguir";
+import "../../common/sfPillToggle.css";
+import {
+  labelPersonalizacao,
+  labelRestricaoPerfil,
+} from "../../../utils/catalogoLabels";
 
 interface Props {
   perfil: PerfilResponse;
@@ -41,6 +48,7 @@ export function PerfilHeader({
             <PerfilAvatar
               perfilId={perfil.id}
               possuiMidia={perfil.detalhes.possuiMidia}
+              contexto={ContextoMidiaPerfil.CAPA_PERFIL}
               alt={perfil.detalhes.nome}
               className="ph-avatar"
               placeholderClassName="ph-avatar ph-avatar--placeholder"
@@ -49,13 +57,11 @@ export function PerfilHeader({
 
           <div className="ph-actions">
             {!perfil.proprioPerfil && (
-              <button
-                className={`ph-btn-seguir ${seguindo ? "ph-btn-seguir--seguindo" : ""}`}
+              <BotaoSeguir
+                seguindo={seguindo}
+                loading={loadingSeguir}
                 onClick={onAlternarSeguir}
-                disabled={loadingSeguir}
-              >
-                {loadingSeguir ? "…" : seguindo ? "Seguindo" : "Seguir"}
-              </button>
+              />
             )}
             {perfil.proprioPerfil && (
               <button
@@ -98,19 +104,61 @@ export function PerfilHeader({
             </button>
           </div>
 
-          {/* Bio */}
-          {perfil.detalhes.bio && (
-            <p className="ph-bio">{perfil.detalhes.bio}</p>
-          )}
+          {(perfil.detalhes.bio?.trim() ||
+            (perfil.personalizacao?.length ?? 0) > 0 ||
+            (perfil.restricoesAlimentares?.length ?? 0) > 0) && (
+            <div className="ph-details">
+              {perfil.detalhes.bio?.trim() && (
+                <section className="ph-details-block" aria-labelledby="ph-bio">
+                  <h2 id="ph-bio" className="ph-details-block__title">
+                    Sobre
+                  </h2>
+                  <p className="ph-details-block__hint">
+                    Apresentação e contexto deste perfil na comunidade.
+                  </p>
+                  <p className="ph-bio">{perfil.detalhes.bio.trim()}</p>
+                </section>
+              )}
 
-          {/* Tags de restrição alimentar */}
-          {perfil.restricoesAlimentares?.length > 0 && (
-            <div className="ph-restricoes">
-              {perfil.restricoesAlimentares.map((r) => (
-                <span key={r.codigo} className="ph-restricao-tag" title={r.exemplos}>
-                  {r.labelPerfil || r.codigo}
-                </span>
-              ))}
+              {perfil.personalizacao?.length > 0 && (
+                <section className="ph-details-block" aria-labelledby="ph-tags-personalizacao">
+                  <h2 id="ph-tags-personalizacao" className="ph-details-block__title">
+                    Preferências
+                  </h2>
+                  <p className="ph-details-block__hint">
+                    Interesses e estilo culinário deste perfil.
+                  </p>
+                  <div className="sf-pill-group">
+                    {perfil.personalizacao.map((p) => (
+                      <span key={p.codigo} className="sf-pill sf-pill--exibir">
+                        {labelPersonalizacao(p, "perfil")}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {perfil.restricoesAlimentares?.length > 0 && (
+                <section className="ph-details-block" aria-labelledby="ph-tags-restricoes">
+                  <h2 id="ph-tags-restricoes" className="ph-details-block__title">
+                    Restrições alimentares
+                  </h2>
+                  <p className="ph-details-block__hint">
+                    Alertas informados para filtrar receitas incompatíveis.
+                  </p>
+                  <div className="sf-pill-group">
+                    {perfil.restricoesAlimentares.map((r) => (
+                      <span
+                        key={r.codigo}
+                        className="sf-pill sf-pill--exibir"
+                        title={r.exemplos}
+                      >
+                        {labelRestricaoPerfil(r)}
+                      </span>
+                    ))}
+                  </div>
+                </section>
+              )}
             </div>
           )}
 

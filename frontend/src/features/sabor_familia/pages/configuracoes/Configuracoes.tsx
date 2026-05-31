@@ -1,14 +1,21 @@
 import "./configuracoes.css";
 import "../home/homeSaborFamilia.css";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuth";
 import { useEditarPerfil, useBuscarMeuPerfil } from "../../hooks/UsePerfil";
-import { useListarCatalogo, useListarCatalogoContextoPerfil } from "../../hooks/UsePersonalizacao";
+import { useListarCatalogo } from "../../hooks/UsePersonalizacao";
 import { useBuscarRestricoesAlimentares } from "../../hooks/UseRestricaoAlimentar";
-import Sidebar from "../../components/page/homePageComponents/SideBar";
+import { ContextoMidiaPerfil } from "../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../components/common/PerfilAvatar";
 import { ImagemUploadField } from "../../components/common/ImagemUploadField";
+import {
+  labelPersonalizacao,
+  labelRestricaoPerfil,
+} from "../../utils/catalogoLabels";
+import { CategoriaPersonalizacaoInfo } from "../../dto/enums/CategoriaPersonalizacaoEnum";
+import type { CategoriaPersonalizacaoEnum } from "../../dto/enums/CategoriaPersonalizacaoEnum";
+import { SfPillByCategory, SfPillList } from "../../components/common/SfCatalogoPills";
 
 export function Configuracoes() {
   const navigate = useNavigate();
@@ -16,13 +23,17 @@ export function Configuracoes() {
   useBuscarMeuPerfil();
   const { editar, loading: salvando, error: erroEditar } = useEditarPerfil();
   const { catalogo: catalogoPersonalizacoes } = useListarCatalogo();
-  const { personalizacoes: personalizacoesPerfil } = useListarCatalogoContextoPerfil();
   const { restricoes: catalogoRestricoes } = useBuscarRestricoesAlimentares();
   const [bio, setBio] = useState(perfil?.detalhes?.bio ?? "");
   const [fotoPerfil, setFotoPerfil] = useState<File | null>(null);
   const [restricoesSelecionadas, setRestricoesSelecionadas] = useState<Set<string>>(new Set());
   const [personalizacoesSelecionadas, setPersonalizacoesSelecionadas] = useState<Set<string>>(new Set());
   const [sucesso, setSucesso] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+
+  const scrollParaTopo = useCallback(() => {
+    mainRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     setBio(perfil?.detalhes?.bio ?? "");
@@ -32,20 +43,30 @@ export function Configuracoes() {
   const restricoesPerfilKey =
     perfil?.restricoesAlimentares?.map((r) => r.codigo).sort().join(",") ?? "";
 
-  const personalizacoesPerfilKey = personalizacoesPerfil
-    .map((p) => p.codigo)
-    .sort()
-    .join(",");
+  const personalizacoesPerfilKey =
+    perfil?.personalizacao?.map((p) => p.codigo).sort().join(",") ?? "";
 
   useEffect(() => {
-    if (!restricoesPerfilKey) return;
-    setRestricoesSelecionadas(new Set(restricoesPerfilKey.split(",")));
+    setRestricoesSelecionadas(
+      restricoesPerfilKey ? new Set(restricoesPerfilKey.split(",")) : new Set()
+    );
   }, [restricoesPerfilKey]);
 
   useEffect(() => {
-    if (!personalizacoesPerfilKey) return;
-    setPersonalizacoesSelecionadas(new Set(personalizacoesPerfilKey.split(",")));
+    setPersonalizacoesSelecionadas(
+      personalizacoesPerfilKey ? new Set(personalizacoesPerfilKey.split(",")) : new Set()
+    );
   }, [personalizacoesPerfilKey]);
+
+  useEffect(() => {
+    if (!sucesso) return;
+    const timer = window.setTimeout(() => setSucesso(false), 5000);
+    return () => window.clearTimeout(timer);
+  }, [sucesso]);
+
+  useEffect(() => {
+    if (erroEditar) scrollParaTopo();
+  }, [erroEditar, scrollParaTopo]);
 
   const handleSalvar = async () => {
     setSucesso(false);
@@ -58,6 +79,7 @@ export function Configuracoes() {
       fotoPerfil,
       async (perfilAtualizado) => {
         setSucesso(true);
+        scrollParaTopo();
         if (perfilAtualizado) {
           setBio(perfilAtualizado.detalhes?.bio ?? "");
           setFotoPerfil(null);
@@ -74,7 +96,11 @@ export function Configuracoes() {
   const toggleRestriçao = (codigo: string) => {
     setRestricoesSelecionadas((prev) => {
       const next = new Set(prev);
-      next.has(codigo) ? next.delete(codigo) : next.add(codigo);
+      if (next.has(codigo)) {
+        next.delete(codigo);
+      } else {
+        next.add(codigo);
+      }
       return next;
     });
   };
@@ -82,26 +108,55 @@ export function Configuracoes() {
   const togglePersonalizacao = (codigo: string) => {
     setPersonalizacoesSelecionadas((prev) => {
       const next = new Set(prev);
-      next.has(codigo) ? next.delete(codigo) : next.add(codigo);
+      if (next.has(codigo)) {
+        next.delete(codigo);
+      } else {
+        next.add(codigo);
+      }
       return next;
     });
   };
 
-  return (
-    <div className="home-layout">
-      <Sidebar />
+  const personalizacoesPorCategoria = useMemo(
+    () =>
+      Object.fromEntries(
+        (catalogoPersonalizacoes ?? []).map((grupo) => [grupo.categoria, grupo.opcoes])
+      ),
+    [catalogoPersonalizacoes]
+  );
 
-      <main className="config-main">
+  return (
+    <main ref={mainRef} className="config-main">
         <div className="config-container">
+
+          <header className="config-header">
+            <p className="config-eyebrow">Conta</p>
+            <h1 className="config-title">Configurações</h1>
+            <p className="config-subtitle">
+              Atualize seu perfil, preferências e restrições alimentares.
+            </p>
+          </header>
+
+          {(sucesso || erroEditar) && (
+            <div className="config-feedback" role="status" aria-live="polite">
+              {sucesso && (
+                <p className="config-success">Perfil atualizado com sucesso.</p>
+              )}
+              {erroEditar && (
+                <p className="config-error-msg">{erroEditar}</p>
+              )}
+            </div>
+          )}
 
           {/* ── Perfil ── */}
           <section className="config-section">
-            <p className="config-section__title">Meu Perfil</p>
+            <h2 className="config-section__title">Meu perfil</h2>
 
             <div className="config-profile-header">
               <PerfilAvatar
                 perfilId={perfil?.id}
                 possuiMidia={perfil?.detalhes?.possuiMidia}
+                contexto={ContextoMidiaPerfil.CAPA_PERFIL}
                 alt={perfil?.detalhes?.nome ?? "Perfil"}
                 className="config-avatar"
                 placeholderClassName="config-avatar config-avatar--placeholder"
@@ -142,13 +197,6 @@ export function Configuracoes() {
               />
             </div>
 
-            {sucesso && (
-              <div className="config-success">✓ Perfil atualizado com sucesso!</div>
-            )}
-            {erroEditar && (
-              <div className="config-error-msg">{erroEditar}</div>
-            )}
-
             <div className="config-actions">
               <button
                 className="config-btn config-btn--primary"
@@ -162,31 +210,19 @@ export function Configuracoes() {
 
           {/* ── Restrições alimentares ── */}
           <section className="config-section">
-            <p className="config-section__title">Restrições Alimentares</p>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 0, marginBottom: "1rem" }}>
+            <h2 className="config-section__title">Restrições alimentares</h2>
+            <p className="config-section__desc">
               Marque suas restrições para que o app filtre receitas incompatíveis.
             </p>
 
-            {catalogoRestricoes && catalogoRestricoes.length > 0 ? (
-              <div className="config-tags">
-                {catalogoRestricoes.map((r) => {
-                  const ativa = restricoesSelecionadas.has(r.codigo);
-                  return (
-                    <button
-                      key={r.codigo}
-                      className={`config-tag config-tag--restricao`}
-                      style={ativa ? { opacity: 1, fontWeight: 700 } : { opacity: 0.45 }}
-                      onClick={() => toggleRestriçao(r.codigo)}
-                      title={r.exemplos}
-                    >
-                      {ativa ? "✓ " : ""}{r.codigo}
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <span className="config-empty-tag">Nenhuma restrição disponível.</span>
-            )}
+            <SfPillList
+              items={catalogoRestricoes ?? []}
+              selecionadas={restricoesSelecionadas}
+              onToggle={toggleRestriçao}
+              getLabel={labelRestricaoPerfil}
+              getTitle={(r) => r.exemplos}
+              emptyMessage="Nenhuma restrição disponível."
+            />
 
             <div className="config-actions">
               <button
@@ -201,38 +237,23 @@ export function Configuracoes() {
 
           {/* ── Personalizações / Tags ── */}
           <section className="config-section">
-            <p className="config-section__title">Tags & Preferências</p>
-            <p style={{ fontSize: 13, color: "var(--text-muted)", marginTop: 0, marginBottom: "1rem" }}>
+            <h2 className="config-section__title">Preferências</h2>
+            <p className="config-section__desc">
               Personalize o seu perfil com tags que te representam.
             </p>
 
             {catalogoPersonalizacoes && catalogoPersonalizacoes.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                {catalogoPersonalizacoes.map((grupo) => (
-                  <div key={grupo.categoria}>
-                    <p style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--text-muted)", margin: "0 0 0.5rem", fontFamily: "var(--font-sans)" }}>
-                      {grupo.categoria.replace(/_/g, " ")}
-                    </p>
-                    <div className="config-tags">
-                      {grupo.opcoes.map((p) => {
-                        const ativa = personalizacoesSelecionadas.has(p.codigo);
-                        return (
-                          <button
-                            key={p.codigo}
-                            className="config-tag config-tag--personalizacao"
-                            style={ativa ? { opacity: 1, fontWeight: 700 } : { opacity: 0.45 }}
-                            onClick={() => togglePersonalizacao(p.codigo)}
-                          >
-                            {ativa ? "✓ " : ""}#{p.codigo.replace(/^#/, "")}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <SfPillByCategory
+                grouped={personalizacoesPorCategoria}
+                selecionadas={personalizacoesSelecionadas}
+                onToggle={togglePersonalizacao}
+                getLabel={(p) => labelPersonalizacao(p, "perfil")}
+                getCategoryLabel={(cat) =>
+                  CategoriaPersonalizacaoInfo[cat as CategoriaPersonalizacaoEnum]?.label ?? cat
+                }
+              />
             ) : (
-              <span className="config-empty-tag">Nenhuma tag disponível.</span>
+              <span className="sf-pill-empty">Nenhuma tag disponível.</span>
             )}
 
             <div className="config-actions">
@@ -257,8 +278,7 @@ export function Configuracoes() {
           </div>
 
         </div>
-      </main>
-    </div>
+    </main>
   );
 }
 

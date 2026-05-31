@@ -52,7 +52,7 @@
 }
 
 .explorar-card__title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--text);
   margin: 0 0 0.35rem;
@@ -72,7 +72,7 @@
 }
 
 .explorar-card__date {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-muted);
 }
 

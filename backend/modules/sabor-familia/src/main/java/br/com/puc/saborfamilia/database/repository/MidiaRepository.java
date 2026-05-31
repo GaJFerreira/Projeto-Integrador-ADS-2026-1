@@ -6,8 +6,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -18,19 +16,9 @@ public interface MidiaRepository extends JpaRepository<MidiaEntity, Long> {
     Long entidadeId
   );
 
-  boolean existsByTipoEntidadeAndEntidadeId(TipoEntidadeEnum tipoEntidade, Long entidadeId);
-
-  @Query(
-    """
-      SELECT m.entidadeId
-      FROM MidiaEntity m
-      WHERE m.tipoEntidade = :tipoEntidade
-      AND m.entidadeId IN :entidadeIds
-    """
-  )
-  List<Long> findEntidadeIdsByTipoEntidadeAndEntidadeIdIn(
-    @Param("tipoEntidade") TipoEntidadeEnum tipoEntidade,
-    @Param("entidadeIds") Collection<Long> entidadeIds
+  List<MidiaEntity> findByTipoEntidadeAndEntidadeIdIn(
+    TipoEntidadeEnum tipoEntidade,
+    Collection<Long> entidadeIds
   );
 
 }

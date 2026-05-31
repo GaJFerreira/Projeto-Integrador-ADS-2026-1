@@ -1,22 +1,33 @@
 import "./homeSaborFamilia.css";
 import { useState } from "react";
-import { useFeedPersonalizado } from "../../hooks/UseReceita";
+import { useFeedPersonalizado, useRemoverReceita } from "../../hooks/UseReceita";
+import { confirmarApagarReceita } from "../../utils/confirmarApagarReceita";
 import type { ReceitaResponse } from "../../dto/receita/response/ReceitaResponse";
-import Sidebar from "../../components/page/homePageComponents/SideBar";
 import DetailPanel from "../../components/page/homePageComponents/DetailPanel";
 import FeedCard from "../../components/page/homePageComponents/FeedCard";
 
 export function HomeSaborFamilia() {
   const [page] = useState(0);
-  const { feed, loading, error } = useFeedPersonalizado(page);
+  const { feed, loading, error, recarregar } = useFeedPersonalizado(page);
+  const { remover, loading: removendo } = useRemoverReceita();
   const [selecionada, setSelecionada] = useState<ReceitaResponse | null>(null);
 
   const receitas = feed?.content ?? [];
 
-  return (
-    <div className="home-layout">
-      <Sidebar />
+  const handleRemoverReceita = (receitaId: number) => {
+    const receita =
+      receitas.find((r) => r.id === receitaId) ??
+      (selecionada?.id === receitaId ? selecionada : null);
+    if (!confirmarApagarReceita(receita?.detalhes.titulo)) return;
 
+    remover(receitaId, () => {
+      setSelecionada((atual) => (atual?.id === receitaId ? null : atual));
+      recarregar();
+    });
+  };
+
+  return (
+    <>
       <main className="home-main">
         {loading && (
           <div className="home-loading">
@@ -45,6 +56,8 @@ export function HomeSaborFamilia() {
               onClick={() =>
                 setSelecionada(selecionada?.id === receita.id ? null : receita)
               }
+              onRemover={handleRemoverReceita}
+              removendo={removendo}
             />
           ))}
         </div>
@@ -54,9 +67,11 @@ export function HomeSaborFamilia() {
         <DetailPanel
           receita={selecionada}
           onClose={() => setSelecionada(null)}
+          onRemover={handleRemoverReceita}
+          removendo={removendo}
         />
       )}
-    </div>
+    </>
   );
 }
 

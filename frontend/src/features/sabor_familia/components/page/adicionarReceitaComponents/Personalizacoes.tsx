@@ -3,12 +3,15 @@ import {
   type CategoriaPersonalizacaoEnum,
 } from "../../../dto/enums/CategoriaPersonalizacaoEnum";
 import type { PersonalizacaoResumoResponse } from "../../../dto/personalizacao/response/PersonalizacaoResumoResponse";
+import { labelPersonalizacao } from "../../../utils/catalogoLabels";
+import { SfPillByCategory } from "../../common/SfCatalogoPills";
 
 interface Props {
   personalizacoesPorCategoria: Record<string, PersonalizacaoResumoResponse[]>;
   loading: boolean;
   selecionadas: Set<string>;
   onToggle: (codigo: string) => void;
+  contexto?: "receita" | "perfil";
 }
 
 export function Personalizacoes({
@@ -16,6 +19,7 @@ export function Personalizacoes({
   loading,
   selecionadas,
   onToggle,
+  contexto = "receita",
 }: Props) {
   return (
     <section className="ar-section">
@@ -25,26 +29,15 @@ export function Personalizacoes({
       {loading ? (
         <div className="ar-loading-sm">Carregando personalizações…</div>
       ) : (
-        Object.entries(personalizacoesPorCategoria).map(([cat, opcoes]) => {
-          const info = CategoriaPersonalizacaoInfo[cat as CategoriaPersonalizacaoEnum];
-          return (
-            <div key={cat} className="ar-cat-group">
-              <h3 className="ar-cat-group__title">{info?.label ?? cat}</h3>
-              <div className="ar-chips">
-                {opcoes.map((p) => (
-                  <button
-                    key={p.codigo}
-                    type="button"
-                    className={`ar-chip ${selecionadas.has(p.codigo) ? "ar-chip--active" : ""}`}
-                    onClick={() => onToggle(p.codigo)}
-                  >
-                    {p.codigo}
-                  </button>
-                ))}
-              </div>
-            </div>
-          );
-        })
+        <SfPillByCategory
+          grouped={personalizacoesPorCategoria}
+          selecionadas={selecionadas}
+          onToggle={onToggle}
+          getLabel={(p) => labelPersonalizacao(p, contexto)}
+          getCategoryLabel={(cat) =>
+            CategoriaPersonalizacaoInfo[cat as CategoriaPersonalizacaoEnum]?.label ?? cat
+          }
+        />
       )}
     </section>
   );

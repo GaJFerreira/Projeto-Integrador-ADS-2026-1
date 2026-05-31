@@ -1,8 +1,7 @@
 import "./perfil.css";
-import Sidebar from "../../components/page/homePageComponents/SideBar";
 import { useParams } from "react-router-dom";
 import { useBuscarPerfil, useAlternarSeguir } from "../../hooks/UsePerfil";
-import { useBuscarReceitasPerfil, useRemoverReceita } from "../../hooks/UseReceita";
+import { useBuscarReceitasPerfil } from "../../hooks/UseReceita";
 import { useState } from "react";
 import { PerfilHeader } from "../../components/page/perfilComponents/PerfilHeader";
 import { ReceitasGrid } from "../../components/page/perfilComponents/ReceitasGrid";
@@ -13,8 +12,8 @@ export function Perfil() {
   const { perfilId } = useParams<{ perfilId: string }>();
   const id = Number(perfilId);
   const { perfil, loading: loadingPerfil, error: erroPerfil } = useBuscarPerfil(id);
-  const { receitas, loading: loadingReceitas } = useBuscarReceitasPerfil(id);
-  const { remover } = useRemoverReceita();
+  const { receitas, loading: loadingReceitas, recarregar: recarregarReceitas } =
+    useBuscarReceitasPerfil(id);
   const {
     seguindo,
     totalSeguidores,
@@ -28,47 +27,34 @@ export function Perfil() {
 
   const listaReceitas = receitas?.content ?? [];
   const totalPosts    = receitas?.totalElements ?? 0;
-  const handleRemover = (receitaId: number) => {
-    remover(receitaId);
-  };
-
   const handleAbrirReceita = (receitaId: number) => {
     setSelectedReceitaId(receitaId);
   };
 
   if (isNaN(id)) {
     return (
-      <div className="home-layout">
-        <Sidebar />
-        <main className="perfil-main">
-          <div className="home-error">Perfil inválido.</div>
-        </main>
-      </div>
+      <main className="perfil-main">
+        <div className="home-error">Perfil inválido.</div>
+      </main>
     );
   }
 
   if (loadingPerfil) {
     return (
-      <div className="home-layout">
-        <Sidebar />
-        <main className="perfil-main">
-          <div className="home-loading">
-            <div className="home-loading__spinner" />
-            <span>Carregando perfil…</span>
-          </div>
-        </main>
-      </div>
+      <main className="perfil-main">
+        <div className="home-loading">
+          <div className="home-loading__spinner" />
+          <span>Carregando perfil…</span>
+        </div>
+      </main>
     );
   }
 
   if (erroPerfil || !perfil) {
     return (
-      <div className="home-layout">
-        <Sidebar />
-        <main className="perfil-main">
-          <div className="home-error">{erroPerfil ?? "Perfil não encontrado."}</div>
-        </main>
-      </div>
+      <main className="perfil-main">
+        <div className="home-error">{erroPerfil ?? "Perfil não encontrado."}</div>
+      </main>
     );
   }
 
@@ -77,18 +63,17 @@ export function Perfil() {
       <PerfilReceitaFocus
         receitaId={selectedReceitaId}
         onVoltar={() => setSelectedReceitaId(null)}
+        onReceitaRemovida={recarregarReceitas}
+        nomePerfil={perfil.detalhes.nome}
       />
     );
   }
 
   return (
-    <div className="home-layout">
-      <Sidebar />
+    <main className="perfil-main">
+      <div className="perfil-container">
 
-      <main className="perfil-main">
-        <div className="perfil-container">
-
-          <PerfilHeader
+        <PerfilHeader
             perfil={perfil}
             totalPosts={totalPosts}
             seguindo={seguindo}
@@ -101,14 +86,11 @@ export function Perfil() {
           <ReceitasGrid
             receitas={listaReceitas}
             loading={loadingReceitas}
-            isProprioPerfil={perfil.proprioPerfil}
-            onRemover={handleRemover}
             onAbrirReceita={handleAbrirReceita}
           />
 
-        </div>
-      </main>
-    </div>
+      </div>
+    </main>
   );
 }
 

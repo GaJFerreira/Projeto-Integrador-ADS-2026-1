@@ -1,11 +1,16 @@
 import { useEffect, useState } from "react";
 import { useMidiaUrl } from "../../hooks/UseMidia";
+import {
+  ContextoMidiaPerfil,
+  type ContextoMidiaPerfil as ContextoMidiaPerfilType,
+} from "../../dto/enums/ContextoMidiaEnum";
 import { AvatarPlaceholderIcon } from "../../icon/placeholder/AvatarPlaceholderIcon";
 import "./perfilAvatar.css";
 
 interface Props {
   perfilId?: number;
   possuiMidia?: boolean;
+  contexto?: ContextoMidiaPerfilType;
   previewSrc?: string | null;
   alt: string;
   className?: string;
@@ -15,6 +20,7 @@ interface Props {
 export function PerfilAvatar({
   perfilId,
   possuiMidia = false,
+  contexto = ContextoMidiaPerfil.AVATAR,
   previewSrc,
   alt,
   className = "",
@@ -24,6 +30,7 @@ export function PerfilAvatar({
   const { url: midiaUrl, failed: midiaFailed } = useMidiaUrl(
     "perfil",
     perfilId,
+    contexto,
     possuiMidia && !previewSrc
   );
 

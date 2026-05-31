@@ -6,6 +6,11 @@ import { useListarCatalogoContextoPerfil } from "../../hooks/UsePersonalizacao";
 import { useAuth } from "../../hooks/UseAuth";
 import { CategoriaPersonalizacaoInfo } from "../../dto/enums/CategoriaPersonalizacaoEnum";
 import type { PersonalizacaoResumoResponse } from "../../dto/personalizacao/response/PersonalizacaoResumoResponse";
+import {
+  labelPersonalizacao,
+  labelRestricaoPerfil,
+} from "../../utils/catalogoLabels";
+import { SfPillByCategory, SfPillList } from "../../components/common/SfCatalogoPills";
 import { isoParaBR } from "../../utils/dateUtils";
 import { ImagemUploadField } from "../../components/common/ImagemUploadField";
 import "./criarPerfil.css";
@@ -145,18 +150,12 @@ export function CriarPerfil() {
             {loadingRestricoes ? (
               <span className="cp-loading-sm">Carregando…</span>
             ) : (
-              <div className="cp-chips">
-                {restricoes.map((r) => (
-                  <button
-                    key={r.codigo}
-                    type="button"
-                    className={`cp-chip ${restricoesSelecionadas.has(r.codigo) ? "cp-chip--active" : ""}`}
-                    onClick={() => toggleSet(restricoesSelecionadas, setRestricoesSelecionadas)(r.codigo)}
-                  >
-                    {r.codigo}
-                  </button>
-                ))}
-              </div>
+              <SfPillList
+                items={restricoes}
+                selecionadas={restricoesSelecionadas}
+                onToggle={toggleSet(restricoesSelecionadas, setRestricoesSelecionadas)}
+                getLabel={labelRestricaoPerfil}
+              />
             )}
           </div>
 
@@ -169,28 +168,16 @@ export function CriarPerfil() {
             {loadingPersonalizacoes ? (
               <span className="cp-loading-sm">Carregando…</span>
             ) : (
-              Object.entries(personalizacoesPorCategoria).map(([cat, opcoes]) => {
-                const info = CategoriaPersonalizacaoInfo[
-                  cat as keyof typeof CategoriaPersonalizacaoInfo
-                ];
-                return (
-                  <div key={cat} className="cp-cat-group">
-                    <span className="cp-cat-group__title">{info?.label ?? cat}</span>
-                    <div className="cp-chips">
-                      {opcoes.map((p) => (
-                        <button
-                          key={p.codigo}
-                          type="button"
-                          className={`cp-chip ${personalizacoesSelecionadas.has(p.codigo) ? "cp-chip--active" : ""}`}
-                          onClick={() => toggleSet(personalizacoesSelecionadas, setPersonalizacoesSelecionadas)(p.codigo)}
-                        >
-                          {p.codigo}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
+              <SfPillByCategory
+                grouped={personalizacoesPorCategoria}
+                selecionadas={personalizacoesSelecionadas}
+                onToggle={toggleSet(personalizacoesSelecionadas, setPersonalizacoesSelecionadas)}
+                getLabel={(p) => labelPersonalizacao(p, "perfil")}
+                getCategoryLabel={(cat) =>
+                  CategoriaPersonalizacaoInfo[cat as keyof typeof CategoriaPersonalizacaoInfo]
+                    ?.label ?? cat
+                }
+              />
             )}
           </div>
 

@@ -11,20 +11,31 @@ import {
 import { useAuth } from "../../../hooks/UseAuth";
 import CommentIcon from "../../../icon/menu/CommentIcon";
 import BookmarkIcon from "../../../icon/menu/BookmarkIcon";
+import { ContextoMidiaPerfil } from "../../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
 import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import HeartFillIcon from "../../../icon/menu/HeartFillIcon";
 import { formatarTempo } from "../../../utils/formatarTempo";
+import { ReceitaAcoesAutor } from "../../common/ReceitaAcoesAutor";
 import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
 
 interface FeedCardProps {
   receita: ReceitaResponse;
   isSelected: boolean;
   onClick: () => void;
+  onRemover?: (receitaId: number) => void;
+  removendo?: boolean;
 }
 
-function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
+function FeedCard({
+  receita,
+  isSelected,
+  onClick,
+  onRemover,
+  removendo = false,
+}: FeedCardProps) {
   const { perfilId } = useAuth();
+  const isAutor = perfilId !== null && receita.autor.perfilId === perfilId;
   const [showComments, setShowComments] = useState(false);
   const [textoComentario, setTextoComentario] = useState("");
   const { curtido, totalCurtidas, alternar: alternarCurtida } = useAlternarCurtida(
@@ -76,6 +87,7 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
           <PerfilAvatar
             perfilId={receita.autor.perfilId}
             possuiMidia={receita.autor.possuiMidia}
+            contexto={ContextoMidiaPerfil.AVATAR}
             alt={receita.autor.nome}
             className="feed-card__avatar"
             placeholderClassName="feed-card__avatar feed-card__avatar--placeholder"
@@ -86,6 +98,15 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
             {tempo ? <span className="feed-card__time"> · {tempo}</span> : null}
           </div>
         </div>
+
+        {isAutor && onRemover && (
+          <ReceitaAcoesAutor
+            receitaId={receita.id}
+            onRemover={() => onRemover(receita.id)}
+            disabled={removendo}
+            variant="inline"
+          />
+        )}
       </header>
 
       <ReceitaMidiaImage
@@ -108,6 +129,16 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
             ) : (
               comentarios.map((comentario) => (
                 <div key={comentario.id} className="feed-card__comment-item">
+                  <div className="feed-card__comment-row">
+                    <PerfilAvatar
+                      perfilId={comentario.perfilId}
+                      possuiMidia={comentario.possuiMidia}
+                      contexto={ContextoMidiaPerfil.AVATAR}
+                      alt={comentario.nomePerfil}
+                      className="feed-card__comment-avatar"
+                      placeholderClassName="feed-card__comment-avatar feed-card__comment-avatar--placeholder"
+                    />
+                    <div className="feed-card__comment-body">
                   <div className="feed-card__comment-header">
                     <strong className="feed-card__comment-author">{comentario.nomePerfil}</strong>
                     {perfilId !== null && comentario.perfilId === perfilId && (
@@ -121,6 +152,8 @@ function FeedCard({ receita, isSelected, onClick }: FeedCardProps) {
                     )}
                   </div>
                   <span className="feed-card__comment-text">{comentario.comentario}</span>
+                    </div>
+                  </div>
                 </div>
               ))
             )}

@@ -10,6 +10,7 @@ import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.enums.TipoRefeicaoEnum;
 import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
+import br.com.puc.saborfamilia.database.repository.ComentarioReceitaRepository;
 import br.com.puc.saborfamilia.database.repository.CurtidaReceitaRepository;
 import br.com.puc.saborfamilia.database.repository.FavoritoReceitaRepository;
 import br.com.puc.saborfamilia.database.repository.FeedPerfilReceitaRepository;
@@ -59,6 +60,7 @@ public class ReceitaServiceImpl implements ReceitaService {
   private final FavoritoReceitaRepository favoritoReceitaRepository;
   private final FeedPerfilReceitaRepository feedPerfilReceitaRepository;
   private final CurtidaReceitaRepository curtidaReceitaRepository;
+  private final ComentarioReceitaRepository comentarioReceitaRepository;
   private final FeedService feedService;
   private final RestricaoAlimentarService restricaoAlimentarService;
   private final RestricaoAlimentarReceitaService restricaoAlimentarReceitaService;
@@ -367,6 +369,9 @@ public class ReceitaServiceImpl implements ReceitaService {
     }
 
     feedService.removerReceitaDoFeed(receita.getId());
+    curtidaReceitaRepository.deleteByReceitaId(receitaId);
+    comentarioReceitaRepository.deleteByReceitaId(receitaId);
+    favoritoReceitaRepository.deleteByReceitaId(receitaId);
     restricaoAlimentarReceitaService.removerRestricoesReceita(receitaId);
     personalizacaoReceitaService.removerVinculosReceita(receitaId);
     midiaService.removerMidia(TipoEntidadeEnum.RECEITA, receitaId);

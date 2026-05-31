@@ -13,6 +13,10 @@ api.interceptors.request.use((config) => {
   if (config.data instanceof FormData) {
     delete config.headers["Content-Type"];
   }
+  if (config.responseType === "blob" || config.responseType === "arraybuffer") {
+    delete config.headers["Content-Type"];
+    config.headers.Accept = "image/*,*/*";
+  }
   return config;
 });
 

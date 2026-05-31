@@ -3,6 +3,7 @@ import SendIcon from "../../../icon/messagem/SendIcon";
 import { useState } from "react";
 import { useEnviarMensagem } from "../../../hooks/UseConversa";
 import type { PerfilResumoResponse } from "../../../dto/perfil/response/PerfilResumoResponse";
+import { ContextoMidiaPerfil } from "../../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
 
 interface Props {
@@ -38,6 +39,7 @@ export function NovaConversa({ destinatario, onConversaCriada }: Props) {
         <PerfilAvatar
           perfilId={destinatario.perfilId}
           possuiMidia={destinatario.possuiMidia}
+          contexto={ContextoMidiaPerfil.CAPA_PERFIL}
           alt={destinatario.nome}
           className="chat-messages-header__avatar"
           placeholderClassName="chat-messages-header__avatar chat-messages-header__avatar--placeholder"

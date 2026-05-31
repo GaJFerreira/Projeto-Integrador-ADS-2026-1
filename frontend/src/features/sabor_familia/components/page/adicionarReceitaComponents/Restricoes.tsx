@@ -1,4 +1,6 @@
 import type { RestricaoAlimentarResponse } from "../../../dto/restricao/response/RestricaoAlimentarResponse";
+import { labelRestricaoReceita } from "../../../utils/catalogoLabels";
+import { SfPillList } from "../../common/SfCatalogoPills";
 
 interface Props {
   restricoes: RestricaoAlimentarResponse[];
@@ -16,18 +18,12 @@ export function Restricoes({ restricoes, loading, selecionadas, onToggle }: Prop
       {loading ? (
         <div className="ar-loading-sm">Carregando restrições…</div>
       ) : (
-        <div className="ar-chips">
-          {restricoes.map((r) => (
-            <button
-              key={r.codigo}
-              type="button"
-              className={`ar-chip ${selecionadas.has(r.codigo) ? "ar-chip--active" : ""}`}
-              onClick={() => onToggle(r.codigo)}
-            >
-              {r.codigo}
-            </button>
-          ))}
-        </div>
+        <SfPillList
+          items={restricoes}
+          selecionadas={selecionadas}
+          onToggle={onToggle}
+          getLabel={labelRestricaoReceita}
+        />
       )}
     </section>
   );

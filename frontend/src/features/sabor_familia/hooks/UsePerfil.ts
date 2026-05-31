@@ -3,24 +3,16 @@ import { useLocation, useNavigate, useNavigationType } from "react-router-dom";
 import { useAuth } from "./UseAuth";
 import { perfilService } from "../service/PerfilService";
 import { invalidarMidia } from "../lib/midiaCache";
+import {
+  tratarErroFormulario,
+  tratarErroListagem,
+  tratarErroAcao,
+} from "../utils/tratarErroRequisicao";
 import type { PerfilRequest } from "../dto/perfil/request/PerfilRequest";
 import type { EditarPerfilRequest } from "../dto/perfil/request/EditarPerfilRequest";
 import type { PerfilResponse } from "../dto/perfil/response/PerfilResponse";
 import type { PerfilResumoResponse } from "../dto/perfil/response/PerfilResumoResponse";
 import type { PageResponse } from "../dto/page/PageResponse";
-
-interface ApiError {
-  response?: { status: number };
-}
-
-function isApiError(err: unknown): err is ApiError {
-  return (
-    typeof err === "object" &&
-    err !== null &&
-    "response" in err &&
-    typeof (err as ApiError).response?.status === "number"
-  );
-}
 
 export function useBuscarMeuPerfil() {
   const { salvarPerfil } = useAuth();
@@ -36,11 +28,7 @@ export function useBuscarMeuPerfil() {
       salvarPerfil(data);
       return data;
     } catch (err: unknown) {
-      if (isApiError(err)) {
-        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-      } else {
-        setError("Erro ao buscar perfil.");
-      }
+      tratarErroListagem(err, setError, navigate, "configuracoes");
       return null;
     } finally {
       setLoading(false);
@@ -69,11 +57,7 @@ export function useBuscarPerfil(perfilId: number) {
       const data = await perfilService.buscarPerfilPublico(perfilId);
       setPerfil(data);
     } catch (err: unknown) {
-      if (isApiError(err)) {
-        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-      } else {
-        setError("Erro ao buscar perfil.");
-      }
+      tratarErroListagem(err, setError, navigate, "perfil");
     } finally {
       setLoading(false);
     }
@@ -105,11 +89,7 @@ export function useCriarPerfil() {
       }
       onSucesso?.(perfil);
     } catch (err: unknown) {
-      if (isApiError(err)) {
-        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-      } else {
-        setError("Erro ao criar perfil.");
-      }
+      tratarErroFormulario(err, setError, navigate, "cadastro");
     } finally {
       setLoading(false);
     }
@@ -139,17 +119,43 @@ export function useEditarPerfil() {
       salvarPerfil(perfil);
       onSucesso?.(perfil);
     } catch (err: unknown) {
-      if (isApiError(err)) {
-        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-      } else {
-        setError("Erro ao editar perfil.");
-      }
+      tratarErroFormulario(err, setError, navigate, "configuracoes");
     } finally {
       setLoading(false);
     }
   };
 
   return { editar, loading, error };
+}
+
+export function useExplorarPerfis(page = 0, size = 20, nome?: string, enabled = true) {
+  const [perfis, setPerfis] = useState<PageResponse<PerfilResumoResponse> | null>(null);
+  const [loading, setLoading] = useState(enabled);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const buscar = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await perfilService.explorarPerfis(page, size, nome);
+      setPerfis(data);
+    } catch (err: unknown) {
+      tratarErroListagem(err, setError, navigate, "explorar");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, size, nome, navigate]);
+
+  useEffect(() => {
+    if (!enabled) {
+      setLoading(false);
+      return;
+    }
+    buscar();
+  }, [buscar, enabled]);
+
+  return { perfis, loading, error, recarregar: buscar };
 }
 
 export function useBuscarSeguidores(perfilId: number, page = 0, size = 20) {
@@ -176,11 +182,7 @@ export function useBuscarSeguidores(perfilId: number, page = 0, size = 20) {
         }
       } catch (err: unknown) {
         if (cancelled) return;
-        if (isApiError(err)) {
-          navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-        } else {
-          setError("Erro ao buscar seguidores.");
-        }
+        tratarErroListagem(err, setError, navigate, "seguidores");
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -226,11 +228,7 @@ export function useBuscarSeguindo(perfilId: number, page = 0, size = 20) {
         }
       } catch (err: unknown) {
         if (cancelled) return;
-        if (isApiError(err)) {
-          navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-        } else {
-          setError("Erro ao buscar seguindo.");
-        }
+        tratarErroListagem(err, setError, navigate, "seguidores");
       } finally {
         if (!cancelled) {
           setLoading(false);
@@ -261,7 +259,6 @@ export function useAlternarSeguir(
   const [totalSeguidores, setTotalSeguidores] = useState(totalSeguidoresInicial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     setSeguindo(seguindoInicial);
@@ -287,11 +284,7 @@ export function useAlternarSeguir(
       setSeguindo(seguindoInicial);
       setTotalSeguidores(totalSeguidoresInicial);
 
-      if (isApiError(err)) {
-        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-      } else {
-        setError("Erro ao atualizar seguir.");
-      }
+      tratarErroAcao(err, setError);
     } finally {
       setLoading(false);
     }
@@ -304,7 +297,6 @@ export function useAlternarSeguirLista(perfilId: number, seguindoInicial: boolea
   const [seguindo, setSeguindo] = useState(seguindoInicial);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
 
   useEffect(() => {
     setSeguindo(seguindoInicial);
@@ -327,11 +319,7 @@ export function useAlternarSeguirLista(perfilId: number, seguindoInicial: boolea
     } catch (err: unknown) {
       setSeguindo(seguindoInicial);
 
-      if (isApiError(err)) {
-        navigate("/sabor-familia/error", { state: { statusCode: err.response?.status }, replace: true });
-      } else {
-        setError("Erro ao atualizar seguir.");
-      }
+      tratarErroAcao(err, setError);
     } finally {
       setLoading(false);
     }

@@ -33,6 +33,10 @@
   background: var(--scrollbar-thumb-hover, #8a7a68);
 }
 
+.lista-perfis-voltar {
+  margin-bottom: 1rem;
+}
+
 .lista-perfis-header {
   width: 100%;
   display: flex;
@@ -126,40 +130,9 @@
   font-family: inherit;
 }
 
-.lista-perfis-seguir {
+.lista-perfis-item .sf-pill,
+.lista-perfis-item .sf-seguir-btn {
   flex-shrink: 0;
-  padding: 0.4rem 0.85rem;
-  border-radius: 8px;
-  border: 1px solid var(--brand);
-  background: var(--brand);
-  color: #fff;
-  font-size: 13px;
-  font-weight: 600;
-  font-family: var(--font-sans);
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.lista-perfis-seguir:hover:not(:disabled) {
-  background: var(--brand-dark);
-  border-color: var(--brand-dark);
-}
-
-.lista-perfis-seguir:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.lista-perfis-seguir--ativo {
-  background: transparent;
-  color: var(--text);
-  border-color: var(--border);
-}
-
-.lista-perfis-seguir--ativo:hover:not(:disabled) {
-  background: var(--bg);
-  border-color: var(--text-muted);
-  color: var(--text);
 }
 
 .lista-perfis-avatar {

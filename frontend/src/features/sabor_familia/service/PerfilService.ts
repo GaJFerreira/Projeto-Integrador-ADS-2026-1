@@ -18,6 +18,22 @@ export const perfilService = {
     return data;
   },
 
+  explorarPerfis: async (
+    page = 0,
+    size = 20,
+    nome?: string
+  ): Promise<PageResponse<PerfilResumoResponse>> => {
+    const { data } = await api.get<PageResponse<PerfilResumoResponse>>("/perfil/explorar", {
+      params: {
+        page,
+        size,
+        sort: "dataCadastro,desc",
+        ...(nome && { nome }),
+      },
+    });
+    return data;
+  },
+
   criarPerfil: async (
     request: PerfilRequest,
     arquivo?: File | null

@@ -1,0 +1,132 @@
+@import "./sfPillShared.css";
+
+/**
+ * Pill toggle compartilhado (Seguir, tags, restrições).
+ * Não selecionado: fundo branco + contorno/sombra leves.
+ * Selecionado / exibição: fundo laranja + sombra.
+ */
+
+.sf-pill,
+.sf-chip-pers,
+.sf-seguir-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0.42rem 1.05rem;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  appearance: none;
+  -webkit-appearance: none;
+  box-sizing: border-box;
+  border: 1px solid var(--sf-pill-edge);
+  background: #fff;
+  color: var(--brand);
+  box-shadow: var(--sf-pill-shadow-idle);
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.sf-pill:hover:not(:disabled),
+.sf-chip-pers:hover:not(:disabled),
+.sf-seguir-btn:hover:not(:disabled) {
+  background: #fff;
+  color: var(--brand-dark);
+  border-color: var(--sf-pill-edge-hover);
+  box-shadow: var(--sf-pill-shadow-idle-hover);
+}
+
+.sf-pill:disabled,
+.sf-chip-pers:disabled,
+.sf-seguir-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.sf-pill--selected,
+.sf-chip-pers--selecionada,
+.sf-seguir-btn--seguindo {
+  background: var(--brand);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--sf-pill-shadow-active);
+}
+
+.sf-pill--selected:hover:not(:disabled),
+.sf-chip-pers--selecionada:hover:not(:disabled),
+.sf-seguir-btn--seguindo:hover:not(:disabled) {
+  background: var(--brand-dark);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--sf-pill-shadow-active-hover);
+}
+
+.sf-pill--exibir,
+.sf-chip-pers--exibir {
+  cursor: default;
+  pointer-events: none;
+  background: var(--brand);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--sf-pill-shadow-active);
+}
+
+.sf-pill--exibir:hover,
+.sf-chip-pers--exibir:hover {
+  background: var(--brand);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: var(--sf-pill-shadow-active);
+}
+
+.sf-pill--compacto,
+.sf-seguir-btn--compacto {
+  padding: 0.35rem 0.9rem;
+  font-size: 13px;
+}
+
+.sf-pill--sm {
+  padding: 0.28rem 0.75rem;
+  font-size: 12px;
+}
+
+.sf-seguir-btn {
+  padding: 0.5rem 1.15rem;
+}
+
+.sf-pill-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sf-pill-cat-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sf-pill-cat-group__title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+  font-family: var(--font-sans);
+}
+
+.sf-pill-empty {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  font-family: var(--font-sans);
+}

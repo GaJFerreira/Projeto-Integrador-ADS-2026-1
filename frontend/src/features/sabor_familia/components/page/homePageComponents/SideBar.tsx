@@ -2,7 +2,6 @@ import "./sideBar.css";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/UseAuth";
 import HomeIcon from "../../../icon/menu/HomeIcon";
-// import SearchIcon from "../../../assets/icon/menu/SearchIcon";
 import CompassIcon from "../../../icon/menu/CompassIcon";
 import ChatIcon from "../../../icon/menu/ChatIcon";
 import HeartIcon from "../../../icon/menu/HeartIcon"; 

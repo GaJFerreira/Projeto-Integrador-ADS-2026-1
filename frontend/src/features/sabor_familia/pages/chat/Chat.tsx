@@ -1,12 +1,13 @@
 import "./chat.css";
 import "../home/homeSaborFamilia.css";
+import "../../components/common/sfPillToggle.css";
 import { useState } from "react";
 import { useBuscarConversas } from "../../hooks/UseConversa";
 import { useBuscarSeguindo } from "../../hooks/UsePerfil";
 import type { ConversaResponse } from "../../dto/menssagem/response/ConversaResponse";
 import type { PerfilResumoResponse } from "../../dto/perfil/response/PerfilResumoResponse";
 import { useAuth } from "../../hooks/UseAuth";
-import Sidebar from "../../components/page/homePageComponents/SideBar";
+import { ContextoMidiaPerfil } from "../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../components/common/PerfilAvatar";
 import ChatIcon from "../../icon/menu/ChatIcon";
 import { ConversaAtiva } from "../../components/page/conversaComponents/ConversaAtiva";
@@ -34,23 +35,22 @@ export function Chat() {
   };
 
   return (
-    <div className="home-layout">
-      <Sidebar />
-
-      <div className="chat-layout">
+    <div className="chat-layout">
         {/* ── Lista de conversas ── */}
         <aside className="chat-list">
           <div className="chat-list__header">
             <h2 className="chat-list__title">Mensagens</h2>
             <button
-              className={`chat-nova-btn ${showNova ? "chat-nova-btn--active" : ""}`}
+              type="button"
+              className={`sf-pill sf-pill--compacto ${showNova ? "sf-pill--selected" : ""}`}
               onClick={() => {
                 setShowNova((v) => !v);
                 setNovoDestinatario(null);
               }}
-              title="Nova mensagem"
+              title="Iniciar conversa"
+              aria-pressed={showNova}
             >
-              ✏ Nova
+              Iniciar conversa
             </button>
           </div>
 
@@ -78,6 +78,7 @@ export function Chat() {
                         <PerfilAvatar
                           perfilId={c.contato.perfilId}
                           possuiMidia={c.contato.possuiMidia}
+                          contexto={ContextoMidiaPerfil.CAPA_PERFIL}
                           alt={c.contato.nome}
                           className="chat-list__avatar"
                           placeholderClassName="chat-list__avatar chat-list__avatar--placeholder"
@@ -120,6 +121,7 @@ export function Chat() {
                           <PerfilAvatar
                             perfilId={p.perfilId}
                             possuiMidia={p.possuiMidia}
+                            contexto={ContextoMidiaPerfil.AVATAR}
                             alt={p.nome}
                             className="chat-nova-item__avatar"
                             placeholderClassName="chat-nova-item__avatar chat-nova-item__avatar--placeholder"
@@ -136,7 +138,7 @@ export function Chat() {
                   <div className="chat-list__empty">
                     <p>Você ainda não tem conversas.</p>
                     <p>
-                      Clique em <strong>✏ Nova</strong> para iniciar.
+                      Clique em <strong>Iniciar conversa</strong> para começar.
                     </p>
                   </div>
                 )}
@@ -155,11 +157,10 @@ export function Chat() {
         ) : (
           <div className="chat-placeholder">
             <ChatIcon />
-            <span>Selecione uma conversa ou clique em ✏ Nova</span>
+            <span>Selecione uma conversa ou clique em Iniciar conversa</span>
           </div>
         )}
       </div>
-    </div>
   );
 }
 

@@ -1,38 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { curtidaService } from "../service/CurtidaService";
-import type { PerfilCurtidaResponse } from "../dto/receita/response/PerfilCurtidaResponse";
-
-export function useBuscarCurtidas(receitaId: number) {
-  const [curtidas, setCurtidas] = useState<PerfilCurtidaResponse[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
-
-  const buscar = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await curtidaService.buscarCurtidas(receitaId);
-      setCurtidas(data);
-    } catch (err: unknown) {
-      const statusCode = (err as { response?: { status: number } })?.response?.status;
-      if (statusCode) {
-        navigate("/sabor-familia/error", { state: { statusCode } });
-      } else {
-        setError("Erro ao carregar curtidas.");
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [receitaId, navigate]);
-
-  useEffect(() => {
-    buscar();
-  }, [buscar]);
-
-  return { curtidas, loading, error, recarregar: buscar };
-}
 
 export function useAlternarCurtida(receitaId: number, curtidoInicial: boolean, totalInicial: number) {
   const [curtido, setCurtido] = useState(curtidoInicial);

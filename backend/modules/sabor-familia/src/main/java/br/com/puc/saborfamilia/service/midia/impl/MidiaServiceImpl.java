@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -115,7 +116,9 @@ public class MidiaServiceImpl implements MidiaService {
   @Override
   @Transactional(readOnly = true)
   public boolean possuiMidia(TipoEntidadeEnum tipoEntidade, Long entidadeId) {
-    return midiaRepository.existsByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId);
+    return midiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
+      .filter(this::midiaComArquivoNoDisco)
+      .isPresent();
   }
 
   @Override
@@ -134,9 +137,25 @@ public class MidiaServiceImpl implements MidiaService {
       return Set.of();
     }
 
-    return Set.copyOf(
-      midiaRepository.findEntidadeIdsByTipoEntidadeAndEntidadeIdIn(tipoEntidade, idsDistintos)
-    );
+    return midiaRepository.findByTipoEntidadeAndEntidadeIdIn(tipoEntidade, idsDistintos)
+      .stream()
+      .filter(this::midiaComArquivoNoDisco)
+      .map(MidiaEntity::getEntidadeId)
+      .collect(Collectors.toUnmodifiableSet());
+  }
+
+  private boolean midiaComArquivoNoDisco(MidiaEntity midia) {
+    if (!StringUtils.hasText(midia.getCaminhoRelativo())) {
+      return false;
+    }
+
+    try {
+      Path arquivo = validarCaminhoArquivo(midia.getCaminhoRelativo());
+      return Files.exists(arquivo);
+    }
+    catch (Exception e) {
+      return false;
+    }
   }
 
   @Override

@@ -1,6 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Sidebar from "../../components/page/homePageComponents/SideBar";
 import { useCriarReceita } from "../../hooks/UseReceita";
 import { useBuscarRestricoesAlimentares } from "../../hooks/UseRestricaoAlimentar";
 import { useListarCatalogoContextoReceita } from "../../hooks/UsePersonalizacao";
@@ -16,7 +15,9 @@ import "./adicionarReceita.css";
 export function AdicionarReceita() {
   const navigate = useNavigate();
 
-  const { criar, loading: salvando, error: erroSalvar } = useCriarReceita();
+  const { criar, loading: salvando, error: erroSalvar, fieldErrors, limparErro } =
+    useCriarReceita();
+  const erroBannerRef = useRef<HTMLDivElement>(null);
   const { restricoes, loading: loadingRestricoes }      = useBuscarRestricoesAlimentares();
   const { personalizacoes, loading: loadingPersonalizacoes } = useListarCatalogoContextoReceita();
   const [titulo,          setTitulo]          = useState("");
@@ -49,9 +50,17 @@ export function AdicionarReceita() {
     {}
   );
 
+  useEffect(() => {
+    if (erroSalvar && erroBannerRef.current) {
+      erroBannerRef.current.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+  }, [erroSalvar]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!tipoRefeicao) return;
+
+    limparErro();
 
     await criar(
       {
@@ -71,25 +80,42 @@ export function AdicionarReceita() {
   };
 
   return (
-    <div className="home-layout">
-      <Sidebar />
-
-      <main className="ar-main">
+    <main className="ar-main">
         <div className="ar-container">
 
+          <header className="ar-header">
+            <p className="ar-eyebrow">Publicar</p>
+            <h1 className="ar-title">Nova receita</h1>
+            <p className="ar-subtitle">
+              Preencha os blocos abaixo para compartilhar sua receita.
+            </p>
+          </header>
+
           <form className="ar-form" onSubmit={handleSubmit}>
+
+            {erroSalvar && (
+              <div
+                ref={erroBannerRef}
+                className="ar-form-error"
+                role="alert"
+              >
+                {erroSalvar}
+              </div>
+            )}
 
             <InformacoesBasicas
               titulo={titulo}                         onTituloChange={setTitulo}
               tipoRefeicao={tipoRefeicao}             onTipoRefeicaoChange={setTipoRefeicao}
               tempoPreparoMin={tempoPreparoMin}        onTempoPreparoMinChange={setTempoPreparoMin}
               qtdPorcoes={qtdPorcoes}                 onQtdPorcoesChange={setQtdPorcoes}
+              errosCampo={fieldErrors}
             />
 
             <ConteudoReceita
               ingredientes={ingredientes} onIngredientesChange={setIngredientes}
               modoPreparo={modoPreparo}   onModoPreparoChange={setModoPreparo}
               historia={historia}         onHistoriaChange={setHistoria}
+              errosCampo={fieldErrors}
             />
 
             <section className="ar-section">
@@ -116,10 +142,6 @@ export function AdicionarReceita() {
               onToggle={toggleItem(personalizacoesSelecionadas, setPersonalizacoesSelecionadas)}
             />
 
-            {erroSalvar && (
-              <div className="ar-form-error">{erroSalvar}</div>
-            )}
-
             <div className="ar-form-actions">
               <button
                 type="button"
@@ -140,8 +162,7 @@ export function AdicionarReceita() {
 
           </form>
         </div>
-      </main>
-    </div>
+    </main>
   );
 }
 

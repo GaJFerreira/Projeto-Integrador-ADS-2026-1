@@ -43,7 +43,7 @@ public interface PerfilRepository extends JpaRepository<PerfilEntity, Long> {
         SELECT *
         FROM sabor_familia.perfil perfil
         WHERE perfil.id <> :perfilIdExcluir
-        AND (:nome IS NULL OR perfil.nome LIKE CONCAT('%', :nome, '%'))
+        AND (:nome IS NULL OR LOWER(perfil.nome) LIKE LOWER(CONCAT('%', :nome, '%')))
         ORDER BY perfil.data_cadastro DESC, perfil.id DESC
       """,
     countQuery =
@@ -51,7 +51,7 @@ public interface PerfilRepository extends JpaRepository<PerfilEntity, Long> {
         SELECT COUNT(*)
         FROM sabor_familia.perfil perfil
         WHERE perfil.id <> :perfilIdExcluir
-        AND (:nome IS NULL OR perfil.nome LIKE CONCAT('%', :nome, '%'))
+        AND (:nome IS NULL OR LOWER(perfil.nome) LIKE LOWER(CONCAT('%', :nome, '%')))
       """,
     nativeQuery = true
   )
@@ -69,7 +69,7 @@ public interface PerfilRepository extends JpaRepository<PerfilEntity, Long> {
         LEFT JOIN sabor_familia.personalizacao_perfil personalizacaoPerfil ON personalizacaoPerfil.perfil_id = perfil.id
         LEFT JOIN sabor_familia.personalizacao personalizacao ON personalizacao.id = personalizacaoPerfil.personalizacao_id
         WHERE perfil.id <> :perfilIdExcluir
-        AND (:nome IS NULL OR perfil.nome LIKE CONCAT('%', :nome, '%'))
+        AND (:nome IS NULL OR LOWER(perfil.nome) LIKE LOWER(CONCAT('%', :nome, '%')))
         GROUP BY perfil.id
         ORDER BY
           COUNT(CASE WHEN personalizacao.codigo IN (:codigosPersonalizacao) THEN 1 END) DESC,
@@ -81,7 +81,7 @@ public interface PerfilRepository extends JpaRepository<PerfilEntity, Long> {
         SELECT COUNT(*)
         FROM sabor_familia.perfil perfil
         WHERE perfil.id <> :perfilIdExcluir
-        AND (:nome IS NULL OR perfil.nome LIKE CONCAT('%', :nome, '%'))
+        AND (:nome IS NULL OR LOWER(perfil.nome) LIKE LOWER(CONCAT('%', :nome, '%')))
       """,
     nativeQuery = true
   )

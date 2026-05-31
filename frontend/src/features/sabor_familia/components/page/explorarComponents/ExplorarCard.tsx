@@ -1,5 +1,6 @@
 import "./explorarCard.css";
 import { formatDataGrid } from "../../../utils/formatarTempo";
+import { ContextoMidiaReceita } from "../../../dto/enums/ContextoMidiaEnum";
 import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import type { ReceitaResumoResponse } from "../../../dto/receita/response/ReceitaResumoResponse";
 
@@ -25,6 +26,7 @@ export function ExplorarCard({
       <ReceitaMidiaImage
         receitaId={receita.id}
         possuiMidia={receita.possuiMidia}
+        contexto={ContextoMidiaReceita.CAPA_GRID}
         alt={receita.titulo}
         wrapClassName="explorar-card__image-wrap"
         className="explorar-card__image"

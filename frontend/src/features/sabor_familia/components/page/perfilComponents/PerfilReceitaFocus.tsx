@@ -1,56 +1,27 @@
-import "../../../pages/perfil/perfil.css";
-import "../../../pages/home/homeSaborFamilia.css";
-import { useState } from "react";
-import { useBuscarReceita } from "../../../hooks/UseReceita";
-import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
-import Sidebar from "../homePageComponents/SideBar";
-import FeedCard from "../homePageComponents/FeedCard";
-import DetailPanel from "../homePageComponents/DetailPanel";
+import { ReceitaFocusView } from "../../common/ReceitaFocusView";
 
 interface Props {
   receitaId: number;
   onVoltar: () => void;
+  onReceitaRemovida?: () => void;
+  nomePerfil?: string;
 }
 
-export function PerfilReceitaFocus({ receitaId, onVoltar }: Props) {
-  const { receita, loading, error } = useBuscarReceita(receitaId);
-  const [selecionada, setSelecionada] = useState<ReceitaResponse | null>(null);
-
+export function PerfilReceitaFocus({
+  receitaId,
+  onVoltar,
+  onReceitaRemovida,
+  nomePerfil,
+}: Props) {
   return (
-    <div className="home-layout">
-      <Sidebar />
-
-      <main className="home-main perfil-focus-main">
-        <button type="button" className="perfil-back" onClick={onVoltar}>
-          ← Voltar ao perfil
-        </button>
-
-        {loading && (
-          <div className="home-loading">
-            <div className="home-loading__spinner" />
-            <span>Carregando receita...</span>
-          </div>
-        )}
-
-        {error && <div className="home-error">{error}</div>}
-
-        {!loading && !error && receita && (
-          <div className="feed-list">
-            <FeedCard
-              receita={receita}
-              isSelected={selecionada?.id === receita.id}
-              onClick={() =>
-                setSelecionada(selecionada?.id === receita.id ? null : receita)
-              }
-            />
-          </div>
-        )}
-      </main>
-
-      {selecionada && (
-        <DetailPanel receita={selecionada} onClose={() => setSelecionada(null)} />
-      )}
-    </div>
+    <ReceitaFocusView
+      receitaId={receitaId}
+      onVoltar={onVoltar}
+      onReceitaRemovida={onReceitaRemovida}
+      voltarDestino="perfil"
+      voltarDetalhe={nomePerfil}
+      mainClassName="perfil-focus-main"
+    />
   );
 }
 

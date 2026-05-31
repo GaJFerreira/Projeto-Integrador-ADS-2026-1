@@ -7,6 +7,7 @@ import {
 } from "../../../hooks/UseConversa";
 import { useState, useEffect, useRef } from "react";
 import type { ConversaResponse } from "../../../dto/menssagem/response/ConversaResponse";
+import { ContextoMidiaPerfil } from "../../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
 
 export function ConversaAtiva({
@@ -50,6 +51,7 @@ export function ConversaAtiva({
         <PerfilAvatar
           perfilId={conversa.contato.perfilId}
           possuiMidia={conversa.contato.possuiMidia}
+          contexto={ContextoMidiaPerfil.CAPA_PERFIL}
           alt={conversa.contato.nome}
           className="chat-messages-header__avatar"
           placeholderClassName="chat-messages-header__avatar chat-messages-header__avatar--placeholder"

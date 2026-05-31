@@ -1,11 +1,21 @@
+@import "../../components/common/sfSectionAccent.css";
+@import "../../components/common/sfPillToggle.css";
+
 .config-main {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  padding: 2rem 1.5rem 1.25rem;
+  background: linear-gradient(
+    180deg,
+    rgba(186, 117, 23, 0.045) 0%,
+    var(--bg) 140px
+  );
+  padding: 2rem 1.5rem 2.5rem;
+  padding-bottom: max(2.5rem, env(safe-area-inset-bottom, 0px));
   display: flex;
   flex-direction: column;
   align-items: center;
+  box-sizing: border-box;
 }
 
 .config-main::-webkit-scrollbar {
@@ -30,25 +40,39 @@
   max-width: 580px;
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
 }
 
-.config-section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  box-shadow: var(--shadow);
+.config-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(186, 117, 23, 0.12);
 }
 
-.config-section__title {
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-muted);
-  margin: 0 0 1.25rem;
+.config-eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 11px;
+  font-weight: 600;
   font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.config-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0 0 6px;
+  line-height: 1.25;
+}
+
+.config-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  margin: 0;
+  line-height: 1.45;
 }
 
 .config-profile-header {
@@ -133,12 +157,12 @@
   padding: 0.6rem 0.85rem;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg);
+  background: #fafafa;
   font-size: 14px;
   font-family: var(--font-sans);
   color: var(--text);
   outline: none;
-  transition: border-color 0.15s;
+  transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .config-textarea {
@@ -150,37 +174,7 @@
 .config-input:focus,
 .config-textarea:focus {
   border-color: var(--brand);
-}
-
-.config-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.config-tag {
-  font-size: 12px;
-  padding: 3px 10px;
-  border-radius: 20px;
-  font-family: var(--font-sans);
-}
-
-.config-tag--restricao {
-  background: #fff3e0;
-  color: #bf6c00;
-  border: 1px solid #ffe0b2;
-}
-
-.config-tag--personalizacao {
-  background: var(--brand-light);
-  color: var(--brand-dark);
-  border: 1px solid rgba(186,117,23,0.25);
-}
-
-.config-empty-tag {
-  font-size: 13px;
-  color: var(--text-muted);
-  font-style: italic;
+  box-shadow: 0 0 0 3px rgba(186, 117, 23, 0.1);
 }
 
 .config-actions {
@@ -196,6 +190,7 @@
   border-radius: 8px;
   border: none;
   font-size: 14px;
+  font-weight: 500;
   font-family: var(--font-sans);
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
@@ -204,9 +199,10 @@
 .config-btn--primary {
   background: var(--brand);
   color: #fff;
+  box-shadow: 0 1px 4px rgba(186, 117, 23, 0.2);
 }
 
-.config-btn--primary:hover {
+.config-btn--primary:hover:not(:disabled) {
   background: var(--brand-dark);
 }
 
@@ -221,8 +217,10 @@
   border: 1px solid var(--border);
 }
 
-.config-btn--secondary:hover {
+.config-btn--secondary:hover:not(:disabled) {
   background: var(--bg);
+  border-color: var(--brand);
+  color: var(--brand);
 }
 
 .config-btn--danger {
@@ -231,28 +229,44 @@
   border: 1px solid var(--danger);
 }
 
-.config-btn--danger:hover {
+.config-btn--danger:hover:not(:disabled) {
   background: #fff0f0;
+}
+
+.config-feedback {
+  margin: 0 0 1.25rem;
+}
+
+.config-feedback .config-success,
+.config-feedback .config-error-msg {
+  margin: 0;
+}
+
+.config-feedback .config-error-msg + .config-success,
+.config-feedback .config-success + .config-error-msg {
+  margin-top: 0.5rem;
 }
 
 .config-success {
   font-size: 13px;
+  font-weight: 600;
   color: #2e7d32;
   background: #f1f8e9;
   border: 1px solid #c5e1a5;
   border-radius: 8px;
-  padding: 0.5rem 0.85rem;
-  margin-top: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  font-family: var(--font-sans);
 }
 
 .config-error-msg {
   font-size: 13px;
+  font-weight: 600;
   color: #c00;
   background: #fff0f0;
   border: 1px solid #fcc;
   border-radius: 8px;
-  padding: 0.5rem 0.85rem;
-  margin-top: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  font-family: var(--font-sans);
 }
 
 .config-logout-section {
@@ -260,10 +274,11 @@
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.25rem 1.5rem;
+  margin-top: 0.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
   flex-wrap: wrap;
   gap: 1rem;
 }
@@ -272,4 +287,5 @@
   font-size: 14px;
   color: var(--text-muted);
   font-family: var(--font-sans);
+  line-height: 1.45;
 }

@@ -1,9 +1,14 @@
 import { useMidiaUrl } from "../../hooks/UseMidia";
+import {
+  ContextoMidiaReceita,
+  type ContextoMidiaReceita as ContextoMidiaReceitaType,
+} from "../../dto/enums/ContextoMidiaEnum";
 import "./receitaMidiaImage.css";
 
 interface Props {
   receitaId: number;
   possuiMidia?: boolean;
+  contexto?: ContextoMidiaReceitaType;
   alt: string;
   className?: string;
   wrapClassName?: string;
@@ -14,13 +19,19 @@ interface Props {
 export function ReceitaMidiaImage({
   receitaId,
   possuiMidia = false,
+  contexto = ContextoMidiaReceita.CAPA_FEED,
   alt,
   className = "",
   wrapClassName = "",
   emptyClassName = "",
   onClick,
 }: Props) {
-  const { url, loading, failed } = useMidiaUrl("receita", receitaId, possuiMidia);
+  const { url, loading, failed } = useMidiaUrl(
+    "receita",
+    receitaId,
+    contexto,
+    possuiMidia
+  );
   const showImage = possuiMidia && url && !failed;
 
   return (

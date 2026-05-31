@@ -1,16 +1,26 @@
 import "./detailPanel.css";
+import { useAuth } from "../../../hooks/UseAuth";
+import { ReceitaAcoesAutor } from "../../common/ReceitaAcoesAutor";
 import { formatDataPublicacaoCompleta } from "../../../utils/formatarTempo";
-import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
 import type { RestricaoAlimentarResumoResponse } from "../../../dto/restricao/response/RestricaoAlimentarResumoResponse";
 import type { PersonalizacaoResumoResponse } from "../../../dto/personalizacao/response/PersonalizacaoResumoResponse";
+import "../../common/sfPillToggle.css";
+import {
+  labelPersonalizacao,
+  labelRestricaoReceita,
+} from "../../../utils/catalogoLabels";
 
 interface DetailPanelProps {
   receita: ReceitaResponse;
   onClose: () => void;
+  onRemover?: (receitaId: number) => void;
+  removendo?: boolean;
 }
 
-function DetailPanel({ receita, onClose }: DetailPanelProps) {
+function DetailPanel({ receita, onClose, onRemover, removendo = false }: DetailPanelProps) {
+  const { perfilId } = useAuth();
+  const isAutor = perfilId !== null && receita.autor.perfilId === perfilId;
   const ingredientesList = receita.detalhes.ingredientes
     .split("\n")
     .map((s) => s.trim())
@@ -23,14 +33,14 @@ function DetailPanel({ receita, onClose }: DetailPanelProps) {
       </button>
 
       <div className="detail-panel__scroll">
-        <ReceitaMidiaImage
-          receitaId={receita.id}
-          possuiMidia={receita.possuiMidia}
-          alt={receita.detalhes.titulo}
-          wrapClassName="detail-panel__image-wrap"
-          className="detail-panel__image"
-          emptyClassName="detail-panel__image detail-panel__image--empty"
-        />
+        {isAutor && onRemover && (
+          <ReceitaAcoesAutor
+            receitaId={receita.id}
+            onRemover={() => onRemover(receita.id)}
+            disabled={removendo}
+            variant="panel"
+          />
+        )}
 
         {/* ── Título ── */}
         <h2 className="detail-panel__title">{receita.detalhes.titulo}</h2>
@@ -98,10 +108,10 @@ function DetailPanel({ receita, onClose }: DetailPanelProps) {
         {receita.restricoesAlimentares.length > 0 && (
           <section className="detail-section">
             <h3 className="detail-section__label">Restrições</h3>
-            <div className="detail-tags">
+            <div className="sf-pill-group">
               {receita.restricoesAlimentares.map((r: RestricaoAlimentarResumoResponse) => (
-                <span key={r.codigo} className="detail-tag detail-tag--restricao">
-                  {r.codigo}
+                <span key={r.codigo} className="sf-pill sf-pill--exibir">
+                  {labelRestricaoReceita(r)}
                 </span>
               ))}
             </div>
@@ -112,10 +122,10 @@ function DetailPanel({ receita, onClose }: DetailPanelProps) {
         {receita.personalizacao.length > 0 && (
           <section className="detail-section">
             <h3 className="detail-section__label">Tags</h3>
-            <div className="detail-tags">
+            <div className="sf-pill-group">
               {receita.personalizacao.map((p: PersonalizacaoResumoResponse) => (
-                <span key={p.codigo} className="detail-tag detail-tag--tag">
-                  #{p.codigo.replace(/^#/, "")}
+                <span key={p.codigo} className="sf-pill sf-pill--exibir">
+                  {labelPersonalizacao(p)}
                 </span>
               ))}
             </div>

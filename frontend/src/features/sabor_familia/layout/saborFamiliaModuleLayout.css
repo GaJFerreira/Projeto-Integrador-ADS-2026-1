@@ -8,6 +8,13 @@
   overflow: hidden;
   --scrollbar-thumb: #b0a090;
   --scrollbar-thumb-hover: #8a7a68;
+  --sf-section-accent: var(--brand);
+  --sf-section-accent-size: 4px;
+}
+
+.sf-module-layout > .home-layout {
+  height: 100%;
+  min-height: 0;
 }
 
 .sf-module-layout ::-webkit-scrollbar {

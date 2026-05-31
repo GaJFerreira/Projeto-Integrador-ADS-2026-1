@@ -1,5 +1,7 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AuthContext } from "./AuthContext";
+import { limparCacheMidia } from "../lib/midiaCache";
+import { perfilService } from "../service/PerfilService";
 import type { PerfilResponse } from "../dto/perfil/response/PerfilResponse";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -26,10 +28,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const limparAuth = useCallback(() => {
+    limparCacheMidia();
     localStorage.removeItem("sf_perfilId");
     setPerfilId(null);
     setPerfil(null);
   }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || perfil) return;
+
+    let cancelled = false;
+
+    perfilService
+      .buscarMeuPerfil()
+      .then((data) => {
+        if (!cancelled) salvarPerfil(data);
+      })
+      .catch(() => {
+        /* sem perfil (cadastro) ou erro de sessão — login/cadastro tratam */
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [perfil, salvarPerfil]);
 
   const value = useMemo(
     () => ({ usuarioId, perfilId, perfil, salvarPerfil, limparAuth }),

@@ -4,6 +4,7 @@ import br.com.puc.saborfamilia.database.entity.ComentarioReceitaEntity;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -34,5 +35,9 @@ public interface ComentarioReceitaRepository extends JpaRepository<ComentarioRec
   ComentarioReceitaEntity findUltimoComentario(Long perfilId, Long receitaId);
 
   Optional<ComentarioReceitaEntity> findByIdAndReceitaId(Long comentarioId, Long receitaId);
+
+  @Modifying
+  @Query("DELETE FROM ComentarioReceitaEntity comentario WHERE comentario.receita.id = :receitaId")
+  void deleteByReceitaId(@Param("receitaId") Long receitaId);
 
 }

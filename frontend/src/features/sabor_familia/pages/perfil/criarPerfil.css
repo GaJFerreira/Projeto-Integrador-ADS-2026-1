@@ -134,36 +134,6 @@
   margin-bottom: 6px;
 }
 
-.cp-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.cp-chip {
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: sans-serif;
-  border: 1px solid #ddd;
-  background: #fafafa;
-  color: #888;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.cp-chip:hover { 
-  border-color: #BA7517; 
-  color: #BA7517; 
-}
-.cp-chip--active { 
-  background: #f5e6cb; 
-  border-color: #BA7517; 
-  color: #854F0B; 
-  font-weight: 500; 
-}
-
 .btn-submit {
   width: 100%;
   padding: 10px;

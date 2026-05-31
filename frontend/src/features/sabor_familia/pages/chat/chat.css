@@ -7,8 +7,8 @@
 }
 
 .chat-list {
-  width: 300px;
-  min-width: 300px;
+  width: 360px;
+  min-width: 360px;
   background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex;
@@ -23,6 +23,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.chat-list__header .sf-pill {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .chat-list__title {
@@ -134,33 +141,6 @@
   line-height: 1.8;
 }
 
-.chat-nova-btn {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: var(--font-sans);
-  background: var(--brand-light);
-  color: var(--brand-dark);
-  border: 1px solid rgba(186,117,23,0.25);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
-}
-
-.chat-nova-btn--active {
-  background: var(--brand);
-  color: #fff;
-  border-color: var(--brand);
-}
-
-.chat-nova-btn:hover {
-  background: #edd9a3;
-}
-
 .chat-nova-item {
   display: flex;
   align-items: center;
@@ -249,8 +229,8 @@
 
 @media (max-width: 768px) {
   .chat-list {
-    width: 220px;
-    min-width: 220px;
+    width: 280px;
+    min-width: 280px;
   }
 }
 

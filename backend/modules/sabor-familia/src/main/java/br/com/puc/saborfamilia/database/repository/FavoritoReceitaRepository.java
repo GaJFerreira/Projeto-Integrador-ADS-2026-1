@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -44,5 +45,9 @@ public interface FavoritoReceitaRepository extends JpaRepository<FavoritoReceita
     """
   )
   Page<FavoritoReceitaEntity> findByPerfilId(@Param("perfilId") Long perfilId, Pageable pageable);
+
+  @Modifying
+  @Query("DELETE FROM FavoritoReceitaEntity favorito WHERE favorito.receita.id = :receitaId")
+  void deleteByReceitaId(@Param("receitaId") Long receitaId);
 
 }

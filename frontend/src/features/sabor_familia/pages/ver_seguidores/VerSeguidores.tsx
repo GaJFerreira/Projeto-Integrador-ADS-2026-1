@@ -5,8 +5,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useBuscarSeguidores, useBuscarSeguindo } from "../../hooks/UsePerfil";
 import type { PerfilResumoResponse } from "../../dto/perfil/response/PerfilResumoResponse";
 import type { PageResponse } from "../../dto/page/PageResponse";
-import Sidebar from "../../components/page/homePageComponents/SideBar";
 import { PerfilItem } from "../../components/page/verSeguidoresComponentes/PerfilItem";
+import { BotaoVoltar } from "../../components/common/BotaoVoltar";
 
 const PERFIS_POR_PAGINA = 20;
 
@@ -75,17 +75,15 @@ function ListaPerfisPaginada({
   return (
     <main className="lista-perfis-main">
       <div className="lista-perfis-content">
+        <BotaoVoltar
+          destino="perfil"
+          onClick={() =>
+            navigate(`/sabor-familia/perfil/${perfilId}`, { replace: true })
+          }
+          className="lista-perfis-voltar"
+        />
+
         <div className="lista-perfis-header">
-          <button
-            className="lista-perfis-back"
-            onClick={() =>
-              navigate(`/sabor-familia/perfil/${perfilId}`, { replace: true })
-            }
-            title="Voltar"
-            type="button"
-          >
-            ←
-          </button>
           <h2 className="lista-perfis-title">{titulo}</h2>
           {!loading && total > 0 && (
             <span className="lista-perfis-count">{total}</span>
@@ -148,20 +146,15 @@ export function VerSeguidores() {
 
   if (Number.isNaN(id)) {
     return (
-      <div className="home-layout">
-        <Sidebar />
-        <main className="lista-perfis-main">
-          <div className="home-error">Perfil inválido.</div>
-        </main>
-      </div>
+      <main className="lista-perfis-main">
+        <div className="home-error">Perfil inválido.</div>
+      </main>
     );
   }
 
   return (
-    <div className="home-layout">
-      <Sidebar />
-      <ListaPerfisPaginada
-        titulo="Seguidores"
+    <ListaPerfisPaginada
+      titulo="Seguidores"
         vazio="Nenhum seguidor ainda."
         perfilId={id}
         page={page}
@@ -169,8 +162,7 @@ export function VerSeguidores() {
         pageData={seguidores}
         loading={loading}
         error={error}
-      />
-    </div>
+    />
   );
 }
 
@@ -186,20 +178,15 @@ export function VerSeguindo() {
 
   if (Number.isNaN(id)) {
     return (
-      <div className="home-layout">
-        <Sidebar />
-        <main className="lista-perfis-main">
-          <div className="home-error">Perfil inválido.</div>
-        </main>
-      </div>
+      <main className="lista-perfis-main">
+        <div className="home-error">Perfil inválido.</div>
+      </main>
     );
   }
 
   return (
-    <div className="home-layout">
-      <Sidebar />
-      <ListaPerfisPaginada
-        titulo="Seguindo"
+    <ListaPerfisPaginada
+      titulo="Seguindo"
         vazio="Este perfil não segue ninguém ainda."
         perfilId={id}
         page={page}
@@ -207,7 +194,6 @@ export function VerSeguindo() {
         pageData={seguindo}
         loading={loading}
         error={error}
-      />
-    </div>
+    />
   );
 }

@@ -1,8 +1,14 @@
+@import "../../components/common/sfSectionAccent.css";
+
 .ar-main {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
-  background: var(--bg);
+  background: linear-gradient(
+    180deg,
+    rgba(186, 117, 23, 0.045) 0%,
+    var(--bg) 140px
+  );
   padding: 2rem 1.5rem 1.25rem;
   display: flex;
   justify-content: center;
@@ -17,7 +23,19 @@
 }
 
 .ar-header {
-  margin-bottom: 2rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(186, 117, 23, 0.12);
+}
+
+.ar-eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
 }
 
 .ar-back {
@@ -39,10 +57,11 @@
 
 .ar-title {
   font-family: var(--font-serif);
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 500;
   color: var(--text);
-  margin: 0 0 4px;
+  margin: 0 0 6px;
+  line-height: 1.25;
 }
 
 .ar-subtitle {
@@ -50,31 +69,6 @@
   color: var(--text-muted);
   font-family: var(--font-sans);
   margin: 0;
-}
-
-.ar-section {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 1.5rem;
-  margin-bottom: 1.25rem;
-}
-
-.ar-section__title {
-  font-family: var(--font-serif);
-  font-size: 15px;
-  font-weight: 500;
-  color: var(--text);
-  margin: 0 0 1.25rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.ar-section__desc {
-  font-size: 12px;
-  color: var(--text-muted);
-  font-family: var(--font-sans);
-  margin: -0.75rem 0 1rem;
 }
 
 .ar-field {
@@ -140,37 +134,6 @@
   margin-bottom: 1.1rem;
 }
 
-.ar-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.ar-chip {
-  padding: 6px 14px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: var(--font-sans);
-  border: 1px solid var(--border);
-  background: #fafafa;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.ar-chip:hover {
-  border-color: var(--brand);
-  color: var(--brand);
-}
-
-.ar-chip--active {
-  background: var(--brand-light);
-  border-color: var(--brand);
-  color: var(--brand-dark);
-  font-weight: 500;
-}
-
 .ar-cat-group {
   margin-bottom: 1.25rem;
 }
@@ -203,6 +166,21 @@
   font-size: 13px;
   font-family: var(--font-sans);
   margin-bottom: 1rem;
+}
+
+.ar-field-error {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  color: #c00;
+}
+
+.ar-input--error,
+.ar-select--error,
+.ar-textarea--error {
+  border-color: #e88;
+  background: #fffafa;
 }
 
 .ar-form-actions {

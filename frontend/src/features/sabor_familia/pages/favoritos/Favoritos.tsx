@@ -5,7 +5,6 @@ import { useState } from "react";
 import { useBuscarReceitasFavoritas } from "../../hooks/UseReceita";
 import type { ReceitaResponse } from "../../dto/receita/response/ReceitaResponse";
 import type { ReceitaResumoResponse } from "../../dto/receita/response/ReceitaResumoResponse";
-import Sidebar from "../../components/page/homePageComponents/SideBar";
 import BookmarkIcon from "../../icon/menu/BookmarkIcon";
 import { ExplorarCard } from "../../components/page/explorarComponents/ExplorarCard";
 import { ExplorarReceitaFocus } from "../../components/page/explorarComponents/ExplorarReceitaFocus";
@@ -47,16 +46,13 @@ export function Favoritos() {
       <ExplorarReceitaFocus
         receitaId={selectedId}
         onVoltar={() => setSelectedId(null)}
-        voltarLabel="← Voltar para favoritos"
+        voltarDestino="favoritos"
       />
     );
   }
 
   return (
-    <div className="home-layout">
-      <Sidebar />
-
-      <main className="explorar-main favoritos-main">
+    <main className="explorar-main favoritos-main">
         <div className="favoritos-header">
           <BookmarkIcon active />
           <h2 className="favoritos-header__title">Receitas Favoritas</h2>
@@ -108,8 +104,7 @@ export function Favoritos() {
             <div className="explorar-spinner" />
           </div>
         )}
-      </main>
-    </div>
+    </main>
   );
 }
 
