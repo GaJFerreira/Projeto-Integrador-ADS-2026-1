@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.controller;
 
+import br.com.puc.saborfamilia.enums.ContextoMidiaEnum;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.utils.JwtClaimsUtils;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -24,27 +26,37 @@ public class MidiaController {
   @GetMapping(value = "/perfil/{perfilId}")
   @Operation(
     summary = "Buscar imagem de um perfil",
-    description = "Retorna os bytes referentes a imagem do perfil."
+    description = """
+      Retorna a imagem redimensionada conforme o contexto de uso.
+      Perfil: avatar (128px), listagem (256px).
+      """
   )
   public ResponseEntity<byte[]> buscarMidiaPerfil(
     @RequestHeader(value = "Authorization") String authorization,
-    @PathVariable Long perfilId
+    @PathVariable Long perfilId,
+    @RequestParam String contexto
   ) {
     JwtClaimsUtils.getUserId(authorization);
-    return midiaService.buscarMidia(TipoEntidadeEnum.PERFIL, perfilId);
+    ContextoMidiaEnum contextoMidia = ContextoMidiaEnum.parseContextoMidia(TipoEntidadeEnum.PERFIL, contexto);
+    return midiaService.buscarMidia(TipoEntidadeEnum.PERFIL, perfilId, contextoMidia);
   }
 
   @GetMapping(value = "/receita/{receitaId}")
   @Operation(
     summary = "Buscar imagem de uma receita",
-    description = "Retorna os bytes referentes a imagem da receita."
+    description = """
+      Retorna a capa redimensionada conforme o contexto de uso.
+      Receita: capa-feed (560px) para o feed; capa-lista (400px) para grids e miniaturas.
+      """
   )
   public ResponseEntity<byte[]> buscarMidiaReceita(
     @RequestHeader(value = "Authorization") String authorization,
-    @PathVariable Long receitaId
+    @PathVariable Long receitaId,
+    @RequestParam String contexto
   ) {
     JwtClaimsUtils.getUserId(authorization);
-    return midiaService.buscarMidia(TipoEntidadeEnum.RECEITA, receitaId);
+    ContextoMidiaEnum contextoMidia = ContextoMidiaEnum.parseContextoMidia(TipoEntidadeEnum.RECEITA, contexto);
+    return midiaService.buscarMidia(TipoEntidadeEnum.RECEITA, receitaId, contextoMidia);
   }
 
 }

@@ -1,5 +1,6 @@
 package br.com.puc.saborfamilia.service.midia;
 
+import br.com.puc.saborfamilia.enums.ContextoMidiaEnum;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import java.util.Collection;
 import java.util.Set;
@@ -8,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface MidiaService {
 
-  ResponseEntity<byte[]> buscarMidia(TipoEntidadeEnum tipoEntidade, Long entidadeId);
+  ResponseEntity<byte[]> buscarMidia(TipoEntidadeEnum tipoEntidade, Long entidadeId, ContextoMidiaEnum contexto);
 
   void salvarMidia(Long usuarioId, TipoEntidadeEnum tipoEntidade, Long entidadeId, MultipartFile arquivo);
 

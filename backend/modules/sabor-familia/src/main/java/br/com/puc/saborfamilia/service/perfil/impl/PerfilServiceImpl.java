@@ -4,6 +4,7 @@ import br.com.puc.saborfamilia.database.entity.PerfilEntity;
 import br.com.puc.saborfamilia.database.entity.PersonalizacaoEntity;
 import br.com.puc.saborfamilia.database.entity.RestricaoAlimentarEntity;
 import br.com.puc.saborfamilia.database.repository.PerfilRepository;
+import br.com.puc.saborfamilia.database.repository.PersonalizacaoPerfilRepository;
 import br.com.puc.saborfamilia.database.repository.SeguindoRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
@@ -12,8 +13,10 @@ import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.perfil.PerfilService;
 import br.com.puc.saborfamilia.service.perfil.dto.request.EditarPerfilRequest;
 import br.com.puc.saborfamilia.service.perfil.dto.request.PerfilRequest;
+import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
 import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResponse;
 import br.com.puc.saborfamilia.service.personalizacao.PersonalizacaoPerfilService;
+import br.com.puc.saborfamilia.service.seguindo.SeguindoService;
 import br.com.puc.saborfamilia.service.personalizacao.PersonalizacaoService;
 import br.com.puc.saborfamilia.service.personalizacao.dto.response.PersonalizacaoResumoResponse;
 import br.com.puc.saborfamilia.service.restricao.RestricaoAlimentarService;
@@ -24,6 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,7 +44,9 @@ public class PerfilServiceImpl implements PerfilService {
   private static final String EMAIL_JA_CADASTRADO = "O e-mail informado já está sendo utilizado.";
 
   private final PerfilRepository perfilRepository;
+  private final PersonalizacaoPerfilRepository personalizacaoPerfilRepository;
   private final SeguindoRepository seguindoRepository;
+  private final SeguindoService seguindoService;
   private final RestricaoAlimentarPerfilService restricaoAlimentarPerfilService;
   private final RestricaoAlimentarService restricaoAlimentarService;
   private final PersonalizacaoService personalizacaoService;
@@ -92,6 +99,30 @@ public class PerfilServiceImpl implements PerfilService {
       .toList();
 
     return toResponse(perfilPublico, perfilProprio, seguindoPerfil, seguidores, seguindo, restricoesAlimentares);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<PerfilResumoResponse> explorarPerfis(Long usuarioId, String nome, Pageable pageable) {
+    PerfilEntity perfilUsuarioAutenticado = perfilRepository.findByUsuarioId(usuarioId)
+      .orElseThrow(() -> new ResourceNotFoundException(PERFIL_NAO_ENCONTRADO));
+
+    List<String> codigosPersonalizacaoPerfil = personalizacaoPerfilRepository
+      .findByPerfilId(perfilUsuarioAutenticado.getId())
+      .stream()
+      .map(vinculo -> vinculo.getPersonalizacao().getCodigo())
+      .toList();
+
+    Page<PerfilEntity> page = codigosPersonalizacaoPerfil.isEmpty()
+      ? perfilRepository.buscarExplorar(perfilUsuarioAutenticado.getId(), nome, pageable)
+      : perfilRepository.buscarExplorarPersonalizado(
+        perfilUsuarioAutenticado.getId(),
+        nome,
+        codigosPersonalizacaoPerfil,
+        pageable
+      );
+
+    return seguindoService.criarPaginaPerfilResumo(page, usuarioId);
   }
 
   @Override

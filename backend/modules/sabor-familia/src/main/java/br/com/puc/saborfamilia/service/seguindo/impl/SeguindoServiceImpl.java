@@ -43,7 +43,7 @@ public class SeguindoServiceImpl implements SeguindoService {
       .findBySeguidoIdOrderByDataCadastroDesc(perfil.getId(), pageable)
       .map(SeguindoEntity::getSeguidor);
 
-    return mapComSeguindoPeloUsuario(perfis, usuarioId);
+    return criarPaginaPerfilResumo(perfis, usuarioId);
   }
 
   @Override
@@ -56,10 +56,12 @@ public class SeguindoServiceImpl implements SeguindoService {
       .findBySeguidorIdOrderByDataCadastroDesc(perfil.getId(), pageable)
       .map(SeguindoEntity::getSeguido);
 
-    return mapComSeguindoPeloUsuario(perfis, usuarioId);
+    return criarPaginaPerfilResumo(perfis, usuarioId);
   }
 
-  private Page<PerfilResumoResponse> mapComSeguindoPeloUsuario(Page<PerfilEntity> perfis, Long usuarioId) {
+  @Override
+  @Transactional(readOnly = true)
+  public Page<PerfilResumoResponse> criarPaginaPerfilResumo(Page<PerfilEntity> perfis, Long usuarioId) {
     Optional<PerfilEntity> perfilAutenticado = perfilRepository.findByUsuarioId(usuarioId);
 
     List<Long> idsNaPagina = perfis.getContent().stream().map(PerfilEntity::getId).toList();

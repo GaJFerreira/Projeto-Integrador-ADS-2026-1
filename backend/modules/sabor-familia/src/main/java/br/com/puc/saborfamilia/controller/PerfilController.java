@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +50,22 @@ public class PerfilController {
   ) {
     Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     PerfilResponse response = perfilService.buscarMeuPerfil(usuarioId);
+    return ResponseEntity.ok(response);
+  }
+
+  @GetMapping(value = "/explorar")
+  @Operation(
+    summary = "Explorar perfis",
+    description = "Retorna perfis em formato resumido de forma paginada."
+  )
+  public ResponseEntity<Page<PerfilResumoResponse>> explorarPerfis(
+    @RequestHeader(value = "Authorization") String authorization,
+    @RequestParam(value = "nome", required = false) String nome,
+    Pageable pageable
+  ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
+    pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
+    Page<PerfilResumoResponse> response = perfilService.explorarPerfis(usuarioId, nome, pageable);
     return ResponseEntity.ok(response);
   }
 

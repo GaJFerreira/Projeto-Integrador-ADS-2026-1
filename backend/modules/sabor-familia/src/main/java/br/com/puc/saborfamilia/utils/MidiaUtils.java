@@ -20,6 +20,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public final class MidiaUtils {
 
+  public static final String MENSAGEM_LARGURA_UPLOAD_EXCEDIDA = "A largura da imagem excede o máximo permitido no upload.";
+
   private static final Set<String> CONTENT_TYPES = Set.of(
     FormatoMidiaEnum.JPEG.getContentType(),
     FormatoMidiaEnum.PNG.getContentType(),
@@ -45,8 +47,24 @@ public final class MidiaUtils {
     }
   }
 
-  public static byte[] redimensionarMidia(InputStream entrada, int larguraMaximaPx, FormatoMidiaEnum formato) throws IOException {
+  public static byte[] codificarMidiaOriginal(InputStream entrada, int larguraMaximaUpload, FormatoMidiaEnum formato)
+    throws IOException {
     BufferedImage original = ImageIO.read(entrada);
+
+    if (original == null) {
+      throw new IOException("Arquivo de imagem inválido ou formato não suportado.");
+    }
+
+    if (original.getWidth() > larguraMaximaUpload) {
+      throw new IOException(MENSAGEM_LARGURA_UPLOAD_EXCEDIDA);
+    }
+
+    return codificar(copiarParaTipo(original, tipoBuffer(formato)), formato);
+  }
+
+  public static byte[] redimensionarMidia(byte[] imagemOriginal, int larguraMaximaPx, FormatoMidiaEnum formato)
+    throws IOException {
+    BufferedImage original = ImageIO.read(new java.io.ByteArrayInputStream(imagemOriginal));
 
     if (original == null) {
       throw new IOException("Arquivo de imagem inválido ou formato não suportado.");
