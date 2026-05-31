@@ -123,80 +123,75 @@ export default function CareHubHomePage() {
   return (
     <Container maxWidth="xl" sx={{ py: { xs: 1, sm: 2 }, px: { xs: 1, sm: 2, md: 3 } }}>
       <Paper
-        elevation={4}
+        elevation={0}
         sx={{
-          p: { xs: 3, sm: 4, md: 6 },
-          mb: { xs: 3, sm: 4, md: 5 },
+          p: { xs: 2.5, sm: 3, md: 4 },
+          mb: { xs: 2.5, sm: 3, md: 4 },
           background: 'linear-gradient(135deg, #0d47a1 0%, #42a5f5 100%)',
           color: 'white',
-          borderRadius: { xs: 3, sm: 4, md: 5 },
+          borderRadius: 2,
           position: 'relative',
           overflow: 'hidden',
-          boxShadow: '0 16px 40px rgba(13, 71, 161, 0.25)'
+          boxShadow: '0 14px 32px rgba(13, 71, 161, 0.18)',
+          border: '1px solid rgba(255,255,255,0.22)',
         }}
       >
-        {/* Soft background circles for modern look */}
-        <Box
-          sx={{
-            position: 'absolute',
-            top: -120,
-            right: -100,
-            width: 400,
-            height: 400,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%)',
-            display: { xs: 'none', sm: 'block' },
-            pointerEvents: 'none'
-          }}
-        />
-        <Box
-          sx={{
-            position: 'absolute',
-            bottom: -80,
-            left: -80,
-            width: 300,
-            height: 300,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%)',
-            display: { xs: 'none', sm: 'block' },
-            pointerEvents: 'none'
-          }}
-        />
-
-        <Box sx={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        <Box sx={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: { xs: 'flex-start', md: 'center' },
+          justifyContent: 'space-between',
+          gap: { xs: 2.5, md: 4 }
+        }}>
           <Box sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
             alignItems: { xs: 'flex-start', sm: 'center' },
-            gap: { xs: 2.5, sm: 3, md: 4 }
+            gap: { xs: 1.75, sm: 2.25, md: 3 },
+            minWidth: 0,
+            flex: 1
           }}>
             <Box
               sx={{
-                bgcolor: 'rgba(255,255,255,0.15)',
-                borderRadius: '50%',
-                p: { xs: 2, md: 3 },
+                bgcolor: 'rgba(255,255,255,0.14)',
+                borderRadius: 2,
+                width: { xs: 58, sm: 68, md: 76 },
+                height: { xs: 58, sm: 68, md: 76 },
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backdropFilter: 'blur(10px)',
                 flexShrink: 0,
-                border: '4px solid rgba(255,255,255,0.3)',
-                boxShadow: '0 8px 16px rgba(0,0,0,0.1)'
+                border: '1px solid rgba(255,255,255,0.28)',
+                boxShadow: '0 10px 22px rgba(0,0,0,0.12)'
               }}
             >
-              <Favorite sx={{ fontSize: { xs: 48, sm: 56, md: 72 }, color: '#ffb74d', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }} />
+              <Favorite sx={{ fontSize: { xs: 34, sm: 40, md: 46 }, color: '#ffb74d' }} />
             </Box>
-            <Box sx={{ minWidth: 0, width: '100%' }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Chip
+                label="CareHub"
+                size="small"
+                sx={{
+                  mb: 1,
+                  height: 26,
+                  borderRadius: 1,
+                  color: '#0d47a1',
+                  bgcolor: '#ffffff',
+                  fontWeight: 800,
+                  letterSpacing: 0,
+                }}
+              />
               <Typography
                 variant="h1"
                 sx={{
                   color: 'white',
-                  fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3rem', lg: '3.5rem' },
+                  fontSize: { xs: '1.55rem', sm: '2rem', md: '2.35rem' },
                   fontWeight: 800,
-                  mb: 1,
-                  textShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                  mb: 0.75,
                   wordBreak: 'break-word',
-                  lineHeight: 1.2
+                  lineHeight: 1.15,
+                  letterSpacing: 0
                 }}
               >
                 {userInfo ? `Olá, ${userInfo.name}!` : 'Bem-vindo ao CareHub'}
@@ -205,42 +200,30 @@ export default function CareHubHomePage() {
                 variant="h5"
                 sx={{
                   color: '#e3f2fd',
-                  fontWeight: 600,
-                  fontSize: { xs: '1.1rem', sm: '1.25rem', md: '1.5rem' },
-                  textShadow: '0 1px 4px rgba(0,0,0,0.1)'
+                  fontWeight: 700,
+                  fontSize: { xs: '0.98rem', sm: '1.12rem', md: '1.22rem' },
+                  lineHeight: 1.35
                 }}
               >
                 Sistema de Acompanhamento de Idosos
               </Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'rgba(255,255,255,0.92)',
+                  fontSize: { xs: '0.95rem', sm: '1rem', md: '1.05rem' },
+                  lineHeight: 1.55,
+                  mt: 1.25,
+                  maxWidth: 720,
+                }}
+              >
+                Conectando cuidadores profissionais e familias com cuidado, seguranca e dedicacao.
+                Escolha o servico que voce precisa nas opcoes abaixo.
+              </Typography>
             </Box>
           </Box>
 
-          <Paper
-            elevation={0}
-            sx={{
-              bgcolor: 'rgba(0, 0, 0, 0.15)',
-              borderRadius: 3,
-              p: { xs: 2, sm: 3 },
-              backdropFilter: 'blur(5px)',
-              maxWidth: '800px',
-              borderLeft: '4px solid #ffb74d'
-            }}
-          >
-            <Typography
-              variant="body1"
-              sx={{
-                color: 'rgba(255,255,255,0.95)',
-                fontSize: { xs: '1.05rem', sm: '1.15rem', md: '1.25rem' },
-                lineHeight: 1.6,
-                fontWeight: 500
-              }}
-            >
-              Conectando cuidadores profissionais e famílias com cuidado, segurança e dedicação.
-              Escolha o serviço que você precisa nas opções abaixo.
-            </Typography>
-          </Paper>
-
-          <Box sx={{ mt: 1 }}>
+          <Box sx={{ width: { xs: '100%', md: 'auto' }, flexShrink: 0 }}>
             <Button
               variant="contained"
               size="large"
@@ -249,20 +232,22 @@ export default function CareHubHomePage() {
               sx={{
                 bgcolor: 'white',
                 color: '#0d47a1',
-                fontWeight: 700,
-                fontSize: '1rem',
-                borderRadius: 8,
-                px: 4,
-                py: 1.5,
+                fontWeight: 800,
+                fontSize: '0.95rem',
+                borderRadius: 1,
+                px: 3,
+                py: 1.2,
+                minWidth: { xs: '100%', sm: 230, md: 250 },
                 '&:hover': {
                   bgcolor: '#e3f2fd',
-                  transform: 'translateY(-2px)',
+                  transform: 'translateY(-1px)',
                 },
-                transition: 'all 0.2s ease',
-                boxShadow: '0 6px 12px rgba(0,0,0,0.15)'
+                transition: 'transform 0.2s, background-color 0.2s',
+                boxShadow: '0 10px 18px rgba(0,0,0,0.14)',
+                textTransform: 'none'
               }}
             >
-              Voltar para a Página Inicial
+              Voltar para a pagina inicial
             </Button>
           </Box>
         </Box>
