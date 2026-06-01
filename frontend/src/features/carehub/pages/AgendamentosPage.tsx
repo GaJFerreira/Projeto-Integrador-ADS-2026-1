@@ -337,23 +337,48 @@ export default function AgendamentosPage() {
           .map((a) => {
           const dataInicio = parseDate(a.dataHoraInicio);
           const dataFim = parseDate(a.dataHoraFim);
-          const isPast = dataFim ? dayjs(dataFim).isBefore(dayjs()) : false;
-          const isNow = dataInicio && dataFim
+          const isNowByTime = dataInicio && dataFim
             ? dayjs().isAfter(dayjs(dataInicio)) && dayjs().isBefore(dayjs(dataFim))
             : false;
+          const isNow = a.status === 'EM_ANDAMENTO' && isNowByTime;
+          const isPast = a.status === 'CONCLUIDO' || (dataFim ? dayjs(dataFim).isBefore(dayjs()) : false);
+          const durationMinutes = dataInicio && dataFim ? Math.max(dayjs(dataFim).diff(dayjs(dataInicio), 'minute'), 0) : 0;
+          const durationLabel = durationMinutes >= 60
+            ? `${Math.floor(durationMinutes / 60)}h${durationMinutes % 60 ? ` ${durationMinutes % 60}min` : ''}`
+            : `${durationMinutes}min`;
+          const statusAccent = a.status === 'CONCLUIDO'
+            ? 'success.main'
+            : a.status === 'CANCELADO'
+              ? 'error.main'
+              : isNow
+                ? 'info.main'
+                : 'primary.main';
           
           return (
             <Card 
               key={a.id} 
               sx={{ 
                 position: 'relative',
-                overflow: 'visible',
-                border: '2px solid',
-                borderColor: isNow ? 'success.main' : 'transparent',
-                transition: 'all 0.3s',
+                overflow: 'hidden',
+                border: '1px solid',
+                borderColor: isNow ? 'info.light' : 'divider',
+                borderRadius: 1,
+                backgroundColor: 'background.paper',
+                boxShadow: isNow
+                  ? '0 10px 28px rgba(2, 132, 199, 0.14)'
+                  : '0 6px 18px rgba(15, 23, 42, 0.06)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  inset: '0 auto 0 0',
+                  width: 4,
+                  backgroundColor: statusAccent,
+                },
                 '&:hover': { 
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
+                  transform: 'translateY(-2px)',
+                  boxShadow: '0 14px 34px rgba(15, 23, 42, 0.12)',
+                  borderColor: isNow ? 'info.main' : 'grey.300',
                 }
               }}
             >

@@ -464,6 +464,7 @@ export default function ChatPage() {
       id: tempId,
       remetenteId: userId,
       destinatarioId: contatoSelecionado,
+      enviadaPeloUsuarioLogado: true,
       mediaUrl: pendingRecording.url,
       conteudo: null,
       dataEnvio: new Date().toISOString()
@@ -510,6 +511,9 @@ export default function ChatPage() {
     });
 
   const contatoAtual = contatos.find(c => c.id === contatoSelecionado);
+
+  const mensagemEnviadaPorMim = (mensagem: any) =>
+    mensagem.enviadaPeloUsuarioLogado ?? mensagem.remetenteId === userId;
 
   // Combine server messages with optimistic local messages and sort by date
   const displayMessages = [...(msgs || []), ...optimisticMessages]
@@ -895,11 +899,14 @@ export default function ChatPage() {
                       minHeight: 0
                     }}
                   >
-                    {displayMessages.map(m => (
+                    {displayMessages.map(m => {
+                      const enviadaPorMim = mensagemEnviadaPorMim(m);
+
+                      return (
                       <Box 
                         key={m.id} 
                         sx={{ 
-                          alignSelf: m.remetenteId === userId ? 'flex-end' : 'flex-start', 
+                          alignSelf: enviadaPorMim ? 'flex-end' : 'flex-start', 
                           maxWidth: { xs: '85%', sm: '75%', md: '70%' },
                           animation: 'fadeIn 0.3s ease-in'
                         }}
@@ -907,14 +914,14 @@ export default function ChatPage() {
                         <Paper
                           elevation={1}
                           sx={{ 
-                            background: m.remetenteId === userId 
+                            background: enviadaPorMim 
                               ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
                               : 'white', 
-                            color: m.remetenteId === userId ? 'white' : 'text.primary',
+                            color: enviadaPorMim ? 'white' : 'text.primary',
                             p: 1.5, 
                             borderRadius: 2,
-                            borderBottomRightRadius: m.remetenteId === userId ? 4 : 16,
-                            borderBottomLeftRadius: m.remetenteId === userId ? 16 : 4,
+                            borderBottomRightRadius: enviadaPorMim ? 4 : 16,
+                            borderBottomLeftRadius: enviadaPorMim ? 16 : 4,
                             transition: 'all 0.2s',
                             '&:hover': {
                               transform: 'scale(1.02)',
@@ -926,10 +933,10 @@ export default function ChatPage() {
                             (() => {
                               const mediaSrc = m.id < 0 ? m.mediaUrl : mediaObjectUrls[m.id];
                               return mediaSrc ? (
-                                <AudioPlayer src={mediaSrc} inverted={m.remetenteId === userId} />
+                                <AudioPlayer src={mediaSrc} inverted={enviadaPorMim} />
                               ) : (
                                 <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
-                                  <CircularProgress size={16} sx={{ color: m.remetenteId === userId ? 'rgba(255,255,255,0.7)' : 'primary.main' }} />
+                                  <CircularProgress size={16} sx={{ color: enviadaPorMim ? 'rgba(255,255,255,0.7)' : 'primary.main' }} />
                                   <Typography variant="caption" sx={{ fontSize: 11, opacity: 0.8 }}>Carregando áudio...</Typography>
                                 </Stack>
                               );
@@ -958,7 +965,7 @@ export default function ChatPage() {
                           </Box>
                         </Paper>
                       </Box>
-                    ))}
+                    )})}
                   </Paper>
                 )}
 

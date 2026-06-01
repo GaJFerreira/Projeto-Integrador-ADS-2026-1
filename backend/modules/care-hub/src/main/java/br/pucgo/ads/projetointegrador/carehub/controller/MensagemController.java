@@ -129,22 +129,38 @@ public class MensagemController {
         return localUserId;
     }
 
+    private TipoUsuario tipoOposto(TipoUsuario tipo) {
+        return tipo == TipoUsuario.CUIDADOR ? TipoUsuario.CLIENTE : TipoUsuario.CUIDADOR;
+    }
+
+    private TipoUsuario parseTipo(String tipo) {
+        if (tipo == null || tipo.isBlank())
+            return null;
+        try {
+            return TipoUsuario.valueOf(tipo);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
     private MensagemResponseDTO converterParaPlataforma(MensagemResponseDTO dto, UsuarioLocal usuarioAutenticado) {
         if (dto == null)
             return null;
 
-        boolean remetenteEhUsuario = dto.getRemetenteId() != null && dto.getRemetenteId().equals(usuarioAutenticado.id);
-        TipoUsuario remetenteTipo;
-        TipoUsuario destinatarioTipo;
+        TipoUsuario remetenteTipo = parseTipo(dto.getRemetenteTipo());
+        TipoUsuario destinatarioTipo = parseTipo(dto.getDestinatarioTipo());
+        boolean remetenteEhUsuario = dto.getRemetenteId() != null
+                && dto.getRemetenteId().equals(usuarioAutenticado.id)
+                && (remetenteTipo == null || remetenteTipo == usuarioAutenticado.tipo);
 
-        if (usuarioAutenticado.tipo == TipoUsuario.CUIDADOR) {
-            remetenteTipo = remetenteEhUsuario ? TipoUsuario.CUIDADOR : TipoUsuario.CLIENTE;
-            destinatarioTipo = remetenteEhUsuario ? TipoUsuario.CLIENTE : TipoUsuario.CUIDADOR;
-        } else {
-            remetenteTipo = remetenteEhUsuario ? TipoUsuario.CLIENTE : TipoUsuario.CUIDADOR;
-            destinatarioTipo = remetenteEhUsuario ? TipoUsuario.CUIDADOR : TipoUsuario.CLIENTE;
+        if (remetenteTipo == null) {
+            remetenteTipo = remetenteEhUsuario ? usuarioAutenticado.tipo : tipoOposto(usuarioAutenticado.tipo);
+        }
+        if (destinatarioTipo == null) {
+            destinatarioTipo = remetenteEhUsuario ? tipoOposto(usuarioAutenticado.tipo) : usuarioAutenticado.tipo;
         }
 
+        dto.setEnviadaPeloUsuarioLogado(remetenteEhUsuario);
         dto.setRemetenteId(obterIdPlataforma(dto.getRemetenteId(), remetenteTipo));
         dto.setDestinatarioId(obterIdPlataforma(dto.getDestinatarioId(), destinatarioTipo));
         return dto;
@@ -169,7 +185,11 @@ public class MensagemController {
         Long localDestinatarioId = obterIdLocal(platformDestinatarioId);
         String conteudo = dtoMap.get("conteudo") == null ? null : dtoMap.get("conteudo").toString();
         MensagemRequestDTO dto = new MensagemRequestDTO(localDestinatarioId, conteudo, null, null);
-        MensagemResponseDTO mensagem = mensagemService.enviarMensagem(localRemetenteId, dto);
+        MensagemResponseDTO mensagem = mensagemService.enviarMensagem(
+                localRemetenteId,
+                dto,
+                usuarioAutenticado.tipo.name(),
+                tipoOposto(usuarioAutenticado.tipo).name());
         return ResponseEntity.ok(converterParaPlataforma(mensagem, usuarioAutenticado));
     }
 
@@ -206,7 +226,9 @@ public class MensagemController {
 
         MensagemResponseDTO mensagem = mensagemService.enviarMensagem(localRemetenteId,
                 new br.pucgo.ads.projetointegrador.carehub.dto.mensagem.MensagemRequestDTO(localDestinatarioId, null,
-                        mediaUrl, file.getContentType()));
+                        mediaUrl, file.getContentType()),
+                usuarioAutenticado.tipo.name(),
+                tipoOposto(usuarioAutenticado.tipo).name());
 
         try {
             br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = new br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia();

@@ -4,6 +4,7 @@ import {
   CareHubHomePage,
   CuidadoresPage,
   AgendamentosPage,
+  AgendamentosMenuPage,
   ProntuarioPage,
   AvaliacoesPage,
   ChatPage,
@@ -115,6 +116,7 @@ export function CareHubRoutes() {
         <Route path="ajuda" element={<CareHubAjudaPage />} />
 
         <Route path="cuidadores" element={<CuidadoresPage />} />
+        <Route path="agendamentos-menu" element={<AgendamentosMenuPage />} />
         <Route path="agendamentos" element={<AgendamentosPage />} />
         <Route path="prontuario" element={<ProntuarioPage />} />
         <Route path="avaliacoes/:id" element={<AvaliacoesPage />} />

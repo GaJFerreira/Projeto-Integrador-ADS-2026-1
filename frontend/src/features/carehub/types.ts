@@ -102,12 +102,15 @@ export interface MensagemRequestDTO {
 export interface MensagemResponseDTO {
   id: number;
   remetenteId: number;
+  remetenteTipo?: string;
   destinatarioId: number;
-  conteudo: string;
+  destinatarioTipo?: string;
+  conteudo: string | null;
   lida: boolean;
   dataEnvio: string;
   mediaUrl?: string;
   mediaType?: string;
+  enviadaPeloUsuarioLogado?: boolean;
 }
 
 export interface AvaliacaoRequestDTO {

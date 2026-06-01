@@ -146,7 +146,9 @@ public class AgendamentoService {
     private void gerarMensagemConfirmacaoAutomatica(Agendamento agendamento) {
         Mensagem mensagem = new Mensagem();
         mensagem.setRemetenteId(agendamento.getCuidador().getId());
+        mensagem.setRemetenteTipo("CUIDADOR");
         mensagem.setDestinatarioId(agendamento.getCliente().getId());
+        mensagem.setDestinatarioTipo("CLIENTE");
         mensagem.setConteudo("O agendamento foi confirmado! O bate-papo agora está disponível.");
         mensagem.setDataEnvio(OffsetDateTime.now(ZoneOffset.UTC));
         mensagem.setLida(false);

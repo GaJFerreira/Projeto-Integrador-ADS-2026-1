@@ -5,6 +5,7 @@ export { default as CareHubPrimeiroAcessoPage } from './pages/CareHubPrimeiroAce
 // Páginas do Cliente (Dona Maria - ID 2)
 export { default as CuidadoresPage } from './pages/CuidadoresPage';
 export { default as AgendamentosPage } from './pages/AgendamentosPage';
+export { default as AgendamentosMenuPage } from './pages/AgendamentosMenuPage';
 export { default as ProntuarioPage } from './pages/ProntuarioPage';
 export { default as AvaliacoesPage } from './pages/AvaliacoesPage';
 export { default as ChatPage } from './pages/ChatPage';

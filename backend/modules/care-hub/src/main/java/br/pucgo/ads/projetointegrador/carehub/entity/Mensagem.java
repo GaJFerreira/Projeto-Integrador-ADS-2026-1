@@ -41,11 +41,17 @@ public class Mensagem {
     @Column(name = "remetente_id", nullable = false)
     private Long remetenteId;
 
+    @Column(name = "remetente_tipo", length = 20)
+    private String remetenteTipo;
+
     /**
      * ID do usuário destinatário (referência a {@code care_hub.usuario.id}).
      */
     @Column(name = "destinatario_id", nullable = false)
     private Long destinatarioId;
+
+    @Column(name = "destinatario_tipo", length = 20)
+    private String destinatarioTipo;
 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String conteudo;

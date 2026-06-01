@@ -31,6 +31,12 @@ public class MensagemService {
 
     @Transactional
     public MensagemResponseDTO enviarMensagem(Long remetenteId, MensagemRequestDTO dto) {
+        return enviarMensagem(remetenteId, dto, null, null);
+    }
+
+    @Transactional
+    public MensagemResponseDTO enviarMensagem(Long remetenteId, MensagemRequestDTO dto, String remetenteTipo,
+            String destinatarioTipo) {
         Objects.requireNonNull(remetenteId, "Remetente ID não pode ser nulo");
         Long destinatarioId = Objects.requireNonNull(dto.getDestinatarioId(), "Destinatário ID não pode ser nulo");
 
@@ -49,7 +55,9 @@ public class MensagemService {
 
         Mensagem mensagem = new Mensagem();
         mensagem.setRemetenteId(remetenteId);
+        mensagem.setRemetenteTipo(remetenteTipo);
         mensagem.setDestinatarioId(destinatarioId);
+        mensagem.setDestinatarioTipo(destinatarioTipo);
         mensagem.setConteudo(dto.getConteudo());
         mensagem.setMediaUrl(dto.getMediaUrl());
         mensagem.setMediaType(dto.getMediaType());
@@ -212,6 +220,8 @@ public class MensagemService {
         dto.setLida(mensagem.getLida());
         dto.setMediaUrl(mensagem.getMediaUrl());
         dto.setMediaType(mensagem.getMediaType());
+        dto.setRemetenteTipo(mensagem.getRemetenteTipo());
+        dto.setDestinatarioTipo(mensagem.getDestinatarioTipo());
 
         dto.setRemetenteNome(resolverNome(mensagem.getRemetenteId()));
         dto.setDestinatarioNome(resolverNome(mensagem.getDestinatarioId()));
