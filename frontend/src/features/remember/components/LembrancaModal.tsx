@@ -17,7 +17,13 @@ import AddIcon from '@mui/icons-material/Add';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useSnackbar } from 'notistack';
 import { lembrancasApi, type Lembranca, type CreateLembrancaPayload, type UpdateLembrancaPayload } from '../api/lembrancas';
-import type {Conquista} from '../api/conquistas';
+import type { ConquistaDetalhes } from '../api/conquistasUsuario';
+import {
+    iniciarReconhecimentoVoz,
+    type SpeechRecognitionInstance,
+    type SpeechRecognitionTextEvent
+} from '../utils/speech';
+import { formatarDataInputRemember } from '../utils/date';
 
 // --- Helper Base64 ---
 const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
@@ -37,12 +43,8 @@ const getHojeLocal = () => {
 };
 
 // --- Tipagem Audio ---
-type SpeechRecognition = any;
-interface Window {
-    SpeechRecognition: SpeechRecognition;
-    webkitSpeechRecognition: SpeechRecognition;
-}
-declare var window: Window;
+type SpeechRecognition = SpeechRecognitionInstance;
+type VozCampoState = { base: string; confirmado: string };
 
 interface LembrancaModalProps {
     open: boolean;
@@ -50,7 +52,7 @@ interface LembrancaModalProps {
     onSuccess: () => void;
     usuarioId: number;
     lembrancaParaEditar?: Lembranca | null;
-    onConquistaGanhas?: (conquistas: Conquista[]) => void;
+    onConquistaGanhas?: (conquistas: ConquistaDetalhes[]) => void;
 }
 
 export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, lembrancaParaEditar, onConquistaGanhas }: LembrancaModalProps) {
@@ -83,13 +85,17 @@ export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, le
     const recognitionHistoriaRef = useRef<SpeechRecognition | null>(null);
     const recognitionLocalRef = useRef<SpeechRecognition | null>(null);
     const recognitionPessoasRef = useRef<SpeechRecognition | null>(null);
+    const vozTituloRef = useRef<VozCampoState>({ base: '', confirmado: '' });
+    const vozHistoriaRef = useRef<VozCampoState>({ base: '', confirmado: '' });
+    const vozLocalRef = useRef<VozCampoState>({ base: '', confirmado: '' });
+    const vozPessoasRef = useRef<VozCampoState>({ base: '', confirmado: '' });
 
     // --- EFEITO: Preencher dados na Edição ---
     useEffect(() => {
         if (open) {
             if (lembrancaParaEditar) {
                 setTitulo(lembrancaParaEditar.titulo);
-                setDataAcontecimento(lembrancaParaEditar.dataAcontecimento);
+                setDataAcontecimento(formatarDataInputRemember(lembrancaParaEditar.dataAcontecimento));
                 setLocal(lembrancaParaEditar.local || '');
                 setHistoria(lembrancaParaEditar.historia);
 
@@ -119,48 +125,76 @@ export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, le
         }
     }, [open, lembrancaParaEditar]);
 
-    // --- LÓGICA DE ÁUDIO ---
+    // --- LOGICA DE AUDIO ---
     const handleGravar = (
         isGravando: boolean,
+        textoAtual: string,
         setGravando: React.Dispatch<React.SetStateAction<boolean>>,
         ref: React.MutableRefObject<SpeechRecognition | null>,
+        estadoVozRef: React.MutableRefObject<VozCampoState>,
         setterTexto: React.Dispatch<React.SetStateAction<string>>
     ) => {
-        const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-        if (!SpeechRecognitionClass) {
-            enqueueSnackbar("Seu navegador não suporta reconhecimento de voz.", { variant: 'error' });
+        if (isGravando) {
+            try {
+                ref.current?.stop?.();
+                ref.current?.abort?.();
+            } catch {
+                // A captura pode ja ter sido encerrada pelo navegador.
+            }
+            ref.current = null;
+            setGravando(false);
             return;
         }
 
-        if (!ref.current) {
-            ref.current = new SpeechRecognitionClass();
-            ref.current.lang = "pt-BR";
-            ref.current.continuous = false;
-            ref.current.interimResults = false;
+        estadoVozRef.current = {
+            base: textoAtual.trim(),
+            confirmado: '',
+        };
 
-            ref.current.onresult = (event: any) => {
-                const texto = event.results[0][0].transcript;
-                setterTexto((prev) => prev + (prev ? " " : "") + texto);
-            };
-
-            ref.current.onerror = () => {
+        ref.current = iniciarReconhecimentoVoz({
+            onText: (event) => atualizarTextoPorVoz(event, estadoVozRef, setterTexto),
+            onStart: () => setGravando(true),
+            onEnd: () => {
+                ref.current = null;
                 setGravando(false);
-            };
-
-            ref.current.onend = () => {
+            },
+            onUnsupported: () => enqueueSnackbar("Seu navegador nao suporta reconhecimento de voz.", { variant: 'error' }),
+            onError: (errorCode) => {
+                ref.current = null;
                 setGravando(false);
-            };
-        }
-
-        if (isGravando) {
-            ref.current.stop();
+                if (errorCode !== 'no-speech' && errorCode !== 'aborted') {
+                    enqueueSnackbar("Nao foi possivel capturar o audio. Verifique a permissao do microfone.", { variant: 'warning' });
+                }
+            },
+        }, () => {
+            ref.current = null;
             setGravando(false);
-        } else {
-            ref.current.start();
-            setGravando(true);
-        }
+            enqueueSnackbar("Nao foi possivel iniciar o microfone agora.", { variant: 'warning' });
+        });
     };
+
+    const atualizarTextoPorVoz = (
+        event: SpeechRecognitionTextEvent,
+        estadoVozRef: React.MutableRefObject<VozCampoState>,
+        setterTexto: React.Dispatch<React.SetStateAction<string>>
+    ) => {
+        if (event.final) {
+            estadoVozRef.current.confirmado = juntarTexto(estadoVozRef.current.confirmado, event.texto);
+            setterTexto(juntarTexto(estadoVozRef.current.base, estadoVozRef.current.confirmado));
+            return;
+        }
+
+        setterTexto(juntarTexto(
+            estadoVozRef.current.base,
+            estadoVozRef.current.confirmado,
+            event.texto
+        ));
+    };
+
+    const juntarTexto = (...partes: string[]) => partes
+        .map((parte) => parte.trim())
+        .filter(Boolean)
+        .join(' ');
 
     // --- LÓGICA DE PESSOAS ---
     const handleAddPessoa = () => {
@@ -363,7 +397,7 @@ export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, le
                         />
                         <button
                             type="button"
-                            onClick={() => handleGravar(gravandoTitulo, setGravandoTitulo, recognitionTituloRef, setTitulo)}
+                            onClick={() => handleGravar(gravandoTitulo, titulo, setGravandoTitulo, recognitionTituloRef, vozTituloRef, setTitulo)}
                             disabled={loading}
                             style={{
                                 ...(gravandoTitulo ? audioButtonActiveStyle : audioButtonStyle),
@@ -404,7 +438,7 @@ export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, le
                             />
                             <button
                                 type="button"
-                                onClick={() => handleGravar(gravandoLocal, setGravandoLocal, recognitionLocalRef, setLocal)}
+                                onClick={() => handleGravar(gravandoLocal, local, setGravandoLocal, recognitionLocalRef, vozLocalRef, setLocal)}
                                 disabled={loading}
                                 style={{
                                     ...(gravandoLocal ? audioButtonActiveStyle : audioButtonStyle),
@@ -436,7 +470,7 @@ export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, le
                                 />
                                 <button
                                     type="button"
-                                    onClick={() => handleGravar(gravandoPessoas, setGravandoPessoas, recognitionPessoasRef, setNomePessoaTemp)}
+                                    onClick={() => handleGravar(gravandoPessoas, nomePessoaTemp, setGravandoPessoas, recognitionPessoasRef, vozPessoasRef, setNomePessoaTemp)}
                                     disabled={loading}
                                     style={{
                                         ...(gravandoPessoas ? audioButtonActiveStyle : audioButtonStyle),
@@ -498,7 +532,7 @@ export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, le
                         />
                         <button
                             type="button"
-                            onClick={() => handleGravar(gravandoHistoria, setGravandoHistoria, recognitionHistoriaRef, setHistoria)}
+                            onClick={() => handleGravar(gravandoHistoria, historia, setGravandoHistoria, recognitionHistoriaRef, vozHistoriaRef, setHistoria)}
                             disabled={loading}
                             style={{
                                 ...(gravandoHistoria ? audioButtonActiveStyle : audioButtonStyle),
@@ -538,3 +572,4 @@ export default function LembrancaModal({ open, onClose, onSuccess, usuarioId, le
         </Dialog>
     );
 }
+

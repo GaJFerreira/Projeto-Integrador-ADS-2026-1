@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box,
     Container,
@@ -16,24 +17,28 @@ import {
 import HistoryEduIcon from '@mui/icons-material/HistoryEdu';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
+import PsychologyIcon from '@mui/icons-material/Psychology';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'; // Ícone da Conquista
 import AddIcon from '@mui/icons-material/Add';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
 // Componentes das listas
 import DiariosPage from './DiariosPage';
 import LembrancasPage from './LembrancasPage';
 import ConquistasUsuarioPage from './ConquistasUsuarioPage';
+import PerguntasCognitivasPage from './PerguntasCognitivasPage';
 
 // Componentes dos Modais
 import DiarioModal from '../components/DiarioModal';
 import LembrancaModal from '../components/LembrancaModal';
 import ConquistaDesbloqueadaModal from '../components/ConquistaDesbloqueadaModal'; // NOVO
 
-import type {Conquista} from '../api/conquistas'; // NOVO
-// NOVO
+import type { ConquistaDetalhes } from '../api/conquistasUsuario';
+import { usuarioPodeGerenciarConquistas } from '../utils/auth';
 
 export default function RememberPage() {
+    const navigate = useNavigate();
     // Estado da aba (0 = Diários, 1 = Lembranças, 2 = Conquistas)
     const [tabIndex, setTabIndex] = useState(0);
 
@@ -47,11 +52,12 @@ export default function RememberPage() {
 
     // --- ESTADOS DA CELEBRAÇÃO (CONQUISTAS) ---
     const [openFestaModal, setOpenFestaModal] = useState(false);
-    const [conquistaGanha, setConquistaGanha] = useState<Conquista | null>(null);
+    const [conquistaGanha, setConquistaGanha] = useState<ConquistaDetalhes | null>(null);
 
     // --- ESTADOS DE REFRESH (Para recarregar as listas após salvar) ---
     const [refreshDiariosKey, setRefreshDiariosKey] = useState(0);
     const [refreshLembrancasKey, setRefreshLembrancasKey] = useState(0);
+    const [refreshConquistasKey, setRefreshConquistasKey] = useState(0);
 
     // ID do Usuário (Simulado ou vindo de Contexto)
     const usuarioIdLogado = useMemo(() => {
@@ -64,6 +70,8 @@ export default function RememberPage() {
             return null;
         }
     }, []);
+
+    const podeCadastrarConquista = useMemo(usuarioPodeGerenciarConquistas, []);
 
     const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
         setTabIndex(newValue);
@@ -91,11 +99,12 @@ export default function RememberPage() {
     };
 
     // --- LÓGICA DE EXIBIÇÃO DE CONQUISTA ---
-    const handleMostrarConquista = (lista: Conquista[]) => {
+    const handleMostrarConquista = (lista: ConquistaDetalhes[]) => {
         if (lista && lista.length > 0) {
             // Pega a primeira conquista para exibir (simplificação)
             setConquistaGanha(lista[0]);
             setOpenFestaModal(true);
+            setRefreshConquistasKey((prev) => prev + 1);
         }
     };
 
@@ -136,7 +145,18 @@ export default function RememberPage() {
                 </Stack>
 
                 {/* BOTÃO NOVO COM MENU */}
-                <Box>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
+                    {podeCadastrarConquista && (
+                        <Button
+                            variant="outlined"
+                            size="large"
+                            startIcon={<AdminPanelSettingsIcon />}
+                            onClick={() => navigate('/admin/conquistas')}
+                        >
+                            Cadastrar Conquistas
+                        </Button>
+                    )}
+
                     <Button
                         variant="contained"
                         size="large"
@@ -164,7 +184,7 @@ export default function RememberPage() {
                             <ListItemText>Criar Lembrança</ListItemText>
                         </MenuItem>
                     </Menu>
-                </Box>
+                </Stack>
             </Stack>
 
             {/* 2. SISTEMA DE ABAS */}
@@ -180,6 +200,7 @@ export default function RememberPage() {
                 >
                     <Tab label="Meus Diários" icon={<MenuBookIcon />} iconPosition="start" />
                     <Tab label="Minhas Lembranças" icon={<AutoAwesomeIcon />} iconPosition="start" />
+                    <Tab label="Perguntas" icon={<PsychologyIcon />} iconPosition="start" />
                     <Tab label="Minhas Conquistas" icon={<EmojiEventsIcon />} iconPosition="start" />
                 </Tabs>
             </Paper>
@@ -207,7 +228,14 @@ export default function RememberPage() {
                 )}
 
                 {usuarioIdLogado && tabIndex === 2 && (
-                    <ConquistasUsuarioPage usuarioId={usuarioIdLogado} />
+                    <PerguntasCognitivasPage onConquistaGanhas={handleMostrarConquista} />
+                )}
+
+                {usuarioIdLogado && tabIndex === 3 && (
+                    <ConquistasUsuarioPage
+                        key={refreshConquistasKey}
+                        usuarioId={usuarioIdLogado}
+                    />
                 )}
             </Box>
 

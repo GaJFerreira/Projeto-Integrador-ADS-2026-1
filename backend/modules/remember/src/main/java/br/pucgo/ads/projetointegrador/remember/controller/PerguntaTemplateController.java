@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class PerguntaTemplateController {
      * (Acesso restrito a administradores)
      */
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CUIDADOR')")
     public ResponseEntity<PerguntaTemplateResponseDTO> salvarTemplate(@Valid @RequestBody PerguntaTemplateRequestDTO requestDTO) {
         PerguntaTemplateResponseDTO novoTemplate = templateService.salvarTemplate(requestDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(novoTemplate);
@@ -51,6 +53,7 @@ public class PerguntaTemplateController {
      * (Acesso restrito a administradores)
      */
     @PutMapping("/{identificador}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CUIDADOR')")
     public ResponseEntity<PerguntaTemplateResponseDTO> atualizarTemplate(
             @PathVariable Long identificador,
             @Valid @RequestBody PerguntaTemplateRequestDTO requestDTO
@@ -64,6 +67,7 @@ public class PerguntaTemplateController {
      * (Acesso restrito a administradores)
      */
     @DeleteMapping("/{identificador}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CUIDADOR')")
     public ResponseEntity<Void> deletarTemplate(@PathVariable Long identificador) {
         templateService.deletarTemplate(identificador);
         return ResponseEntity.noContent().build();

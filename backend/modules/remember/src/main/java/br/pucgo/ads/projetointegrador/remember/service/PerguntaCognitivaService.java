@@ -1,36 +1,41 @@
 package br.pucgo.ads.projetointegrador.remember.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
-
 import br.pucgo.ads.projetointegrador.remember.domain.GatilhoTipo;
 import br.pucgo.ads.projetointegrador.remember.domain.StatusPergunta;
-import br.pucgo.ads.projetointegrador.remember.dto.CandidatoPergunta;
 import br.pucgo.ads.projetointegrador.remember.dto.Pergunta.PerguntaCognitivaResponseDTO;
 import br.pucgo.ads.projetointegrador.remember.entity.Diario;
 import br.pucgo.ads.projetointegrador.remember.entity.Lembranca;
 import br.pucgo.ads.projetointegrador.remember.entity.PerguntaCognitiva;
 import br.pucgo.ads.projetointegrador.remember.entity.PerguntaTemplate;
+import br.pucgo.ads.projetointegrador.remember.entity.Usuario;
 import br.pucgo.ads.projetointegrador.remember.repository.DiarioRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.LembrancaRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.PerguntaCognitivaRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.PerguntaTemplateRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.UsuarioRememberRepository;
-import jakarta.transaction.Transactional;
+import br.pucgo.ads.projetointegrador.remember.utils.JwtClaimsUtils.UsuarioTokenClaims;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 @Service
 @RequiredArgsConstructor
 public class PerguntaCognitivaService {
+
+    private static final List<ModeloPergunta> MODELOS_AUTOMATICOS = List.of(
+            new ModeloPergunta("DETALHE_LEMBRANCA", "Qual detalhe voce mais lembra sobre {titulo}?", OrigemMemoria.LEMBRANCA, "titulo"),
+            new ModeloPergunta("PESSOAS_LEMBRANCA", "Quem estava com voce em {titulo}, e como foi estar com essas pessoas?", OrigemMemoria.LEMBRANCA, "titulo"),
+            new ModeloPergunta("LOCAL_LEMBRANCA", "O que havia de especial no local {local}?", OrigemMemoria.LEMBRANCA, "local"),
+            new ModeloPergunta("SENTIMENTO_LEMBRANCA", "Como voce se sentiu quando viveu {titulo}?", OrigemMemoria.LEMBRANCA, "titulo"),
+            new ModeloPergunta("REFLEXAO_DIARIO", "O que foi mais importante no dia em que voce escreveu {titulo}?", OrigemMemoria.DIARIO, "titulo"),
+            new ModeloPergunta("APRENDIZADO_DIARIO", "Que aprendizado ou pensamento voce quer guardar de {titulo}?", OrigemMemoria.DIARIO, "titulo")
+    );
 
     private final PerguntaCognitivaRepository perguntaRepository;
     private final PerguntaTemplateRepository templateRepository;
@@ -38,191 +43,227 @@ public class PerguntaCognitivaService {
     private final DiarioRepository diarioRepository;
     private final UsuarioRememberRepository usuarioRepository;
 
-    /**
-     * Lista todas as perguntas com status ENVIADA para um usuário específico.
-     * @param identificadorUsuario O ID do usuário.
-     * @return Uma lista com as perguntas pendentes.
-     */
-    public List<PerguntaCognitivaResponseDTO> listarPerguntasPendentesPorUsuario(Long identificadorUsuario) {
-        List<PerguntaCognitiva> perguntas = perguntaRepository
-                .findByIdentificadorUsuarioAndStatus(identificadorUsuario, StatusPergunta.ENVIADA.getCodigo());
+    public List<PerguntaCognitivaResponseDTO> listarPerguntasPorUsuario(Long identificadorUsuario, String status) {
+        List<PerguntaCognitiva> perguntas;
+
+        if (StringUtils.hasText(status)) {
+            perguntas = perguntaRepository.findByIdentificadorUsuarioAndStatusOrderByDataGeracaoDesc(
+                    identificadorUsuario,
+                    resolverStatus(status).getCodigo());
+        } else {
+            perguntas = perguntaRepository.findByIdentificadorUsuarioOrderByDataGeracaoDesc(identificadorUsuario);
+        }
 
         return perguntas.stream()
                 .map(PerguntaCognitivaResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Lógica principal do "Gerador Semanal". Este método seria chamado por uma tarefa agendada (Cron Job)
-     * para analisar as memórias da última semana e gerar a melhor pergunta possível para um usuário.
-     * @param identificadorUsuario O ID do usuário para quem a pergunta será gerada.
-     */
+    public List<PerguntaCognitivaResponseDTO> listarPerguntasPendentesPorUsuario(Long identificadorUsuario) {
+        return listarPerguntasPorUsuario(identificadorUsuario, StatusPergunta.ENVIADA.name());
+    }
+
     @Transactional
-    public void gerarPerguntaSemanalParaUsuario(Long identificadorUsuario) {
-        if (!usuarioRepository.existsById(identificadorUsuario)) {
-            return;
-        }
+    public Optional<PerguntaCognitivaResponseDTO> gerarPerguntaParaUsuario(UsuarioTokenClaims usuarioToken) {
+        Usuario usuario = salvarOuAtualizarUsuario(usuarioToken);
 
-        // 1. Obter o histórico de uso dos templates para este usuário.
-        Map<Long, Long> contagemDeUso = perguntaRepository.countTemplateUsageByIdentificadorUsuario(identificadorUsuario).stream()
-                .collect(Collectors.toMap(
-                        result -> (Long) result[0],
-                        result -> (Long) result[1]
-                ));
-
-        // 2. Reunir memórias candidatas da última semana.
-        LocalDateTime dataFim = LocalDateTime.now();
-        LocalDateTime dataInicio = dataFim.minusDays(7);
-        List<Lembranca> lembrancasCandidatas = lembrancaRepository.findAllByIdentificadorUsuarioAndDataCriacaoBetween(identificadorUsuario, dataInicio, dataFim);
-        List<Diario> diariosCandidatos = diarioRepository.findAllByIdentificadorUsuarioAndDataCriacaoBetween(identificadorUsuario, dataInicio, dataFim);
-        List<Object> memoriasCandidatas = new ArrayList<>();
-        memoriasCandidatas.addAll(lembrancasCandidatas);
-        memoriasCandidatas.addAll(diariosCandidatos);
-
-        if (memoriasCandidatas.isEmpty()) {
-            return;
-        }
-
-        // 3. Encontrar todos os candidatos possíveis, respeitando a hierarquia de gatilhos.
-        List<CandidatoPergunta> candidatos = new ArrayList<>();
-        List<GatilhoTipo> prioridadeGatilhos = List.of(GatilhoTipo.DATA_ESPECIAL, GatilhoTipo.SENTIMENTO, GatilhoTipo.PALAVRA_CHAVE);
-
-        for (GatilhoTipo tipo : prioridadeGatilhos) {
-            encontrarCandidatosPorTipo(candidatos, memoriasCandidatas, tipo, contagemDeUso);
-            if (!candidatos.isEmpty()) {
-                break;
-            }
-        }
-
-        // 4. Se nenhum candidato foi encontrado, recorre aos templates genéricos.
-        if (candidatos.isEmpty()) {
-            encontrarCandidatosPorTipo(candidatos, memoriasCandidatas, GatilhoTipo.GENERICO, contagemDeUso);
-        }
-
-        if (candidatos.isEmpty()) {
-            return;
-        }
-
-        // 5. Selecionar o melhor candidato (aquele com o menor uso).
-        long menorUso = candidatos.stream().mapToLong(CandidatoPergunta::getUsoCount).min().orElse(0);
-        List<CandidatoPergunta> melhoresCandidatos = candidatos.stream()
-                .filter(c -> c.getUsoCount() == menorUso)
-                .collect(Collectors.toList());
-
-        Collections.shuffle(melhoresCandidatos); // Desempata aleatoriamente
-        CandidatoPergunta candidatoEscolhido = melhoresCandidatos.getFirst();
-
-        // 6. Formatar e salvar a pergunta final.
-        gerarEsalvarPergunta(candidatoEscolhido);
+        return perguntaRepository
+                .findFirstByIdentificadorUsuarioAndStatusOrderByDataGeracaoDesc(
+                        usuario.getIdUsuario(),
+                        StatusPergunta.ENVIADA.getCodigo())
+                .map(pergunta -> Optional.of(new PerguntaCognitivaResponseDTO(pergunta)))
+                .orElseGet(() -> gerarPerguntaAutomatica(usuario.getIdUsuario()).map(PerguntaCognitivaResponseDTO::new));
     }
 
-    // --- MÉTODOS AUXILIARES PRIVADOS ---
+    private Optional<PerguntaCognitiva> gerarPerguntaAutomatica(Long identificadorUsuario) {
+        List<PerguntaTemplate> templatesAutomaticos = garantirModelosAutomaticos();
+        List<PerguntaCognitiva> perguntasExistentes = perguntaRepository.findByIdentificadorUsuarioOrderByDataGeracaoDesc(identificadorUsuario);
 
-    private void encontrarCandidatosPorTipo(List<CandidatoPergunta> candidatos, List<Object> memorias, GatilhoTipo tipo, Map<Long, Long> contagemDeUso) {
-        List<PerguntaTemplate> templates = templateRepository.findByAtivoTrueAndGatilhoTipo(tipo.getCodigo());
-        for (Object memoria : memorias) {
-            for (PerguntaTemplate template : templates) {
-                if (templateSeAplica(template, memoria)) {
-                    long uso = contagemDeUso.getOrDefault(template.getIdentificadorPerguntaTemplate(), 0L);
-                    candidatos.add(new CandidatoPergunta(memoria, template, uso));
-                }
-            }
+        List<Lembranca> lembrancas = lembrancaRepository.findAllByIdentificadorUsuario(identificadorUsuario);
+        List<Diario> diarios = diarioRepository.findAllByIdentificadorUsuario(identificadorUsuario);
+        List<CandidatoAutomatico> candidatos = montarCandidatos(templatesAutomaticos, lembrancas, diarios, perguntasExistentes);
+
+        CandidatoAutomatico escolhido = candidatos.stream()
+                .min(Comparator
+                        .comparing(CandidatoAutomatico::ordemMemoria)
+                        .thenComparing(CandidatoAutomatico::ordem))
+                .orElse(null);
+
+        if (escolhido == null) {
+            return Optional.empty();
         }
-    }
-
-    private boolean templateSeAplica(PerguntaTemplate template, Object memoria) {
-        GatilhoTipo tipo = GatilhoTipo.of(template.getGatilhoTipo());
-
-        switch (tipo) {
-            case DATA_ESPECIAL:
-                LocalDate dataMemoria = (memoria instanceof Lembranca l) ? l.getDataAcontecimento() : ((Diario) memoria).getDataEscrita();
-                return isDataEspecial(dataMemoria, template.getGatilhoValores());
-
-            case SENTIMENTO:
-            case PALAVRA_CHAVE:
-                String textoParaAnalise = getTextoDaMemoriaPorCampo(memoria, template.getCampoAlvo());
-                if (!StringUtils.hasText(textoParaAnalise) || !StringUtils.hasText(template.getGatilhoValores())) {
-                    return false;
-                }
-
-                String[] palavrasChave = template.getGatilhoValores().split(",");
-                for (String palavra : palavrasChave) {
-                    if (textoParaAnalise.toLowerCase().contains(palavra.trim().toLowerCase())) {
-                        return true;
-                    }
-                }
-                return false;
-
-            case GENERICO:
-                return true;
-
-            default:
-                return false;
-        }
-    }
-
-    private boolean isDataEspecial(LocalDate data, String gatilhoValores) {
-        if (!StringUtils.hasText(gatilhoValores)) {
-            return false;
-        }
-        List<String> datasEspeciais = Arrays.asList(gatilhoValores.toUpperCase().split(","));
-
-        if (datasEspeciais.contains("NATAL") && data.getMonthValue() == 12 && data.getDayOfMonth() == 25) {
-            return true;
-        }
-        return datasEspeciais.contains("ANO_NOVO") && data.getMonthValue() == 1 && data.getDayOfMonth() == 1;
-    }
-
-    private String getTextoDaMemoriaPorCampo(Object memoria, String campoAlvo) {
-        if (!StringUtils.hasText(campoAlvo)) return "";
-        StringBuilder textoCompleto = new StringBuilder();
-
-        if (memoria instanceof Lembranca l) {
-            if ("historia".equalsIgnoreCase(campoAlvo)) textoCompleto.append(l.getHistoria()).append(" ");
-            if ("titulo".equalsIgnoreCase(campoAlvo)) textoCompleto.append(l.getTitulo()).append(" ");
-            if ("local".equalsIgnoreCase(campoAlvo)) textoCompleto.append(l.getLocal()).append(" ");
-        } else if (memoria instanceof Diario d) {
-            if ("conteudo".equalsIgnoreCase(campoAlvo)) textoCompleto.append(d.getConteudo()).append(" ");
-            if ("titulo".equalsIgnoreCase(campoAlvo)) textoCompleto.append(d.getTitulo()).append(" ");
-        }
-        return textoCompleto.toString();
-    }
-
-    private void gerarEsalvarPergunta(CandidatoPergunta candidato) {
-        PerguntaTemplate template = candidato.getTemplate();
-        Object memoria = candidato.getMemoria();
-        String textoFinal = formatarPergunta(template, memoria);
 
         PerguntaCognitiva pergunta = new PerguntaCognitiva();
-        pergunta.setIdentificadorTemplateOrigem(template.getIdentificadorPerguntaTemplate());
-        pergunta.setTextoPergunta(textoFinal);
+        pergunta.setIdentificadorTemplateOrigem(escolhido.template().getIdentificadorPerguntaTemplate());
+        pergunta.setIdentificadorUsuario(identificadorUsuario);
         pergunta.setStatus(StatusPergunta.ENVIADA.getCodigo());
+        pergunta.setTextoPergunta(formatarPergunta(escolhido.modelo(), escolhido.memoria()));
 
-        if (memoria instanceof Lembranca l) {
-            pergunta.setIdentificadorUsuario(l.getIdentificadorUsuario());
-            pergunta.setIdentificadorLembranca(l.getIdentificadorLembranca());
-        } else if (memoria instanceof Diario d) {
-            pergunta.setIdentificadorUsuario(d.getIdentificadorUsuario());
-            pergunta.setIdentificadorDiario(d.getIdentificadorDiario());
+        if (escolhido.memoria() instanceof Lembranca lembranca) {
+            pergunta.setIdentificadorLembranca(lembranca.getIdentificadorLembranca());
+        } else if (escolhido.memoria() instanceof Diario diario) {
+            pergunta.setIdentificadorDiario(diario.getIdentificadorDiario());
         }
-        perguntaRepository.save(pergunta);
+
+        return Optional.of(perguntaRepository.save(pergunta));
     }
 
-    private String formatarPergunta(PerguntaTemplate template, Object memoria) {
-        String texto = template.getTextoTemplate();
-        if (!StringUtils.hasText(template.getCampoPlaceholder())) {
-            return texto;
+    private List<PerguntaTemplate> garantirModelosAutomaticos() {
+        List<PerguntaTemplate> templates = new ArrayList<>();
+
+        for (ModeloPergunta modelo : MODELOS_AUTOMATICOS) {
+            PerguntaTemplate template = templateRepository.findFirstByTextoTemplate(modelo.texto())
+                    .orElseGet(() -> {
+                        PerguntaTemplate novoTemplate = new PerguntaTemplate();
+                        novoTemplate.setTextoTemplate(modelo.texto());
+                        novoTemplate.setGatilhoTipo(GatilhoTipo.GENERICO.getCodigo());
+                        novoTemplate.setCampoPlaceholder(modelo.placeholder());
+                        novoTemplate.setAtivo(true);
+                        return templateRepository.save(novoTemplate);
+                    });
+
+            if (!template.isAtivo()) {
+                template.setAtivo(true);
+                template = templateRepository.save(template);
+            }
+
+            templates.add(template);
         }
 
-        String valorPlaceholder = "";
-        String campoPlaceholder = template.getCampoPlaceholder();
-        if (memoria instanceof Lembranca l) {
-            if ("titulo".equalsIgnoreCase(campoPlaceholder)) valorPlaceholder = l.getTitulo();
-            if ("local".equalsIgnoreCase(campoPlaceholder)) valorPlaceholder = l.getLocal();
-        } else if (memoria instanceof Diario d) {
-            if ("titulo".equalsIgnoreCase(campoPlaceholder)) valorPlaceholder = d.getTitulo();
+        return templates;
+    }
+
+    private List<CandidatoAutomatico> montarCandidatos(
+            List<PerguntaTemplate> templates,
+            List<Lembranca> lembrancas,
+            List<Diario> diarios,
+            List<PerguntaCognitiva> perguntasExistentes
+    ) {
+        List<CandidatoAutomatico> candidatos = new ArrayList<>();
+
+        for (int i = 0; i < MODELOS_AUTOMATICOS.size(); i++) {
+            int ordem = i;
+            ModeloPergunta modelo = MODELOS_AUTOMATICOS.get(i);
+            PerguntaTemplate template = templates.get(i);
+
+            if (modelo.origem() == OrigemMemoria.LEMBRANCA) {
+                lembrancas.stream()
+                        .filter(lembranca -> modelo.placeholder() == null || temValorPlaceholder(lembranca, modelo.placeholder()))
+                        .filter(lembranca -> !perguntaJaGerada(perguntasExistentes, template, lembranca, null))
+                        .sorted(Comparator.comparing(Lembranca::getDataAcontecimento, Comparator.nullsFirst(Comparator.reverseOrder())))
+                        .forEach(lembranca -> candidatos.add(new CandidatoAutomatico(
+                                ordemMemoria(lembranca.getDataAcontecimento()),
+                                ordem,
+                                modelo,
+                                template,
+                                lembranca)));
+            } else if (modelo.origem() == OrigemMemoria.DIARIO) {
+                diarios.stream()
+                        .filter(diario -> modelo.placeholder() == null || StringUtils.hasText(getValorPlaceholder(diario, modelo.placeholder())))
+                        .filter(diario -> !perguntaJaGerada(perguntasExistentes, template, null, diario))
+                        .sorted(Comparator.comparing(Diario::getDataEscrita, Comparator.nullsFirst(Comparator.reverseOrder())))
+                        .forEach(diario -> candidatos.add(new CandidatoAutomatico(
+                                ordemMemoria(diario.getDataEscrita()),
+                                ordem,
+                                modelo,
+                                template,
+                                diario)));
+            }
         }
 
-        return texto.replace("{" + campoPlaceholder + "}", valorPlaceholder);
+        return candidatos;
+    }
+
+    private boolean perguntaJaGerada(
+            List<PerguntaCognitiva> perguntasExistentes,
+            PerguntaTemplate template,
+            Lembranca lembranca,
+            Diario diario
+    ) {
+        return perguntasExistentes.stream().anyMatch(pergunta -> {
+            boolean mesmoTemplate = template.getIdentificadorPerguntaTemplate().equals(pergunta.getIdentificadorTemplateOrigem());
+            boolean mesmaLembranca = lembranca != null
+                    && lembranca.getIdentificadorLembranca().equals(pergunta.getIdentificadorLembranca());
+            boolean mesmoDiario = diario != null
+                    && diario.getIdentificadorDiario().equals(pergunta.getIdentificadorDiario());
+
+            return mesmoTemplate && (mesmaLembranca || mesmoDiario);
+        });
+    }
+
+    private long ordemMemoria(java.time.LocalDate data) {
+        if (data == null) {
+            return Long.MAX_VALUE;
+        }
+        return -data.toEpochDay();
+    }
+
+    private boolean temValorPlaceholder(Lembranca lembranca, String placeholder) {
+        return StringUtils.hasText(getValorPlaceholder(lembranca, placeholder));
+    }
+
+    private String formatarPergunta(ModeloPergunta modelo, Object memoria) {
+        if (!StringUtils.hasText(modelo.placeholder()) || memoria == null) {
+            return modelo.texto();
+        }
+
+        return modelo.texto().replace("{" + modelo.placeholder() + "}", getValorPlaceholder(memoria, modelo.placeholder()));
+    }
+
+    private String getValorPlaceholder(Object memoria, String campoPlaceholder) {
+        if (memoria instanceof Lembranca lembranca) {
+            if ("titulo".equalsIgnoreCase(campoPlaceholder)) {
+                return valorOuVazio(lembranca.getTitulo());
+            }
+            if ("local".equalsIgnoreCase(campoPlaceholder)) {
+                return valorOuVazio(lembranca.getLocal());
+            }
+            if ("pessoasPresentes".equalsIgnoreCase(campoPlaceholder)) {
+                return valorOuVazio(lembranca.getPessoasPresentes());
+            }
+        } else if (memoria instanceof Diario diario && "titulo".equalsIgnoreCase(campoPlaceholder)) {
+            return valorOuVazio(diario.getTitulo());
+        }
+
+        return "";
+    }
+
+    private String valorOuVazio(String valor) {
+        return valor == null ? "" : valor;
+    }
+
+    private Usuario salvarOuAtualizarUsuario(UsuarioTokenClaims usuarioToken) {
+        Usuario usuario = usuarioRepository.findByPlatformUserId(usuarioToken.userId())
+                .or(() -> usuarioRepository.findByIdUsuario(usuarioToken.userId()))
+                .orElseGet(Usuario::new);
+
+        if (usuario.getIdUsuario() == null) {
+            usuario.setIdUsuario(usuarioToken.userId());
+        }
+
+        usuario.setPlatformUserId(usuarioToken.userId());
+        usuario.setNome(usuarioToken.nome());
+        usuario.setEmail(usuarioToken.email());
+        return usuarioRepository.saveAndFlush(usuario);
+    }
+
+    private StatusPergunta resolverStatus(String status) {
+        String statusNormalizado = status.trim().toUpperCase();
+        return switch (statusNormalizado) {
+            case "PENDENTE", "PENDENTES", "ENVIADA", "ENVIADAS" -> StatusPergunta.ENVIADA;
+            case "RESPONDIDA", "RESPONDIDAS" -> StatusPergunta.RESPONDIDA;
+            default -> StatusPergunta.of(Integer.parseInt(statusNormalizado));
+        };
+    }
+
+    private enum OrigemMemoria {
+        LEMBRANCA,
+        DIARIO
+    }
+
+    private record ModeloPergunta(String codigo, String texto, OrigemMemoria origem, String placeholder) {
+    }
+
+    private record CandidatoAutomatico(long ordemMemoria, int ordem, ModeloPergunta modelo, PerguntaTemplate template, Object memoria) {
     }
 }

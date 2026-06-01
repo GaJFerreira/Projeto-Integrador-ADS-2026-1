@@ -5,18 +5,19 @@ import {
     Button,
     Container,
     IconButton,
-    Grid,
     Stack,
     TextField,
     Typography,
     Paper,
     MenuItem,
+    Alert,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useSnackbar } from 'notistack';
 // IMPORTANDO O PAYLOAD CORRETO
 import { adminConquistasApi, type CreateConquistaPayload } from '../api/conquistas';
+import { usuarioPodeGerenciarConquistas } from '../utils/auth';
 
 const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -30,11 +31,13 @@ const TIPOS_CONQUISTA = [
     { codigo: 2, descricao: "2 - Lembrança" },
     { codigo: 3, descricao: "3 - Dias Consecutivos" },
     { codigo: 4, descricao: "4 - Meses Ativos" },
+    { codigo: 5, descricao: "5 - Perguntas Cognitivas Respondidas" },
 ];
 
 export default function NewConquistaPage() {
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
+    const podeGerenciar = usuarioPodeGerenciarConquistas();
 
     const [loading, setLoading] = useState(false);
 
@@ -49,6 +52,19 @@ export default function NewConquistaPage() {
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
+
+    if (!podeGerenciar) {
+        return (
+            <Container sx={{ py: 3 }}>
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                    Apenas administradores e cuidadores podem cadastrar conquistas.
+                </Alert>
+                <Button variant="outlined" onClick={() => navigate('/remember')}>
+                    Voltar ao Remember
+                </Button>
+            </Container>
+        );
+    }
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -119,10 +135,8 @@ export default function NewConquistaPage() {
             </Box>
 
             <Box component="form" onSubmit={handleSubmit} noValidate>
-                <Grid container spacing={0} justifyContent="center">
-                    <Grid item xs={12} md={8} lg={8}>
-
-                        <Stack spacing={3} component={Paper} sx={{ p: 4, borderRadius: 2 }}>
+                <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+                    <Stack spacing={3} component={Paper} sx={{ p: 4, borderRadius: 2 }}>
 
                             <Typography variant="h5" color="primary">
                                 Dados da Conquista
@@ -248,9 +262,8 @@ export default function NewConquistaPage() {
                                 </Button>
                             </Stack>
 
-                        </Stack>
-                    </Grid>
-                </Grid>
+                    </Stack>
+                </Box>
             </Box>
         </Container>
     );

@@ -1,9 +1,7 @@
 package br.pucgo.ads.projetointegrador.remember.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import br.pucgo.ads.projetointegrador.remember.domain.StatusPergunta;
+import br.pucgo.ads.projetointegrador.remember.dto.conquista.ConquistaResponseDTO;
 import br.pucgo.ads.projetointegrador.remember.dto.Pergunta.RespostaPerguntaUsuarioRequestDTO;
 import br.pucgo.ads.projetointegrador.remember.dto.Pergunta.RespostaPerguntaUsuarioResponseDTO;
 import br.pucgo.ads.projetointegrador.remember.entity.PerguntaCognitiva;
@@ -11,7 +9,12 @@ import br.pucgo.ads.projetointegrador.remember.entity.RespostaPerguntaUsuario;
 import br.pucgo.ads.projetointegrador.remember.exception.RecursoNaoEncontradoException;
 import br.pucgo.ads.projetointegrador.remember.repository.PerguntaCognitivaRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.RespostaPerguntaUsuarioRepository;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,27 +22,23 @@ public class RespostaPerguntaUsuarioService {
 
     private final RespostaPerguntaUsuarioRepository respostaRepository;
     private final PerguntaCognitivaRepository perguntaRepository;
+    private final GameService gamificationService;
 
-    /**
-     * Salva a resposta de um usuário a uma pergunta cognitiva e atualiza o status da pergunta.
-     * @param requestDTO O DTO contendo a resposta e os IDs necessários.
-     * @return Os dados da resposta salva.
-     */
     @Transactional
     public RespostaPerguntaUsuarioResponseDTO salvarResposta(RespostaPerguntaUsuarioRequestDTO requestDTO) {
-
         Long identificadorPergunta = requestDTO.getIdentificadorPergunta();
         Long identificadorUsuario = requestDTO.getIdentificadorUsuario();
 
         PerguntaCognitiva pergunta = perguntaRepository.findById(identificadorPergunta)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Pergunta não encontrada com o ID: " + identificadorPergunta));
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Pergunta nao encontrada com o ID: " + identificadorPergunta));
 
         if (!pergunta.getIdentificadorUsuario().equals(identificadorUsuario)) {
-            throw new SecurityException("Usuário não autorizado a responder esta pergunta.");
+            throw new AccessDeniedException("Usuario nao autorizado a responder esta pergunta.");
         }
 
-        if (pergunta.getStatus().equals(StatusPergunta.RESPONDIDA.getCodigo())) {
-            throw new IllegalStateException("Esta pergunta já foi respondida.");
+        if (pergunta.getStatus().equals(StatusPergunta.RESPONDIDA.getCodigo())
+                || respostaRepository.existsByIdentificadorPergunta(identificadorPergunta)) {
+            throw new IllegalStateException("Esta pergunta ja foi respondida.");
         }
 
         RespostaPerguntaUsuario novaResposta = new RespostaPerguntaUsuario();
@@ -52,6 +51,18 @@ public class RespostaPerguntaUsuarioService {
         pergunta.setStatus(StatusPergunta.RESPONDIDA.getCodigo());
         perguntaRepository.save(pergunta);
 
-        return new RespostaPerguntaUsuarioResponseDTO(respostaSalva);
+        RespostaPerguntaUsuarioResponseDTO response = new RespostaPerguntaUsuarioResponseDTO(respostaSalva);
+        List<ConquistaResponseDTO> conquistasGanhas = gamificationService
+                .verificarConquistasPerguntaRespondida(identificadorUsuario);
+        response.setConquistasDesbloqueadas(conquistasGanhas);
+
+        return response;
+    }
+
+    public List<RespostaPerguntaUsuarioResponseDTO> listarRespostasPorUsuario(Long identificadorUsuario) {
+        return respostaRepository.findByIdentificadorUsuarioOrderByDataRespostaDesc(identificadorUsuario)
+                .stream()
+                .map(RespostaPerguntaUsuarioResponseDTO::new)
+                .collect(Collectors.toList());
     }
 }

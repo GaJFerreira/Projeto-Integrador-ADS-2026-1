@@ -14,6 +14,25 @@ interface ConquistaCardProps {
     item: UsuarioConquistaDTO; // Recebe o objeto wrapper
 }
 
+function formatarDataObtencao(dataObtencao: UsuarioConquistaDTO['dataObtencao']) {
+    if (!dataObtencao) return null;
+
+    if (Array.isArray(dataObtencao)) {
+        const [ano, mes, dia] = dataObtencao;
+        if (ano && mes && dia) {
+            return new Intl.DateTimeFormat('pt-BR').format(new Date(ano, mes - 1, dia));
+        }
+        return null;
+    }
+
+    const data = new Date(dataObtencao);
+    if (Number.isNaN(data.getTime())) {
+        return null;
+    }
+
+    return new Intl.DateTimeFormat('pt-BR').format(data);
+}
+
 export default function ConquistaCard({ item }: ConquistaCardProps) {
 
     // A data está no nível raiz
@@ -22,9 +41,7 @@ export default function ConquistaCard({ item }: ConquistaCardProps) {
     // Os detalhes estão dentro do objeto 'conquista'
     const detalhes = item.conquista;
 
-    const dataFormatada = desbloqueada
-        ? new Date(item.dataObtencao!).toLocaleDateString('pt-BR')
-        : null;
+    const dataFormatada = desbloqueada ? formatarDataObtencao(item.dataObtencao) : null;
 
     // Tratamento da imagem Base64
     let srcImagem = '';
@@ -106,7 +123,7 @@ export default function ConquistaCard({ item }: ConquistaCardProps) {
                 <Box sx={{ mt: 2 }}>
                     {desbloqueada ? (
                         <Typography variant="caption" color="success.main" fontWeight="bold">
-                            Conquistado em: {dataFormatada}
+                            {dataFormatada ? `Conquistado em: ${dataFormatada}` : 'Conquista concluida'}
                         </Typography>
                     ) : (
                         <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5} color="text.disabled">
