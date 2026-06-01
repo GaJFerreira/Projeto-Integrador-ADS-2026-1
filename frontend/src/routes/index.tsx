@@ -17,6 +17,9 @@ import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
 // Elden Care
 import QuestionarioEldenCare from '@/features/eldercare/QuestionarioDemo';
 
+//Care Hub
+import { CareHubRoutes } from '@/features/carehub/routes/CareHubRoutes';
+
 //Diário Saúde
         
 import InformacoesSaude from '@/features/diario_saude/Idoso/InformacoesSaude';
@@ -45,6 +48,12 @@ import CreateListaPage from '@/features/lista-compras/pages/CreateListaPage';
 import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
 import ViewListaPage from '@/features/lista-compras/pages/ViewListaPage';
 import TemplatesPage from '@/features/lista-compras/pages/TemplatesPage';
+
+// ✅ Remember — Diário Cognitivo
+import RememberPage from '@/features/remember/pages/RememberPage';
+import AdminConquistasPage from '@/features/remember/pages/AdminConquistasPage';
+import AdminCreateConquistaPage from '@/features/remember/pages/AdminCreateConquistaPage';
+import AdminEditConquistaPage from '@/features/remember/pages/AdminEditConquistaPage';
 
 function Home() {
   return (
@@ -104,8 +113,13 @@ export function AppRoutes() {
         <Route path="lista-compras/templates" element={<TemplatesPage />} />
         <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
 
+<<<<<<< HEAD
         {/* Elden Care */}
         <Route path="elden-care/questionario" element={<QuestionarioEldenCare />} />
+=======
+        {/* CareHub */}
+        <Route path="carehub/*" element={<CareHubRoutes />} />
+>>>>>>> origin/develop
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />
@@ -120,6 +134,15 @@ export function AppRoutes() {
         <Route path="informacoes_saude" element={<InformacoesSaude />} />
         <Route path="questionario_saude" element={<QuestionarioPage />} />
         <Route path="dados_biometricos" element={<DadosBiometricosPage />} />
+
+
+        {/* Diário Cognitivo (Remember) */}
+        <Route path="remember" element={<RememberPage />} />
+
+        {/* Admin: Gestão de Conquistas do Remember */}
+        <Route path="admin/conquistas" element={<AdminConquistasPage />} />
+        <Route path="admin/conquistas/novo" element={<AdminCreateConquistaPage />} />
+        <Route path="admin/conquistas/:id/edit" element={<AdminEditConquistaPage />} />
 
       </Route>
     </Routes>

@@ -9,6 +9,7 @@ import br.pucgo.ads.projetointegrador.carehub.dto.registro.RegistroAcompanhament
 import br.pucgo.ads.projetointegrador.carehub.dto.registro.RegistroAcompanhamentoResponseDTO;
 import br.pucgo.ads.projetointegrador.carehub.service.RegistroAcompanhamentoService;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -18,12 +19,40 @@ public class RegistroAcompanhamentoController {
     @Autowired
     private RegistroAcompanhamentoService registroService;
 
+    @Autowired
+    private br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository cuidadorRepository;
+
+    @Autowired
+    private br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository clienteRepository;
+
+    private Long obterIdLocalAutenticado(Principal principal) {
+        if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario nao autenticado");
+        }
+
+        String usernameOrEmail = principal.getName();
+
+        var cuidador = cuidadorRepository.findByUsername(usernameOrEmail)
+                .or(() -> cuidadorRepository.findByEmail(usernameOrEmail));
+        if (cuidador.isPresent()) return cuidador.get().getId();
+
+        var cliente = clienteRepository.findByUsername(usernameOrEmail)
+                .or(() -> clienteRepository.findByEmail(usernameOrEmail));
+        if (cliente.isPresent()) return cliente.get().getId();
+
+        throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                "Usuario local do CareHub nao encontrado para o principal autenticado: " + usernameOrEmail);
+    }
+
     @PostMapping
     public ResponseEntity<RegistroAcompanhamentoResponseDTO> criarRegistro(
-            @RequestHeader("X-User-Id") Long cuidadorId,
+            Principal principal,
             @Valid @RequestBody RegistroAcompanhamentoRequestDTO dto
     ) {
-        RegistroAcompanhamentoResponseDTO registro = registroService.criarRegistro(cuidadorId, dto);
+        Long localCuidadorId = obterIdLocalAutenticado(principal);
+        RegistroAcompanhamentoResponseDTO registro = registroService.criarRegistro(localCuidadorId, dto);
         return ResponseEntity.ok(registro);
     }
 

@@ -4,12 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class ContrapropostaRequestDTO {
-    private LocalDateTime dataHoraInicio;
-    private LocalDateTime dataHoraFim;
+    private OffsetDateTime dataHoraInicio;
+    private OffsetDateTime dataHoraFim;
 }
+

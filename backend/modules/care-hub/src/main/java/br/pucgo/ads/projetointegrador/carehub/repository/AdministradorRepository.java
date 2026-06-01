@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AdministradorRepository extends JpaRepository<Administrador, Long> {
+    java.util.Optional<Administrador> findByPlatformUserId(Long platformUserId);
 }

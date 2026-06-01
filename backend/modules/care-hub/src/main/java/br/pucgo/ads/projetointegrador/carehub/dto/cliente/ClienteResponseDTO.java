@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -19,5 +19,6 @@ public class ClienteResponseDTO {
     private String contatoEmergencia;
     private String tipoCliente;
     private Boolean ativo;
-    private LocalDateTime criadoEm;
+    private OffsetDateTime criadoEm;
 }
+

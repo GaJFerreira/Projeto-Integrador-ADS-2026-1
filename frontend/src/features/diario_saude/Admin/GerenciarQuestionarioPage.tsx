@@ -248,9 +248,9 @@ export default function GerenciarQuestionarioPage() {
                     <Button
                         variant="contained"
                         onClick={salvar}
-                        disabled={criar.isLoading || editar.isLoading}
+                        disabled={criar.isPending || editar.isPending}
                     >
-                        Salvar
+                        {(criar.isPending || editar.isPending) ? "Salvando..." : "Salvar"}
                     </Button>
                 </DialogActions>
             </Dialog>

@@ -51,6 +51,7 @@ public class User {
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "user_permissions",
+        schema = "plataforma",
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "permission_id")
     )

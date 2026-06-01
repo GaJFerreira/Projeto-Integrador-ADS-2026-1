@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Box, Typography, Stack, Paper, Divider, Chip } from "@mui/material";
+import { Typography, Stack, Paper, Divider, Chip } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageContainer from "../components/PageContainer";
 import PageTitle from "../components/PageTitle";
@@ -14,8 +14,6 @@ import { questionarioApi } from "../api/questionarioApi";
 export default function RespostasPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const origem = location.state?.origem;
-
 
   const usuarioLogado = (() => {
     try {

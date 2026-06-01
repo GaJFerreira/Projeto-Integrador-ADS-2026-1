@@ -10,7 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -29,10 +30,10 @@ public class RegistroAcompanhamentoService {
         Long agendamentoId = Objects.requireNonNull(dto.getAgendamentoId(), "Agendamento ID cannot be null");
         
         Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
-            .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
+            .orElseThrow(() -> new RuntimeException("Agendamento nÃ£o encontrado"));
 
         if (!agendamento.getCuidador().getId().equals(cuidadorId)) {
-            throw new RuntimeException("Cuidador não autorizado para este agendamento");
+            throw new RuntimeException("Cuidador nÃ£o autorizado para este agendamento");
         }
 
         RegistroAcompanhamento registro = new RegistroAcompanhamento();
@@ -40,7 +41,7 @@ public class RegistroAcompanhamentoService {
         registro.setCuidador(agendamento.getCuidador());
         registro.setCliente(agendamento.getCliente());
         registro.setDataHoraRegistro(
-                dto.getDataHoraRegistro() != null ? dto.getDataHoraRegistro() : LocalDateTime.now()
+                dto.getDataHoraRegistro() != null ? dto.getDataHoraRegistro() : OffsetDateTime.now(ZoneOffset.UTC)
         );
         registro.setPressaoArterial(dto.getPressaoArterial());
         registro.setGlicemia(dto.getGlicemia());
@@ -85,7 +86,7 @@ public class RegistroAcompanhamentoService {
         Objects.requireNonNull(id, "Registro ID cannot be null");
         
         RegistroAcompanhamento registro = registroRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Registro não encontrado"));
+            .orElseThrow(() -> new RuntimeException("Registro nÃ£o encontrado"));
         return toResponseDTO(registro);
     }
 
@@ -111,3 +112,4 @@ public class RegistroAcompanhamentoService {
         return dto;
     }
 }
+

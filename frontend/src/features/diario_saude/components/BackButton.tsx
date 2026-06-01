@@ -2,7 +2,7 @@ import { Button } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useNavigate } from "react-router-dom";
 
-export default function BackButton({ to = -1 }) {
+export default function BackButton({ to = -1 as any }: { to?: string | number | any }) {
   const navigate = useNavigate();
   return (
     <Button

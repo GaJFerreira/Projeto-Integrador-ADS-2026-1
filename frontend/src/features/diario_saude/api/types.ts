@@ -109,6 +109,7 @@ export type PrescricaoMedicamento = {
 
 export type PrescricaoExame = {
   id_prescricao_exame: number;
+  nome_exame?: string;
   exame?: { nome: string };
   observacao?: string;
 };
@@ -120,6 +121,7 @@ export type Prescricao = {
   observacoes?: string;
   medicamentos: PrescricaoMedicamento[];
   exames: PrescricaoExame[];
+  exerciciosRecomendados?: any[];
 };
 
 export type CriarPrescricaoDTO = {

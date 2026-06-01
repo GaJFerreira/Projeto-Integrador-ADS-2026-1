@@ -47,7 +47,7 @@ export default function InformacoesSaudePage() {
   // -----------------------------
   const { data: usuario } = useQuery({
     queryKey: ["usuario", pacienteId],
-    queryFn: () => usuarioApi.porId(pacienteId),
+    queryFn: () => usuarioApi.porId(pacienteId!),
     enabled: !!pacienteId,
   });
 
@@ -66,16 +66,16 @@ export default function InformacoesSaudePage() {
         idade: String(usuario.idade ?? ""),
         peso: String(usuario.peso ?? ""),
         altura: String(usuario.altura ?? ""),
-        alergias: usuario.alergias ?? "",
+        alergias: (usuario as any).alergias ?? "",
       });
     }
   }, [usuario]);
 
   const atualizarUsuarioMutation = useMutation({
-    mutationFn: (payload: Usuario) => usuarioApi.atualizar(payload),
+    mutationFn: (payload: any) => usuarioApi.atualizar(payload),
     onSuccess: (data) => {
       localStorage.setItem("usuario", JSON.stringify({ ...usuarioLogado, ...data }));
-      queryClient.invalidateQueries(["usuario", pacienteId]);
+      queryClient.invalidateQueries({ queryKey: ["usuario", pacienteId] });
       alert("Informações atualizadas!");
     },
     onError: () => alert("Erro ao salvar informações."),
@@ -83,7 +83,7 @@ export default function InformacoesSaudePage() {
 
   const salvarAlteracoes = () => {
     if (!pacienteId) return;
-    const payload: Usuario = { id_usuario: pacienteId, ...editData } as Usuario;
+    const payload: any = { id_usuario: pacienteId, ...editData };
     atualizarUsuarioMutation.mutate(payload);
   };
 
@@ -112,7 +112,7 @@ export default function InformacoesSaudePage() {
     mutationFn: ({ usuarioId, doencaId }: { usuarioId: number; doencaId: number }) =>
       usuarioDoencaApi.adicionar(usuarioId, doencaId),
     onSuccess: () => {
-      queryClient.invalidateQueries(["usuario", pacienteId, "doencas"]);
+      queryClient.invalidateQueries({ queryKey: ["usuario", pacienteId, "doencas"] });
       setDialogDoencaOpen(false);
       setDoencaSelecionada(null);
     },
@@ -121,7 +121,7 @@ export default function InformacoesSaudePage() {
   const removeDoencaMutation = useMutation({
     mutationFn: ({ usuarioId, doencaId }: { usuarioId: number; doencaId: number }) =>
       usuarioDoencaApi.remover(usuarioId, doencaId),
-    onSuccess: () => queryClient.invalidateQueries(["usuario", pacienteId, "doencas"]),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["usuario", pacienteId, "doencas"] }),
   });
 
   const handleAddDoenca = () => {
@@ -155,7 +155,7 @@ export default function InformacoesSaudePage() {
     mutationFn: ({ usuarioId, alergiaId }: { usuarioId: number; alergiaId: number }) =>
       usuarioAlergiaApi.adicionar(usuarioId, alergiaId),
     onSuccess: () => {
-      queryClient.invalidateQueries(["usuario", pacienteId, "alergias"]);
+      queryClient.invalidateQueries({ queryKey: ["usuario", pacienteId, "alergias"] });
       setDialogAlergiaOpen(false);
       setAlergiaSelecionada(null);
     },
@@ -164,7 +164,7 @@ export default function InformacoesSaudePage() {
   const removeAlergiaMutation = useMutation({
     mutationFn: ({ usuarioId, alergiaId }: { usuarioId: number; alergiaId: number }) =>
       usuarioAlergiaApi.remover(usuarioId, alergiaId),
-    onSuccess: () => queryClient.invalidateQueries(["usuario", pacienteId, "alergias"]),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["usuario", pacienteId, "alergias"] }),
   });
 
   const handleAddAlergia = () => {
@@ -200,9 +200,9 @@ export default function InformacoesSaudePage() {
         fullWidth
         sx={{ mt: 2 }}
         onClick={salvarAlteracoes}
-        disabled={atualizarUsuarioMutation.isLoading}
+        disabled={atualizarUsuarioMutation.isPending}
       >
-        {atualizarUsuarioMutation.isLoading ? "Salvando..." : "Salvar Alterações"}
+        {atualizarUsuarioMutation.isPending ? "Salvando..." : "Salvar Alterações"}
       </Button>
 
       <Divider sx={{ my: 3 }} />
@@ -267,8 +267,8 @@ export default function InformacoesSaudePage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogDoencaOpen(false)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleAddDoenca} disabled={addDoencaMutation.isLoading}>
-            {addDoencaMutation.isLoading ? "Adicionando..." : "Adicionar"}
+          <Button variant="contained" onClick={handleAddDoenca} disabled={addDoencaMutation.isPending}>
+            {addDoencaMutation.isPending ? "Adicionando..." : "Adicionar"}
           </Button>
         </DialogActions>
       </Dialog>
@@ -287,8 +287,8 @@ export default function InformacoesSaudePage() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setDialogAlergiaOpen(false)}>Cancelar</Button>
-          <Button variant="contained" onClick={handleAddAlergia} disabled={addAlergiaMutation.isLoading}>
-            {addAlergiaMutation.isLoading ? "Adicionando..." : "Adicionar"}
+          <Button variant="contained" onClick={handleAddAlergia} disabled={addAlergiaMutation.isPending}>
+            {addAlergiaMutation.isPending ? "Adicionando..." : "Adicionar"}
           </Button>
         </DialogActions>
       </Dialog>

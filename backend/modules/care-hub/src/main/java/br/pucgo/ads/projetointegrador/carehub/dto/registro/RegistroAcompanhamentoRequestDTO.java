@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -15,7 +15,7 @@ public class RegistroAcompanhamentoRequestDTO {
     @NotNull(message = "Agendamento e obrigatorio")
     private Long agendamentoId;
 
-    private LocalDateTime dataHoraRegistro;
+    private OffsetDateTime dataHoraRegistro;
     private String pressaoArterial;
     private String glicemia;
     private String medicamentosAdministrados;
@@ -28,3 +28,4 @@ public class RegistroAcompanhamentoRequestDTO {
     private String intercorrencias;
     private String sinaisVitais;
 }
+
