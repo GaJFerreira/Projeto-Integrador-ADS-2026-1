@@ -1,61 +1,50 @@
 -- ============================================================================
--- Compre com Saude (lista_compras) - Script consolidado de massa de dados
+-- Compre com Saude (lista_compras) - Seed automatico
 -- ============================================================================
--- IMPORTANTE: a partir de agora, este script NAO precisa ser executado
--- manualmente. O ListaComprasDataInitializer carrega automaticamente a massa
--- (versao adaptada em src/main/resources/db/seed/lista-compras-seed.sql) toda
--- vez que o backend sobe, de forma idempotente e resiliente a IDs variaveis.
+-- Este script e executado AUTOMATICAMENTE pelo ListaComprasDataInitializer no
+-- boot do backend. Roda em qualquer maquina sem intervencao manual.
 --
--- Este arquivo permanece em docs/ como REFERENCIA HISTORICA E DOCUMENTAL da
--- massa do modulo. Edicoes funcionais devem ser feitas no .sql do classpath.
+-- Caracteristicas:
+--   - 100% idempotente (WHERE NOT EXISTS / ON CONFLICT DO NOTHING).
+--   - Resiliente a IDs variaveis: usa subqueries por username/nome.
+--   - Nao depende de extensao postgres (CREATE EXTENSION e funcao f_unaccent
+--     ficam no proprio DataInitializer Java).
 --
--- Caso queira rodar manualmente (debug / ambiente sem DataInitializer):
---   1) Suba o backend ao menos uma vez para o Hibernate criar as tabelas.
---   2) Execute este script no banco "projeto_integrador".
+-- Nao incluir aqui:
+--   - CREATE EXTENSION (dollar-quoted strings podem quebrar parser).
+--   - CREATE OR REPLACE FUNCTION com $$ ... $$
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 0) EXTENSAO unaccent + funcao IMMUTABLE f_unaccent
---    Necessaria para a busca por nome (ProdutoRepository.findByNomeNormalizado)
--- ----------------------------------------------------------------------------
-
-CREATE EXTENSION IF NOT EXISTS unaccent;
-
-CREATE OR REPLACE FUNCTION public.f_unaccent(text)
-  RETURNS text AS $$
-SELECT public.unaccent('public.unaccent', $1)
-$$ LANGUAGE sql IMMUTABLE;
-
-CREATE INDEX IF NOT EXISTS idx_produto_nome_unaccent
-  ON lista_compras.produto (public.f_unaccent(nome_normalizado));
-
--- ----------------------------------------------------------------------------
--- 1) CATEGORIAS
+-- 1) CATEGORIAS (12)
 -- ----------------------------------------------------------------------------
 
 INSERT INTO lista_compras.categorias (nome, descricao, created_at, updated_at)
-VALUES
-  ('Laticinios',        'Derivados do leite e similares',         NOW(), NOW()),
-  ('Padaria',           'Paes e produtos de panificacao',         NOW(), NOW()),
-  ('Mercearia',         'Itens basicos de despensa',              NOW(), NOW()),
-  ('Hortifruti',        'Frutas, legumes e verduras',             NOW(), NOW()),
-  ('Bebidas',           'Sucos, chas e refrigerantes',            NOW(), NOW()),
-  ('Limpeza',           'Produtos de limpeza domestica',          NOW(), NOW()),
-  ('Higiene',           'Higiene pessoal e banho',                NOW(), NOW()),
-  ('Enlatados',         'Alimentos enlatados',                    NOW(), NOW()),
-  ('Condimentos',       'Molhos, temperos e especiarias',         NOW(), NOW()),
-  ('Massas e Cereais',  'Massas, graos e cereais',                NOW(), NOW()),
-  ('Frios e Embutidos', 'Queijos, presuntos e embutidos',         NOW(), NOW()),
-  ('Carnes e Peixes',   'Proteinas animais',                      NOW(), NOW())
-ON CONFLICT DO NOTHING;
+SELECT v.nome, v.descricao, NOW(), NOW()
+FROM (VALUES
+  ('Laticinios',        'Derivados do leite e similares'),
+  ('Padaria',           'Paes e produtos de panificacao'),
+  ('Mercearia',         'Itens basicos de despensa'),
+  ('Hortifruti',        'Frutas, legumes e verduras'),
+  ('Bebidas',           'Sucos, chas e refrigerantes'),
+  ('Limpeza',           'Produtos de limpeza domestica'),
+  ('Higiene',           'Higiene pessoal e banho'),
+  ('Enlatados',         'Alimentos enlatados'),
+  ('Condimentos',       'Molhos, temperos e especiarias'),
+  ('Massas e Cereais',  'Massas, graos e cereais'),
+  ('Frios e Embutidos', 'Queijos, presuntos e embutidos'),
+  ('Carnes e Peixes',   'Proteinas animais')
+) AS v(nome, descricao)
+WHERE NOT EXISTS (
+  SELECT 1 FROM lista_compras.categorias c WHERE LOWER(c.nome) = LOWER(v.nome)
+);
 
 -- ----------------------------------------------------------------------------
--- 2) PRODUTOS (catalogo completo - basicos + substitutos)
+-- 2) PRODUTOS (~90 itens: basicos + substitutos + dietas especificas)
 -- ----------------------------------------------------------------------------
 
 WITH p(nome, preco, cat, tags) AS (
   VALUES
-    -- Basicos da V2
     ('Leite',                       5.99,  'Laticinios',        'laticinio'),
     ('Iogurte',                     3.90,  'Laticinios',        'laticinio'),
     ('Queijo Mussarela',           39.90,  'Frios e Embutidos', 'frios'),
@@ -81,8 +70,6 @@ WITH p(nome, preco, cat, tags) AS (
     ('Desinfetante',                8.90,  'Limpeza',           'limpeza'),
     ('Alcool 70%',                  7.90,  'Limpeza',           'limpeza'),
     ('Saco de Lixo',                9.90,  'Limpeza',           'limpeza'),
-
-    -- V3 - sugestoes
     ('Agua Mineral',                2.50,  'Bebidas',           'bebida,saudavel'),
     ('Suco de Laranja',             8.90,  'Bebidas',           'bebida,fruta'),
     ('Peito de Frango',            22.90,  'Carnes e Peixes',   'proteina,magro'),
@@ -90,8 +77,6 @@ WITH p(nome, preco, cat, tags) AS (
     ('Arroz Integral',             24.90,  'Massas e Cereais',  'basico,integral'),
     ('Adocante',                   12.90,  'Condimentos',       'diabetes,doce'),
     ('Aveia em Flocos',             7.50,  'Massas e Cereais',  'integral,fibra'),
-
-    -- V4 - dietas especificas
     ('Macarrao Integral',           8.90,  'Massas e Cereais',  'integral'),
     ('Adocante Dietetico',         12.50,  'Mercearia',         'diet'),
     ('Leite Desnatado',             6.90,  'Laticinios',        'laticinio,desnatado'),
@@ -107,8 +92,6 @@ WITH p(nome, preco, cat, tags) AS (
     ('Abobrinha',                   6.50,  'Hortifruti',        'hortifruti'),
     ('Brocolis',                    9.50,  'Hortifruti',        'hortifruti'),
     ('Couve-flor',                  9.50,  'Hortifruti',        'hortifruti'),
-
-    -- V7 - substitutos mais realistas
     ('Leite Sem Lactose Integral',  6.90,  'Laticinios',        'laticinio,sem-lactose'),
     ('Leite Sem Lactose Desnatado', 7.20,  'Laticinios',        'laticinio,sem-lactose,desnatado'),
     ('Iogurte Sem Lactose',         4.90,  'Laticinios',        'laticinio,sem-lactose'),
@@ -118,8 +101,6 @@ WITH p(nome, preco, cat, tags) AS (
     ('Tempero Natural sem Sal',     5.90,  'Condimentos',       'tempero,sem-sal,hipertensao'),
     ('Refrigerante Zero',           7.90,  'Bebidas',           'bebida,zero-acucar,diabetes'),
     ('Achocolatado Diet',          12.90,  'Bebidas',           'bebida,diet,diabetes'),
-
-    -- V8 - basicos adicionais
     ('Acucar',                      4.50,  'Mercearia',         'acucar,doce'),
     ('Farinha de Trigo',            4.99,  'Massas e Cereais',  'farinha'),
     ('Oleo de Soja',                7.49,  'Mercearia',         'oleo,cozinha'),
@@ -170,16 +151,20 @@ FROM p
 WHERE NOT EXISTS (SELECT 1 FROM lista_compras.produto pr WHERE pr.nome = p.nome);
 
 -- ----------------------------------------------------------------------------
--- 3) PATOLOGIAS
+-- 3) PATOLOGIAS (4)
 -- ----------------------------------------------------------------------------
 
 INSERT INTO lista_compras.patologias (nome, descricao, created_at, updated_at)
-VALUES
-  ('Intolerancia a Lactose', 'Dificuldade de digerir lactose',         NOW(), NOW()),
-  ('Hipertensao',            'Pressao arterial elevada',               NOW(), NOW()),
-  ('Diabetes Mellitus',      'Problemas no metabolismo da glicose',    NOW(), NOW()),
-  ('Doenca Celiaca',         'Intolerancia ao gluten',                 NOW(), NOW())
-ON CONFLICT DO NOTHING;
+SELECT v.nome, v.descricao, NOW(), NOW()
+FROM (VALUES
+  ('Intolerancia a Lactose', 'Dificuldade de digerir lactose'),
+  ('Hipertensao',            'Pressao arterial elevada'),
+  ('Diabetes Mellitus',      'Problemas no metabolismo da glicose'),
+  ('Doenca Celiaca',         'Intolerancia ao gluten')
+) AS v(nome, descricao)
+WHERE NOT EXISTS (
+  SELECT 1 FROM lista_compras.patologias p WHERE LOWER(p.nome) = LOWER(v.nome)
+);
 
 -- ----------------------------------------------------------------------------
 -- 4) VINCULOS PATOLOGIA <-> PRODUTO (com sugestao de substituicao)
@@ -268,25 +253,27 @@ WHERE NOT EXISTS (
 
 -- ----------------------------------------------------------------------------
 -- 5) USUARIO DE EXEMPLO COM PATOLOGIAS
---    usuario_id=2 corresponde ao usuario 'idoso' criado pelo DataInitializer
---    da plataforma. Ajuste o ID conforme o seu ambiente.
+--    Resolve o usuario 'idoso' por username (criado pelo DataInitializer da
+--    plataforma). Se o usuario nao existir ainda, o CROSS JOIN vira empty e
+--    nada e inserido — a proxima inicializacao corrige.
 -- ----------------------------------------------------------------------------
 
 INSERT INTO lista_compras.usuario_patologias (usuario_id, patologia_id, created_at, updated_at)
-SELECT 2, pat.id, NOW(), NOW()
+SELECT u.id, pat.id, NOW(), NOW()
 FROM lista_compras.patologias pat
+CROSS JOIN (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u
 WHERE pat.nome IN ('Intolerancia a Lactose', 'Hipertensao')
   AND NOT EXISTS (
     SELECT 1 FROM lista_compras.usuario_patologias up
-    WHERE up.usuario_id = 2 AND up.patologia_id = pat.id
+    WHERE up.usuario_id = u.id AND up.patologia_id = pat.id
   );
 
 -- ----------------------------------------------------------------------------
--- 6) TEMPLATES (listas modelo) - usuario_id=1 (admin) como dono nominal
+-- 6) TEMPLATES (listas modelo) - dono nominal: usuario 'admin' da plataforma
 -- ----------------------------------------------------------------------------
 
 INSERT INTO lista_compras.lista (usuario_id, titulo, is_template, status, patologia_id, created_at)
-SELECT 1, t.titulo, TRUE, 'ABERTA', t.patologia_id, NOW()
+SELECT a.id, t.titulo, TRUE, 'ABERTA', t.patologia_id, NOW()
 FROM (VALUES
   ('Dieta Intolerancia a Lactose',
     (SELECT id FROM lista_compras.patologias WHERE nome = 'Intolerancia a Lactose')),
@@ -295,6 +282,7 @@ FROM (VALUES
   ('Dieta Diabetes Mellitus',
     (SELECT id FROM lista_compras.patologias WHERE nome = 'Diabetes Mellitus'))
 ) AS t(titulo, patologia_id)
+CROSS JOIN (SELECT id FROM plataforma.users WHERE username = 'admin' LIMIT 1) AS a
 WHERE NOT EXISTS (
   SELECT 1 FROM lista_compras.lista l
   WHERE l.titulo = t.titulo AND l.is_template = TRUE
@@ -313,6 +301,10 @@ WHERE p.nome IN (
   'Pao Integral','Pao 100% Integral','Biscoito Integral',
   'Peito de Frango','File de Peixe','Aveia em Flocos','Castanha de Caju','Nozes'
 )
+AND EXISTS (
+  SELECT 1 FROM lista_compras.lista l
+  WHERE l.titulo = 'Dieta Intolerancia a Lactose' AND l.is_template = TRUE
+)
 ON CONFLICT DO NOTHING;
 
 -- 6.2) Itens da dieta Hipertensao
@@ -326,6 +318,10 @@ WHERE p.nome IN (
   'Banana','Maca','Maca Verde','Laranja','Limao','Mamao','Abobrinha','Brocolis','Couve-flor',
   'Aveia em Flocos','Oleo de Canola','Peito de Frango','File de Peixe',
   'Sal Light','Castanha de Caju','Nozes'
+)
+AND EXISTS (
+  SELECT 1 FROM lista_compras.lista l
+  WHERE l.titulo = 'Dieta Hipertensao' AND l.is_template = TRUE
 )
 ON CONFLICT DO NOTHING;
 
@@ -342,5 +338,9 @@ WHERE p.nome IN (
   'Banana','Maca','Maca Verde','Laranja','Mamao',
   'Leite Desnatado','Peito de Frango','File de Peixe',
   'Adocante Dietetico','Castanha de Caju','Nozes'
+)
+AND EXISTS (
+  SELECT 1 FROM lista_compras.lista l
+  WHERE l.titulo = 'Dieta Diabetes Mellitus' AND l.is_template = TRUE
 )
 ON CONFLICT DO NOTHING;
