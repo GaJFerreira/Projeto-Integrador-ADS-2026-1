@@ -1,6 +1,7 @@
 import "./receitaAcoesAutor.css";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
+import { resolverVoltarState } from "../../utils/receitaNavegacao";
 
 export type ReceitaAcoesVariant = "inline" | "panel";
 
@@ -20,9 +21,13 @@ export function ReceitaAcoesAutor({
   className = "",
 }: Props) {
   const navigate = useNavigate();
+  const location = useLocation();
 
   const irParaEditar = () => {
-    navigate(`/sabor-familia/receita/${receitaId}/editar`);
+    const voltarState = resolverVoltarState(location.pathname, location.state);
+    navigate(`/sabor-familia/receita/${receitaId}/editar`, {
+      state: { voltarState },
+    });
   };
 
   return (

@@ -180,6 +180,8 @@ export const TEXTOS_INTERFACE = {
     },
   },
   sucesso: {
+    receitaPublicada: "Receita publicada com sucesso",
+    receitaAtualizada: "Receita atualizada com sucesso",
     receitaSalvaFavoritos: "Receita salva",
     receitaRemovidaFavoritos: "Receita removida das salvas",
     seguirSemNome: "Você passou a seguir esta pessoa",

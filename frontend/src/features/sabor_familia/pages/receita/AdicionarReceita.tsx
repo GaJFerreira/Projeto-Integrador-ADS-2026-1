@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCriarReceita } from "../../hooks/UseReceita";
+import { obterVoltarStateDaRota } from "../../utils/receitaNavegacao";
 import { useBuscarRestricoesAlimentares } from "../../hooks/UseRestricaoAlimentar";
 import { useListarCatalogoContextoReceita } from "../../hooks/UsePersonalizacao";
 import { InformacoesBasicas } from "../../components/page/adicionarReceitaComponents/InformacoesBasicas";
@@ -75,7 +76,10 @@ export function AdicionarReceita() {
         personalizacoes:       Array.from(personalizacoesSelecionadas),
       },
       fotoReceita,
-      () => navigate(`/sabor-familia/home`)
+      (receita) =>
+        navigate(`/sabor-familia/receita/${receita.id}`, {
+          state: obterVoltarStateDaRota("/sabor-familia/home"),
+        })
     );
   };
 

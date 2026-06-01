@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import type { ReceitaEditarLocationState } from "../../utils/receitaNavegacao";
 import { useAuth } from "../../hooks/UseAuth";
 import { useBuscarReceita, useEditarReceita } from "../../hooks/UseReceita";
 import { useBuscarRestricoesAlimentares } from "../../hooks/UseRestricaoAlimentar";
@@ -19,9 +20,18 @@ import "./adicionarReceita.css";
 
 export function EditarReceita() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { receitaId: receitaIdParam } = useParams<{ receitaId: string }>();
   const receitaId = Number(receitaIdParam);
   const { perfilId } = useAuth();
+
+  const voltarState = (location.state as ReceitaEditarLocationState | null)?.voltarState;
+
+  const irParaReceita = () => {
+    navigate(`/sabor-familia/receita/${receitaId}`, {
+      state: voltarState,
+    });
+  };
 
   const { receita, loading: carregando, error: erroCarregar } = useBuscarReceita(receitaId);
   const { editar, loading: salvando, error: erroSalvar, fieldErrors, limparErro } =
@@ -119,7 +129,7 @@ export function EditarReceita() {
         personalizacoes: Array.from(personalizacoesSelecionadas),
       },
       fotoReceita,
-      () => navigate(`/sabor-familia/home`)
+      () => irParaReceita()
     );
   };
 
@@ -229,7 +239,7 @@ export function EditarReceita() {
             <button
               type="button"
               className="ar-btn ar-btn--ghost"
-              onClick={() => navigate(-1)}
+              onClick={irParaReceita}
               disabled={salvando}
             >
               Cancelar

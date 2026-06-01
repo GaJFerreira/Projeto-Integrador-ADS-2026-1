@@ -50,6 +50,7 @@ import CriarPerfil from '@/features/sabor_familia/pages/perfil/CriarPerfil';
 import { HomeSaborFamilia } from '@/features/sabor_familia/pages/home/HomeSaborFamilia';
 import AddReceita from '@/features/sabor_familia/pages/receita/AdicionarReceita';
 import EditarReceita from '@/features/sabor_familia/pages/receita/EditarReceita';
+import ReceitaDetalhe from '@/features/sabor_familia/pages/receita/ReceitaDetalhe';
 import ErrorSaborFamilia from '@/features/sabor_familia/pages/error/Error';
 import Perfil from '@/features/sabor_familia/pages/perfil/Perfil';
 import { Explorar } from '@/features/sabor_familia/pages/explorar/Explorar';
@@ -153,6 +154,7 @@ export function AppRoutes() {
           <Route path="perfil/:perfilId/seguindo" element={<VerSeguindo />} />
           <Route path="receita/nova" element={<AddReceita />} />
           <Route path="receita/:receitaId/editar" element={<EditarReceita />} />
+          <Route path="receita/:receitaId" element={<ReceitaDetalhe />} />
           <Route path="perfil/:perfilId" element={<Perfil />} />
           <Route path="error" element={<ErrorSaborFamilia />} />
           <Route path="*" element={<ErrorSaborFamilia />} />
