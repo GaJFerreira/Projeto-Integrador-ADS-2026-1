@@ -14,7 +14,8 @@
 
 -- ----------------------------------------------------------------------------
 -- 0) EXTENSAO unaccent + funcao IMMUTABLE f_unaccent
---    Necessaria para a busca por nome (ProdutoRepository.findByNomeNormalizado)
+--    Usada apenas por este seed para gravar nome_normalizado sem acentos
+--    (a busca por nome roda em JPA puro sobre a coluna ja normalizada).
 -- ----------------------------------------------------------------------------
 
 CREATE EXTENSION IF NOT EXISTS unaccent;
@@ -156,7 +157,7 @@ INSERT INTO lista_compras.produto (
 )
 SELECT
   p.nome,
-  LOWER(p.nome),
+  public.unaccent(LOWER(p.nome)),
   p.preco,
   TRUE,
   FALSE,

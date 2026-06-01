@@ -69,7 +69,8 @@ public class ProdutoService {
   @Transactional(readOnly = true)
   public List<ProdutoResponseDTO> buscarPorNome(String nome) {
     if (nome == null) return List.of();
-    return produtoRepository.findByNomeNormalizado(nome.toLowerCase().trim()).stream()
+    String termo = normalizarNome(nome);
+    return produtoRepository.findByNomeNormalizadoContainingAndAtivoTrue(termo).stream()
         .map(this::toResponseDTO)
         .toList();
   }
