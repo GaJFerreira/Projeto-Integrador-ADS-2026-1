@@ -14,6 +14,9 @@ import AdminCuidadoresPage from '@/features/admin/pages/AdminCuidadoresPage';
 import AdminUsuarioCreatePage from '@/features/admin/pages/AdminUsuarioCreatePage';
 import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
 
+// Elden Care
+import QuestionarioEldenCare from '@/features/eldercare/QuestionarioDemo';
+
 //Diário Saúde
         
 import InformacoesSaude from '@/features/diario_saude/Idoso/InformacoesSaude';
@@ -100,6 +103,9 @@ export function AppRoutes() {
         <Route path="lista-compras/listas" element={<ViewListaPage />} />
         <Route path="lista-compras/templates" element={<TemplatesPage />} />
         <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
+
+        {/* Elden Care */}
+        <Route path="elden-care/questionario" element={<QuestionarioEldenCare />} />
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />
