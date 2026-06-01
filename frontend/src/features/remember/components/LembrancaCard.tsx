@@ -12,6 +12,7 @@ import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import PlaceIcon from '@mui/icons-material/Place';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { Lembranca } from '../api/lembrancas';
+import { formatarDataRemember } from '../utils/date';
 
 interface LembrancaCardProps {
     lembranca: Lembranca;
@@ -21,12 +22,9 @@ interface LembrancaCardProps {
 
 export default function LembrancaCard({ lembranca, onClick, onDelete }: LembrancaCardProps) {
 
-    const dataFormatada = new Date(lembranca.dataAcontecimento).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        timeZone: 'UTC'
-    });
+    const dataFormatada = formatarDataRemember(
+        lembranca.dataAcontecimento ?? (lembranca as any).data_acontecimento ?? (lembranca as any).data
+    );
 
     const themeColor = '#ed6c02';
 

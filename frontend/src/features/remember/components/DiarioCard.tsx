@@ -11,6 +11,7 @@ import {
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DeleteIcon from '@mui/icons-material/Delete';
 import type { Diario } from '../api/diarios';
+import { formatarDataRemember } from '../utils/date';
 
 interface DiarioCardProps {
     diario: Diario;
@@ -19,12 +20,9 @@ interface DiarioCardProps {
 }
 
 export default function DiarioCard({ diario, onClick, onDelete }: DiarioCardProps) {
-    const dataFormatada = new Date(diario.dataEscrita).toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        timeZone: 'UTC'
-    });
+    const dataFormatada = formatarDataRemember(
+        diario.dataEscrita ?? (diario as any).data_escrita ?? (diario as any).data
+    );
 
     // Função para evitar que o clique na lixeira abra o card
     const handleDelete = (e: React.MouseEvent) => {

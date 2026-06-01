@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
     Box,
-    Grid,
     Typography,
     CircularProgress,
 } from '@mui/material';
@@ -95,17 +94,28 @@ export default function DiariosPage({ usuarioId }: DiariosPageProps) {
                     </Typography>
                 </Box>
             ) : (
-                <Grid container spacing={3} sx={{ mt: 2 }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                            xs: '1fr',
+                            sm: 'repeat(2, minmax(0, 1fr))',
+                            md: 'repeat(3, minmax(0, 1fr))',
+                        },
+                        gap: 3,
+                        mt: 2,
+                    }}
+                >
                     {diarios.map((item) => (
-                        <Grid size={{ xs: 12, sm: 6, md: 4 }} key={item.identificadorDiario}>
+                        <Box key={item.identificadorDiario}>
                             <DiarioCard
                                 diario={item}
                                 onClick={handleEditDiario}   // Clicar no card edita
                                 onDelete={handleDeleteDiario} // Clicar na lixeira deleta
                             />
-                        </Grid>
+                        </Box>
                     ))}
-                </Grid>
+                </Box>
             )}
 
             {/* Modal de Edição (Invisível até clicar no card) */}

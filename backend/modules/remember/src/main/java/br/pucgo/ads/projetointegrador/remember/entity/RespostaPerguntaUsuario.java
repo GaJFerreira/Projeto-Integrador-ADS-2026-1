@@ -16,6 +16,7 @@ public class RespostaPerguntaUsuario {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_resposta_pergunta_usuario")
     private Long identificadorRespostaPerguntaUsuario;
 
     @Column(name = "id_pergunta", nullable = false, unique = true)

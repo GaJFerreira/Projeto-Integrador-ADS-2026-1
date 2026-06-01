@@ -14,6 +14,7 @@ public class PerguntaTemplate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_pergunta_template")
     private Long identificadorPerguntaTemplate;
 
     @Column(name = "texto_template", nullable = false, columnDefinition = "TEXT")

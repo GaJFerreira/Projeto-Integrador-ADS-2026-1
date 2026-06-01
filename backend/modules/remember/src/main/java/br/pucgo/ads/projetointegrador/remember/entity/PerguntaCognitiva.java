@@ -17,6 +17,7 @@ public class PerguntaCognitiva {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_pergunta")
     private Long identificadorPerguntaCognitiva;
 
     @Column(name = "id_template_origem", nullable = false)
@@ -41,7 +42,7 @@ public class PerguntaCognitiva {
     private LocalDateTime dataGeracao;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_pergunta_template", insertable = false, updatable = false)
+    @JoinColumn(name = "id_template_origem", insertable = false, updatable = false)
     private PerguntaTemplate PerguntaTemplate;
 
     @ManyToOne(fetch = FetchType.LAZY)

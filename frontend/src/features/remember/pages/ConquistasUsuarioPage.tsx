@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
     Box,
-    Grid,
     Typography,
     CircularProgress,
     Stack,
-    Paper,
-    Avatar
+    Paper
 } from '@mui/material';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import StarIcon from '@mui/icons-material/Star';
@@ -186,13 +184,23 @@ export default function ConquistasUsuarioPage({ usuarioId }: ConquistasUsuarioPa
             </Paper>
 
             {/* GRID DE MEDALHAS */}
-            <Grid container spacing={3}>
+            <Box
+                sx={{
+                    display: 'grid',
+                    gridTemplateColumns: {
+                        xs: '1fr',
+                        sm: 'repeat(2, minmax(0, 1fr))',
+                        md: 'repeat(3, minmax(0, 1fr))',
+                    },
+                    gap: 3,
+                }}
+            >
                 {items.map((item, index) => (
-                    <Grid size={{ xs: 12, sm: 6, md: 4, lg: 4 }} key={item.conquista.identificadorConquista || index}>
+                    <Box key={item.conquista.identificadorConquista || index}>
                         <ConquistaCard item={item} />
-                    </Grid>
+                    </Box>
                 ))}
-            </Grid>
+            </Box>
         </Box>
     );
 }

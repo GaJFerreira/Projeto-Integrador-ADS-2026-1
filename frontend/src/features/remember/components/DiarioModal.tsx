@@ -14,14 +14,16 @@ import MicIcon from '@mui/icons-material/Mic';
 import SaveIcon from '@mui/icons-material/Save';
 import { useSnackbar } from 'notistack';
 import { diariosApi, type CreateDiarioPayload, type UpdateDiarioPayload, type Diario } from '../api/diarios';
-import type {Conquista} from '../api/conquistas';
+import type { ConquistaDetalhes } from '../api/conquistasUsuario';
+import {
+    iniciarReconhecimentoVoz,
+    type SpeechRecognitionInstance,
+    type SpeechRecognitionTextEvent
+} from '../utils/speech';
+import { getHojeLocalRemember } from '../utils/date';
 
-type SpeechRecognition = any;
-interface Window {
-    SpeechRecognition: SpeechRecognition;
-    webkitSpeechRecognition: SpeechRecognition;
-}
-declare var window: Window;
+type SpeechRecognition = SpeechRecognitionInstance;
+type VozCampoState = { base: string; confirmado: string };
 
 interface DiarioModalProps {
     open: boolean;
@@ -30,7 +32,7 @@ interface DiarioModalProps {
     usuarioId: number;
     diarioParaEditar?: Diario | null;
     // NOVO: Callback para avisar o pai sobre conquistas ganhas
-    onConquistaGanhas?: (conquistas: Conquista[]) => void;
+    onConquistaGanhas?: (conquistas: ConquistaDetalhes[]) => void;
 }
 
 export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diarioParaEditar, onConquistaGanhas }: DiarioModalProps) {
@@ -46,6 +48,8 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
 
     const recognitionTituloRef = useRef<SpeechRecognition | null>(null);
     const recognitionConteudoRef = useRef<SpeechRecognition | null>(null);
+    const vozTituloRef = useRef<VozCampoState>({ base: '', confirmado: '' });
+    const vozConteudoStateRef = useRef<VozCampoState>({ base: '', confirmado: '' });
 
     // --- EFEITO: Preenche os dados se for Edição ---
     useEffect(() => {
@@ -60,48 +64,76 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
         }
     }, [open, diarioParaEditar]);
 
-    // --- LÓGICA DE GRAVAÇÃO ---
+    // --- LOGICA DE GRAVACAO ---
     const handleGravar = (
-        isTitulo: boolean,
+        gravandoAtual: boolean,
+        textoAtual: string,
         setGravando: React.Dispatch<React.SetStateAction<boolean>>,
         ref: React.MutableRefObject<SpeechRecognition | null>,
+        estadoVozRef: React.MutableRefObject<VozCampoState>,
         setterTexto: React.Dispatch<React.SetStateAction<string>>
     ) => {
-        const SpeechRecognitionClass = window.SpeechRecognition || window.webkitSpeechRecognition;
-
-        if (!SpeechRecognitionClass) {
-            enqueueSnackbar("Seu navegador não suporta reconhecimento de voz.", { variant: 'error' });
+        if (gravandoAtual) {
+            try {
+                ref.current?.stop?.();
+                ref.current?.abort?.();
+            } catch {
+                // A captura pode ja ter sido encerrada pelo navegador.
+            }
+            ref.current = null;
+            setGravando(false);
             return;
         }
 
-        if (!ref.current) {
-            ref.current = new SpeechRecognitionClass();
-            ref.current.lang = "pt-BR";
-            ref.current.continuous = false;
-            ref.current.interimResults = false;
+        estadoVozRef.current = {
+            base: textoAtual.trim(),
+            confirmado: '',
+        };
 
-            ref.current.onresult = (event: any) => {
-                const texto = event.results[0][0].transcript;
-                setterTexto((prev) => prev + (prev ? " " : "") + texto);
-            };
-
-            ref.current.onerror = () => {
+        ref.current = iniciarReconhecimentoVoz({
+            onText: (event) => atualizarTextoPorVoz(event, estadoVozRef, setterTexto),
+            onStart: () => setGravando(true),
+            onEnd: () => {
+                ref.current = null;
                 setGravando(false);
-            };
-
-            ref.current.onend = () => {
+            },
+            onUnsupported: () => enqueueSnackbar("Seu navegador nao suporta reconhecimento de voz.", { variant: 'error' }),
+            onError: (errorCode) => {
+                ref.current = null;
                 setGravando(false);
-            };
-        }
-
-        if (isTitulo ? gravandoTitulo : gravandoConteudo) {
-            ref.current.stop();
+                if (errorCode !== 'no-speech' && errorCode !== 'aborted') {
+                    enqueueSnackbar("Nao foi possivel capturar o audio. Verifique a permissao do microfone.", { variant: 'warning' });
+                }
+            },
+        }, () => {
+            ref.current = null;
             setGravando(false);
-        } else {
-            ref.current.start();
-            setGravando(true);
-        }
+            enqueueSnackbar("Nao foi possivel iniciar o microfone agora.", { variant: 'warning' });
+        });
     };
+
+    const atualizarTextoPorVoz = (
+        event: SpeechRecognitionTextEvent,
+        estadoVozRef: React.MutableRefObject<VozCampoState>,
+        setterTexto: React.Dispatch<React.SetStateAction<string>>
+    ) => {
+        if (event.final) {
+            estadoVozRef.current.confirmado = juntarTexto(estadoVozRef.current.confirmado, event.texto);
+            setterTexto(juntarTexto(estadoVozRef.current.base, estadoVozRef.current.confirmado));
+            return;
+        }
+
+        setterTexto(juntarTexto(
+            estadoVozRef.current.base,
+            estadoVozRef.current.confirmado,
+            event.texto
+        ));
+    };
+
+    const juntarTexto = (...partes: string[]) => partes
+        .map((parte) => parte.trim())
+        .filter(Boolean)
+        .join(' ');
 
     // --- SALVAR (Criação ou Edição) ---
     const handleSalvar = async () => {
@@ -128,7 +160,7 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
                     identificadorUsuario: usuarioId,
                     titulo: titulo,
                     conteudo: conteudo,
-                    dataEscrita: new Date().toISOString().split('T')[0]
+                    dataEscrita: getHojeLocalRemember()
                 };
                 response = await diariosApi.criar(payload);
                 enqueueSnackbar('Diário criado com sucesso!', { variant: 'success' });
@@ -240,7 +272,7 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
                     {/* Botão Mic Título */}
                     <button
                         type="button"
-                        onClick={() => handleGravar(true, setGravandoTitulo, recognitionTituloRef, setTitulo)}
+                        onClick={() => handleGravar(gravandoTitulo, titulo, setGravandoTitulo, recognitionTituloRef, vozTituloRef, setTitulo)}
                         disabled={loading}
                         style={{
                             ...(gravandoTitulo ? audioButtonActiveStyle : audioButtonStyle),
@@ -274,7 +306,7 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
                     {/* Botão Mic Conteúdo */}
                     <button
                         type="button"
-                        onClick={() => handleGravar(false, setGravandoConteudo, recognitionConteudoRef, setConteudo)}
+                        onClick={() => handleGravar(gravandoConteudo, conteudo, setGravandoConteudo, recognitionConteudoRef, vozConteudoStateRef, setConteudo)}
                         disabled={loading}
                         style={{
                             ...(gravandoConteudo ? audioButtonActiveStyle : audioButtonStyle),
@@ -313,3 +345,4 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
         </Dialog>
     );
 }
+

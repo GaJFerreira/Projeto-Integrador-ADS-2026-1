@@ -1,5 +1,5 @@
 import http from '@/lib/http';
-import type {Conquista} from "@/features/remember/api/conquistas.ts";
+import type { ConquistaDetalhes } from './conquistasUsuario';
 
 const REMEMBER_API = '/api/remember';
 
@@ -14,7 +14,7 @@ export interface Lembranca {
     imagem?: string;
     dataCriacao: string;
     dataAtualizacao: string;
-    conquistasDesbloqueadas?: Conquista[];
+    conquistasDesbloqueadas?: ConquistaDetalhes[];
 }
 
 
