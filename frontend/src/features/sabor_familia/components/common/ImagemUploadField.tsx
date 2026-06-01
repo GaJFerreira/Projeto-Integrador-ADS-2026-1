@@ -1,4 +1,5 @@
 import { useEffect, useId, useState } from "react";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 import "./imagemUploadField.css";
 
 const MAX_BYTES = 1.5 * 1024 * 1024;
@@ -15,7 +16,7 @@ interface Props {
 
 export function ImagemUploadField({
   label,
-  hint = "JPEG ou PNG, até 1,5 MB",
+  hint = TEXTOS_INTERFACE.formulario.fotoHint,
   arquivo,
   onArquivoChange,
   previewUrl,
@@ -46,13 +47,13 @@ export function ImagemUploadField({
     }
 
     if (!TIPOS_PERMITIDOS.includes(file.type)) {
-      setErroLocal("Use uma imagem JPEG ou PNG.");
+      setErroLocal(TEXTOS_INTERFACE.formulario.fotoErroTipo);
       e.target.value = "";
       return;
     }
 
     if (file.size > MAX_BYTES) {
-      setErroLocal("A imagem deve ter no máximo 1,5 MB.");
+      setErroLocal(TEXTOS_INTERFACE.formulario.fotoErroTamanho);
       e.target.value = "";
       return;
     }
@@ -80,7 +81,7 @@ export function ImagemUploadField({
 
       <div className="imagem-upload-field__actions">
         <label htmlFor={inputId} className="imagem-upload-field__btn">
-          {arquivo ? "Trocar imagem" : "Escolher imagem"}
+          {arquivo ? TEXTOS_INTERFACE.formulario.trocarImagem : TEXTOS_INTERFACE.formulario.escolherImagem}
         </label>
         {arquivo && (
           <button
@@ -89,7 +90,7 @@ export function ImagemUploadField({
             onClick={handleRemover}
             disabled={disabled}
           >
-            Remover
+            {TEXTOS_INTERFACE.formulario.removerImagem}
           </button>
         )}
       </div>

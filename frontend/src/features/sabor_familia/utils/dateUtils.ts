@@ -34,12 +34,6 @@ export function parseDataApi(value: string | null | undefined): Date | null {
   return Number.isNaN(fallback.getTime()) ? null : fallback;
 }
 
-export function parseDataBR(value: string): string {
-  const parsed = parseDataApi(value);
-  if (!parsed) return value;
-  return parsed.toLocaleDateString("pt-BR");
-}
-
 export function isoParaBR(value: string): string {
   if (!value) return "";
   const [year, month, day] = value.split("-");

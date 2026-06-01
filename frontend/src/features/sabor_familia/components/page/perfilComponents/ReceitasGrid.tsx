@@ -15,7 +15,7 @@ export function ReceitasGrid({ receitas, loading, onAbrirReceita }: Props) {
     <div className="rg-section">
       <div className="rg-header">
         <span className="rg-header__icon">⊞</span>
-        <span className="rg-header__label">POSTS</span>
+        <span className="rg-header__label">{TEXTOS_INTERFACE.perfil.gridTitulo.toUpperCase()}</span>
       </div>
 
       {loading && (
@@ -26,7 +26,7 @@ export function ReceitasGrid({ receitas, loading, onAbrirReceita }: Props) {
       )}
 
       {!loading && receitas.length === 0 && (
-        <div className="rg-empty">Nenhuma receita publicada ainda.</div>
+        <div className="rg-empty">{TEXTOS_INTERFACE.perfil.gridVazia}</div>
       )}
 
       {!loading && receitas.length > 0 && (

@@ -1,5 +1,6 @@
 import "./explorarCard.css";
 import { formatDataGrid } from "../../../utils/formatarTempo";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 import { ContextoMidiaReceita } from "../../../dto/enums/ContextoMidiaEnum";
 import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import type { ReceitaResumoResponse } from "../../../dto/receita/response/ReceitaResumoResponse";
@@ -38,7 +39,9 @@ export function ExplorarCard({
         <div className="explorar-card__meta">
           {data && <span className="explorar-card__date">{data}</span>}
           {receita.restritaParaUsuario && (
-            <span className="explorar-card__restricted">Restrita</span>
+            <span className="explorar-card__restricted">
+              {TEXTOS_INTERFACE.descobrir.receitaRestrita}
+            </span>
           )}
         </div>
       </div>

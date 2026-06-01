@@ -4,6 +4,7 @@ import {
 } from "../../../dto/enums/CategoriaPersonalizacaoEnum";
 import type { PersonalizacaoResumoResponse } from "../../../dto/personalizacao/response/PersonalizacaoResumoResponse";
 import { labelPersonalizacao } from "../../../utils/catalogoLabels";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 import { SfPillByCategory } from "../../common/SfCatalogoPills";
 
 interface Props {
@@ -23,11 +24,11 @@ export function Personalizacoes({
 }: Props) {
   return (
     <section className="ar-section">
-      <h2 className="ar-section__title">Personalizações</h2>
-      <p className="ar-section__desc">Caracterize sua receita para que mais pessoas a encontrem.</p>
+      <h2 className="ar-section__title">{TEXTOS_INTERFACE.receita.caracteristicasTitulo}</h2>
+      <p className="ar-section__desc">{TEXTOS_INTERFACE.receita.caracteristicasDesc}</p>
 
       {loading ? (
-        <div className="ar-loading-sm">Carregando personalizações…</div>
+        <div className="ar-loading-sm">{TEXTOS_INTERFACE.receita.carregandoCaracteristicas}</div>
       ) : (
         <SfPillByCategory
           grouped={personalizacoesPorCategoria}

@@ -46,7 +46,7 @@ export function useAlternarFavorito(receitaId: number, favoritadoInicial: boolea
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao atualizar favorito.");
+        setError(TEXTOS_INTERFACE.erros.favorito);
       }
     } finally {
       setLoading(false);

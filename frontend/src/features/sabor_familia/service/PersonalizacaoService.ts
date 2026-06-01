@@ -8,11 +8,6 @@ export const personalizacaoService = {
     return data;
   },
 
-  listarCatalogoContextoPerfil: async (): Promise<PersonalizacaoResumoResponse[]> => {
-    const { data } = await api.get<PersonalizacaoResumoResponse[]>("/personalizacao/perfil");
-    return data;
-  },
-
   listarCatalogoContextoReceita: async (): Promise<PersonalizacaoResumoResponse[]> => {
     const { data } = await api.get<PersonalizacaoResumoResponse[]>("/personalizacao/receita");
     return data;

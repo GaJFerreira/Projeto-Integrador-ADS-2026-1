@@ -12,6 +12,7 @@ import {
 } from "../../utils/catalogoLabels";
 import { SfPillByCategory, SfPillList } from "../../components/common/SfCatalogoPills";
 import { isoParaBR } from "../../utils/dateUtils";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 import { ImagemUploadField } from "../../components/common/ImagemUploadField";
 import "../home/homeSaborFamilia.css";
 import "./criarPerfil.css";
@@ -115,8 +116,8 @@ export function CriarPerfil() {
             <h2 className="config-section__title">Seus dados</h2>
             <p className="config-section__desc">
               {temDadosPlataforma
-                ? "Nome e e-mail foram preenchidos com os dados da sua conta na plataforma."
-                : "Informe nome e e-mail para criar seu perfil."}
+                ? TEXTOS_INTERFACE.formulario.contaPreenchida
+                : TEXTOS_INTERFACE.formulario.dadosDescCadastro}
             </p>
 
             {temDadosPlataforma ? (
@@ -177,12 +178,13 @@ export function CriarPerfil() {
 
             <div className="config-field">
               <label className="config-label" htmlFor="cp-bio">
-                Bio <span className="cp-optional">(opcional)</span>
+                {TEXTOS_INTERFACE.formulario.sobreVoce}{" "}
+                <span className="cp-optional">(opcional)</span>
               </label>
               <textarea
                 id="cp-bio"
                 className="config-textarea"
-                placeholder="Fale um pouco sobre você e sua relação com a cozinha…"
+                placeholder={TEXTOS_INTERFACE.formulario.sobreVoceCadastroPlaceholder}
                 rows={3}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
@@ -203,11 +205,11 @@ export function CriarPerfil() {
           <section className="config-section">
             <h2 className="config-section__title">Restrições alimentares</h2>
             <p className="config-section__desc">
-              Marque suas restrições para que o app filtre receitas incompatíveis.
+              {TEXTOS_INTERFACE.formulario.restricoesDescConfig}
             </p>
 
             {loadingRestricoes ? (
-              <span className="cp-loading">Carregando…</span>
+              <span className="cp-loading">{TEXTOS_INTERFACE.comum.carregando}</span>
             ) : (
               <SfPillList
                 items={catalogoRestricoes ?? []}
@@ -215,19 +217,19 @@ export function CriarPerfil() {
                 onToggle={toggleRestricao}
                 getLabel={labelRestricaoPerfil}
                 getTitle={(r) => r.exemplos}
-                emptyMessage="Nenhuma restrição disponível."
+                emptyMessage={TEXTOS_INTERFACE.formulario.nenhumaRestricao}
               />
             )}
           </section>
 
           <section className="config-section">
-            <h2 className="config-section__title">Preferências</h2>
+            <h2 className="config-section__title">{TEXTOS_INTERFACE.formulario.preferenciasTitulo}</h2>
             <p className="config-section__desc">
-              Personalize o seu perfil com tags que te representam.
+              {TEXTOS_INTERFACE.formulario.preferenciasDescPerfil}
             </p>
 
             {loadingPersonalizacoes ? (
-              <span className="cp-loading">Carregando…</span>
+              <span className="cp-loading">{TEXTOS_INTERFACE.comum.carregando}</span>
             ) : catalogoPersonalizacoes && catalogoPersonalizacoes.length > 0 ? (
               <SfPillByCategory
                 grouped={personalizacoesPorCategoria}
@@ -240,7 +242,7 @@ export function CriarPerfil() {
                 }
               />
             ) : (
-              <span className="sf-pill-empty">Nenhuma tag disponível.</span>
+              <span className="sf-pill-empty">{TEXTOS_INTERFACE.formulario.nenhumaOpcao}</span>
             )}
           </section>
 
@@ -252,18 +254,18 @@ export function CriarPerfil() {
               type="submit"
               disabled={salvando}
             >
-              {salvando ? "Criando perfil…" : "Criar perfil"}
+              {salvando ? TEXTOS_INTERFACE.formulario.criandoPerfil : TEXTOS_INTERFACE.formulario.criarPerfil}
             </button>
           </div>
 
           <p className="cp-login-link">
-            Já tem um perfil?{" "}
+            {TEXTOS_INTERFACE.formulario.jaTemPerfil}{" "}
             <button
               type="button"
               className="cp-link-btn"
               onClick={() => navigate("/sabor-familia/login")}
             >
-              Entrar
+              {TEXTOS_INTERFACE.formulario.entrar}
             </button>
           </p>
         </form>

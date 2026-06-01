@@ -1,6 +1,7 @@
 import "./conversaAtiva.css";
 import SendIcon from "../../../icon/messagem/SendIcon";
-// import { formatData, formatHora } from "../../../utils/formatarTempo";
+import { formatDataHora } from "../../../utils/formatarTempo";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 import {
   useMensagensConversa,
   useEnviarMensagem,
@@ -13,9 +14,11 @@ import { PerfilAvatar } from "../../common/PerfilAvatar";
 export function ConversaAtiva({
   conversa,
   perfilId,
+  onVoltar,
 }: {
   conversa: ConversaResponse;
   perfilId: number;
+  onVoltar?: () => void;
 }) {
   const { mensagens, hasMore, loadingInicial, loadingMais, carregarMais, recarregar } =
     useMensagensConversa(conversa.id);
@@ -48,6 +51,15 @@ export function ConversaAtiva({
     <div className="chat-messages-area">
       {/* ── Cabeçalho ── */}
       <div className="chat-messages-header">
+        {onVoltar && (
+          <button
+            type="button"
+            className="chat-messages-header__voltar"
+            onClick={onVoltar}
+          >
+            ← Voltar
+          </button>
+        )}
         <PerfilAvatar
           perfilId={conversa.contato.perfilId}
           possuiMidia={conversa.contato.possuiMidia}
@@ -64,7 +76,7 @@ export function ConversaAtiva({
         {/* Carregar mensagens anteriores */}
         {hasMore && !loadingMais && (
           <button className="chat-load-more" onClick={carregarMais}>
-            Carregar mensagens anteriores
+            {TEXTOS_INTERFACE.mensagens.carregarAnteriores}
           </button>
         )}
         {loadingMais && (
@@ -76,12 +88,10 @@ export function ConversaAtiva({
         {loadingInicial ? (
           <div className="chat-loading">
             <div className="chat-spinner" />
-            <span>Carregando mensagens…</span>
+            <span>{TEXTOS_INTERFACE.mensagens.carregandoMensagens}</span>
           </div>
         ) : mensagens.length === 0 ? (
-          <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 14, margin: "auto" }}>
-            Nenhuma mensagem ainda. Diga olá! 👋
-          </p>
+          <p className="chat-empty-lead">{TEXTOS_INTERFACE.mensagens.semMensagens}</p>
         ) : (
           mensagens.map((msg) => {
             const mine = msg.perfilRemetente.perfilId === perfilId;
@@ -94,7 +104,7 @@ export function ConversaAtiva({
                   {msg.texto}
                 </div>
                 <span className="chat-bubble__time">
-                  {msg.dataEnvio}
+                  {formatDataHora(msg.dataEnvio)}
                 </span>
               </div>
             );
@@ -108,7 +118,7 @@ export function ConversaAtiva({
         <textarea
           className="chat-input"
           rows={1}
-          placeholder="Digite uma mensagem…"
+          placeholder={TEXTOS_INTERFACE.mensagens.digiteMensagem}
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -117,7 +127,7 @@ export function ConversaAtiva({
           className="chat-send-btn"
           onClick={handleEnviar}
           disabled={!texto.trim() || enviando}
-          title="Enviar"
+          title={TEXTOS_INTERFACE.acoes.enviar}
         >
           <SendIcon />
         </button>

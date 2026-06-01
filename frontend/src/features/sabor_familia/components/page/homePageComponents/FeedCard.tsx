@@ -1,5 +1,5 @@
 import "./feedCard.css";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAlternarCurtida } from "../../../hooks/UseCurtida";
 import { useAlternarFavorito } from "../../../hooks/UseFavorito";
@@ -50,7 +50,14 @@ function FeedCard({
     receita.favoritadoPeloUsuario ?? false
   );
 
-  const totalComentarios = receita.estatisticas.comentarios;
+  const [totalComentarios, setTotalComentarios] = useState(
+    receita.estatisticas.comentarios
+  );
+
+  useEffect(() => {
+    setTotalComentarios(receita.estatisticas.comentarios);
+  }, [receita.id, receita.estatisticas.comentarios]);
+
   const { comentarios, loading: carregandoComentarios, recarregar } = useBuscarComentarios(
     receita.id,
     showComments
@@ -65,12 +72,14 @@ function FeedCard({
     if (!textoComentario.trim()) return;
     await adicionar(textoComentario, () => {
       setTextoComentario("");
+      setTotalComentarios((n) => n + 1);
       recarregar();
     });
   };
 
   const handleRemoverComentario = async (comentarioId: number) => {
     await remover(comentarioId, () => {
+      setTotalComentarios((n) => Math.max(0, n - 1));
       recarregar();
     });
   };
@@ -128,7 +137,7 @@ function FeedCard({
                 {TEXTOS_INTERFACE.carregamento.comentarios}
               </p>
             ) : comentarios.length === 0 ? (
-              <p className="feed-card__comments-empty">Nenhum comentário ainda.</p> 
+              <p className="feed-card__comments-empty">{TEXTOS_INTERFACE.acoes.comentariosVazios}</p>
             ) : (
               comentarios.map((comentario) => (
                 <div key={comentario.id} className="feed-card__comment-item">
@@ -150,7 +159,9 @@ function FeedCard({
                         onClick={() => handleRemoverComentario(comentario.id)}
                         disabled={removendoComentarioId === comentario.id}
                       >
-                        {removendoComentarioId === comentario.id ? "Removendo..." : "Apagar"}
+                        {removendoComentarioId === comentario.id
+                          ? TEXTOS_INTERFACE.acoes.apagando
+                          : TEXTOS_INTERFACE.acoes.apagar}
                       </button>
                     )}
                   </div>
@@ -175,7 +186,7 @@ function FeedCard({
               onClick={handleAdicionarComentario}
               disabled={adicionandoComentario || !textoComentario.trim()}
             >
-              {adicionandoComentario ? "..." : "Enviar"}
+              {adicionandoComentario ? "…" : TEXTOS_INTERFACE.acoes.enviar}
             </button>
           </div>
         </section>
@@ -199,10 +210,12 @@ function FeedCard({
             e.stopPropagation();
             setShowComments((valorAtual) => !valorAtual);
           }}
-          title="Comentários"
+          title={TEXTOS_INTERFACE.acoes.comentarios}
         >
           <CommentIcon />
-          <span>{showComments ? "Fechar" : "Comentários"}</span>
+          <span>
+            {showComments ? TEXTOS_INTERFACE.acoes.fechar : TEXTOS_INTERFACE.acoes.comentarios}
+          </span>
           {!showComments && totalComentarios > 0 && <span>({totalComentarios})</span>}
         </button>
 
@@ -224,10 +237,15 @@ function FeedCard({
           }
         >
           <BookmarkIcon active={favoritado} />
-          <span>
+          <span className="feed-card__action-label feed-card__action-label--desktop">
             {favoritado
               ? TEXTOS_INTERFACE.receita.salvaFavoritos
               : TEXTOS_INTERFACE.receita.salvarFavoritos}
+          </span>
+          <span className="feed-card__action-label feed-card__action-label--mobile">
+            {favoritado
+              ? TEXTOS_INTERFACE.receita.salvaFavoritosMobile
+              : TEXTOS_INTERFACE.receita.salvarFavoritosMobile}
           </span>
         </button>
       </footer>

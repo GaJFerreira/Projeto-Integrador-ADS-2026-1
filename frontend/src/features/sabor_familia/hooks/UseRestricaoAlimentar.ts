@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { restricaoAlimentarService } from "../service/RestricaoalimentarService";
+import { TEXTOS_INTERFACE } from "../utils/textosInterface";
 import type { RestricaoAlimentarResponse } from "../dto/restricao/response/RestricaoAlimentarResponse";
 
 function extrairStatusCode(err: unknown): number | undefined {
@@ -24,7 +25,7 @@ export function useBuscarRestricoesAlimentares() {
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao carregar restrições alimentares.");
+        setError(TEXTOS_INTERFACE.erros.restricoes);
       }
     } finally {
       setLoading(false);

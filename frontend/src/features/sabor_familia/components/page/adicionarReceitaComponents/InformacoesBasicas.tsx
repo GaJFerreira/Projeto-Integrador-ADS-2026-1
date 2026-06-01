@@ -1,15 +1,5 @@
 import type { TipoRefeicaoEnum } from "../../../dto/enums/TipoRefeicaoEnum";
-
-const TIPO_REFEICAO_LABELS: Record<TipoRefeicaoEnum, string> = {
-  CAFE_DA_MANHA: "Café da manhã",
-  ALMOCO:        "Almoço",
-  LANCHE:        "Lanche",
-  JANTAR:        "Jantar",
-  SOBREMESA:     "Sobremesa",
-  OUTRO:         "Outro",
-};
-
-const TIPOS_REFEICAO = Object.entries(TIPO_REFEICAO_LABELS) as [TipoRefeicaoEnum, string][];
+import { TIPOS_REFEICAO } from "../../../utils/tipoRefeicaoLabels";
 
 interface Props {
   titulo: string;

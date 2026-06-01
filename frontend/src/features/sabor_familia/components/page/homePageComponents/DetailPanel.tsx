@@ -10,6 +10,8 @@ import {
   labelPersonalizacao,
   labelRestricaoReceita,
 } from "../../../utils/catalogoLabels";
+import { labelTipoRefeicao } from "../../../utils/tipoRefeicaoLabels";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 
 interface DetailPanelProps {
   receita: ReceitaResponse;
@@ -28,9 +30,26 @@ function DetailPanel({ receita, onClose, onRemover, removendo = false }: DetailP
 
   return (
     <aside className="detail-panel">
-      <button className="detail-panel__close" onClick={onClose} title="Fechar">
+      <button
+        type="button"
+        className="detail-panel__close"
+        onClick={onClose}
+        title="Fechar"
+        aria-label="Fechar detalhes da receita"
+      >
         ✕
       </button>
+
+      <div className="detail-panel__topbar">
+        <button
+          type="button"
+          className="detail-panel__fechar"
+          onClick={onClose}
+          aria-label="Fechar detalhes da receita"
+        >
+          ← Fechar
+        </button>
+      </div>
 
       <div className="detail-panel__scroll">
         {isAutor && onRemover && (
@@ -55,7 +74,7 @@ function DetailPanel({ receita, onClose, onRemover, removendo = false }: DetailP
         {receita.detalhes.tipoRefeicao && (
           <div className="detail-section">
             <span className="detail-badge detail-badge--type">
-              {receita.detalhes.tipoRefeicao}
+              {labelTipoRefeicao(receita.detalhes.tipoRefeicao)}
             </span>
           </div>
         )}
@@ -121,7 +140,7 @@ function DetailPanel({ receita, onClose, onRemover, removendo = false }: DetailP
         {/* ── Personalizações / Tags ── */}
         {receita.personalizacao.length > 0 && (
           <section className="detail-section">
-            <h3 className="detail-section__label">Tags</h3>
+            <h3 className="detail-section__label">{TEXTOS_INTERFACE.receita.caracteristicasTitulo}</h3>
             <div className="sf-pill-group">
               {receita.personalizacao.map((p: PersonalizacaoResumoResponse) => (
                 <span key={p.codigo} className="sf-pill sf-pill--exibir">

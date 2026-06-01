@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/UseAuth";
 import { perfilService } from "../../service/PerfilService";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 import "./login.css";
 
 export function Login() {
@@ -30,7 +31,7 @@ export function Login() {
         } else if (status === 401 || status === 403) {
           navigate("/", { replace: true });
         } else {
-          setErro("Não foi possível verificar seu perfil. Tente novamente.");
+          setErro(TEXTOS_INTERFACE.comum.erroVerificarPerfil);
         }
       });
   }, []);
@@ -42,7 +43,7 @@ export function Login() {
           <h1>Sabor da Família</h1>
           <p className="error">{erro}</p>
           <button className="btn-submit" onClick={() => navigate("/home")}>
-            Voltar à plataforma
+            {TEXTOS_INTERFACE.comum.voltarInicio}
           </button>
         </div>
       </div>
@@ -54,7 +55,7 @@ export function Login() {
       <div className="card" style={{ textAlign: "center" }}>
         <div className="sf-entry-spinner" />
         <p style={{ marginTop: "1rem", color: "#888", fontSize: 14 }}>
-          Verificando seu perfil…
+          {TEXTOS_INTERFACE.comum.verificandoPerfil}
         </p>
       </div>
     </div>

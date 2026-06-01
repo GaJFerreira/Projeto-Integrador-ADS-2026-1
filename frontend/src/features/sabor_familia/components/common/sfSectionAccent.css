@@ -3,7 +3,6 @@
  * Usar em formulários e blocos de conteúdo agrupado.
  */
 
-.sf-section-accent,
 .ar-section,
 .config-section {
   position: relative;
@@ -18,7 +17,6 @@
     inset var(--sf-section-accent-size, 4px) 0 0 var(--sf-section-accent, var(--brand));
 }
 
-.sf-section-accent__title,
 .ar-section__title,
 .config-section__title {
   font-family: var(--font-serif);
@@ -30,7 +28,6 @@
   border-bottom: 1px solid rgba(186, 117, 23, 0.14);
 }
 
-.sf-section-accent__desc,
 .ar-section__desc,
 .config-section__desc {
   font-size: 12px;

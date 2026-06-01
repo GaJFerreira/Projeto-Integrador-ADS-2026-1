@@ -13,6 +13,7 @@ import ChatIcon from "../../icon/menu/ChatIcon";
 import { ConversaAtiva } from "../../components/page/conversaComponents/ConversaAtiva";
 import { NovaConversa } from "../../components/page/conversaComponents/NovaConversa";
 import { formatHora } from "../../utils/formatarTempo";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 
 export function Chat() {
   const { perfilId } = useAuth();
@@ -25,6 +26,7 @@ export function Chat() {
 
   const lista = conversas?.content ?? [];
   const listaSeguindo = seguindo?.content ?? [];
+  const painelConversaAberto = Boolean(selecionada || novoDestinatario);
 
   const handleConversaCriada = async (conversaId: number) => {
     const fresh = await recarregar();
@@ -35,11 +37,14 @@ export function Chat() {
   };
 
   return (
-    <div className="chat-layout">
+    <div className={`chat-layout ${painelConversaAberto ? "chat-layout--painel-aberto" : ""}`.trim()}>
         {/* ── Lista de conversas ── */}
         <aside className="chat-list">
           <div className="chat-list__header">
-            <h2 className="chat-list__title">Mensagens</h2>
+            <div className="chat-list__intro">
+              <h2 className="chat-list__title">{TEXTOS_INTERFACE.mensagens.titulo}</h2>
+              <p className="chat-list__subtitle">{TEXTOS_INTERFACE.mensagens.subtitulo}</p>
+            </div>
             <button
               type="button"
               className={`sf-pill sf-pill--compacto ${showNova ? "sf-pill--selected" : ""}`}
@@ -47,10 +52,10 @@ export function Chat() {
                 setShowNova((v) => !v);
                 setNovoDestinatario(null);
               }}
-              title="Iniciar conversa"
+              title={TEXTOS_INTERFACE.mensagens.iniciarConversa}
               aria-pressed={showNova}
             >
-              Iniciar conversa
+              {TEXTOS_INTERFACE.mensagens.iniciarConversa}
             </button>
           </div>
 
@@ -58,13 +63,13 @@ export function Chat() {
             {loading ? (
               <div className="chat-loading" style={{ marginTop: "3rem" }}>
                 <div className="chat-spinner" />
-                <span>Carregando…</span>
+                <span>{TEXTOS_INTERFACE.comum.carregando}</span>
               </div>
             ) : (
               <>
                 {lista.length > 0 && (
                   <>
-                    {showNova && <div className="chat-section-label">Conversas</div>}
+                    {showNova && <div className="chat-section-label">{TEXTOS_INTERFACE.mensagens.secaoConversas}</div>}
                     {lista.map((c) => (
                       <button
                         key={c.id}
@@ -99,14 +104,14 @@ export function Chat() {
 
                 {showNova && (
                   <>
-                    <div className="chat-section-label">Seguindo</div>
+                    <div className="chat-section-label">{TEXTOS_INTERFACE.mensagens.secaoSeguindo}</div>
                     {loadingSeguindo ? (
                       <div className="chat-loading" style={{ marginTop: "1rem" }}>
                         <div className="chat-spinner" />
                       </div>
                     ) : listaSeguindo.length === 0 ? (
                       <div className="chat-list__empty" style={{ padding: "1.5rem 1.25rem" }}>
-                        <p>Você não segue ninguém ainda.</p>
+                        <p>{TEXTOS_INTERFACE.mensagens.semSeguindo}</p>
                       </div>
                     ) : (
                       listaSeguindo.map((p) => (
@@ -127,7 +132,7 @@ export function Chat() {
                             placeholderClassName="chat-nova-item__avatar chat-nova-item__avatar--placeholder"
                           />
                           <span className="chat-nova-item__nome">{p.nome}</span>
-                          <span className="chat-nova-item__hint">Iniciar →</span>
+                          <span className="chat-nova-item__hint">{TEXTOS_INTERFACE.mensagens.hintConversar}</span>
                         </button>
                       ))
                     )}
@@ -136,10 +141,8 @@ export function Chat() {
 
                 {!showNova && lista.length === 0 && (
                   <div className="chat-list__empty">
-                    <p>Você ainda não tem conversas.</p>
-                    <p>
-                      Clique em <strong>Iniciar conversa</strong> para começar.
-                    </p>
+                    <p>{TEXTOS_INTERFACE.mensagens.emptyTitulo}</p>
+                    <p>{TEXTOS_INTERFACE.mensagens.emptyDica}</p>
                   </div>
                 )}
               </>
@@ -151,13 +154,21 @@ export function Chat() {
           <NovaConversa
             destinatario={novoDestinatario}
             onConversaCriada={handleConversaCriada}
+            onVoltar={() => {
+              setNovoDestinatario(null);
+              setShowNova(true);
+            }}
           />
         ) : selecionada && perfilId ? (
-          <ConversaAtiva conversa={selecionada} perfilId={perfilId} />
+          <ConversaAtiva
+            conversa={selecionada}
+            perfilId={perfilId}
+            onVoltar={() => setSelecionada(null)}
+          />
         ) : (
           <div className="chat-placeholder">
             <ChatIcon />
-            <span>Selecione uma conversa ou clique em Iniciar conversa</span>
+            <span>{TEXTOS_INTERFACE.mensagens.placeholderDesktop}</span>
           </div>
         )}
       </div>

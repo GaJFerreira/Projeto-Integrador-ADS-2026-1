@@ -1,5 +1,7 @@
 .favoritos-main {
   padding-top: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .favoritos-header {
@@ -35,12 +37,14 @@
 }
 
 .favoritos-empty {
-  text-align: center;
-  padding: 4rem 1rem;
-  color: var(--text-muted);
-  font-size: 14px;
-  line-height: 1.8;
+  text-align: left;
+  padding: 2rem 0.5rem 2.5rem;
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.6;
   font-family: var(--font-sans);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .favoritos-empty svg {
@@ -49,4 +53,37 @@
   margin: 0 auto 1rem;
   width: 44px;
   height: 44px;
+}
+
+.favoritos-empty__lead {
+  margin: 0 0 1rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.favoritos-empty__passos {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.favoritos-empty__passos li {
+  margin-bottom: 0.65rem;
+}
+
+.favoritos-empty__passos li:last-child {
+  margin-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .favoritos-main {
+    padding-top: 1rem;
+  }
+
+  .favoritos-header__title {
+    font-size: 1.35rem;
+  }
+
+  .favoritos-empty {
+    padding: 1.5rem 0.25rem 2rem;
+  }
 }

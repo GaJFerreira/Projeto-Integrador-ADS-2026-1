@@ -7,7 +7,6 @@
  */
 
 .sf-pill,
-.sf-chip-pers,
 .sf-seguir-btn {
   display: inline-flex;
   align-items: center;
@@ -36,7 +35,6 @@
 }
 
 .sf-pill:hover:not(:disabled),
-.sf-chip-pers:hover:not(:disabled),
 .sf-seguir-btn:hover:not(:disabled) {
   background: #fff;
   color: var(--brand-dark);
@@ -45,14 +43,12 @@
 }
 
 .sf-pill:disabled,
-.sf-chip-pers:disabled,
 .sf-seguir-btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
 
 .sf-pill--selected,
-.sf-chip-pers--selecionada,
 .sf-seguir-btn--seguindo {
   background: var(--brand);
   color: #fff;
@@ -61,7 +57,6 @@
 }
 
 .sf-pill--selected:hover:not(:disabled),
-.sf-chip-pers--selecionada:hover:not(:disabled),
 .sf-seguir-btn--seguindo:hover:not(:disabled) {
   background: var(--brand-dark);
   color: #fff;
@@ -69,8 +64,7 @@
   box-shadow: var(--sf-pill-shadow-active-hover);
 }
 
-.sf-pill--exibir,
-.sf-chip-pers--exibir {
+.sf-pill--exibir {
   cursor: default;
   pointer-events: none;
   background: var(--brand);
@@ -79,8 +73,7 @@
   box-shadow: var(--sf-pill-shadow-active);
 }
 
-.sf-pill--exibir:hover,
-.sf-chip-pers--exibir:hover {
+.sf-pill--exibir:hover {
   background: var(--brand);
   color: #fff;
   border-color: transparent;
@@ -91,11 +84,6 @@
 .sf-seguir-btn--compacto {
   padding: 0.35rem 0.9rem;
   font-size: 13px;
-}
-
-.sf-pill--sm {
-  padding: 0.28rem 0.75rem;
-  font-size: 12px;
 }
 
 .sf-seguir-btn {

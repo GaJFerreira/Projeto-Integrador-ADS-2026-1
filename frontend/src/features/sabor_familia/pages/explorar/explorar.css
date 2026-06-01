@@ -186,6 +186,13 @@
 
 @media (max-width: 480px) {
   .explorar-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .explorar-main {
+    padding: 1.25rem 1rem;
+    box-sizing: border-box;
   }
 }

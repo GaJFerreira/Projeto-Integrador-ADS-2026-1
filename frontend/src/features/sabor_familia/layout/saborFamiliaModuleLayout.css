@@ -1,11 +1,14 @@
 .sf-module-layout {
   position: fixed;
-  top: 64px;
+  top: var(--sf-app-top, 64px);
   left: 0;
   right: 0;
   bottom: 0;
   width: 100%;
   overflow: hidden;
+  z-index: 1;
+  --sf-app-top: 64px;
+  --sf-barra-inferior-h: 72px;
   --scrollbar-thumb: #b0a090;
   --scrollbar-thumb-hover: #8a7a68;
   --sf-section-accent: var(--brand);
@@ -17,6 +20,23 @@
   min-height: 0;
 }
 
+.home-layout__conteudo {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+}
+
+.home-layout__conteudo > .home-main,
+.home-layout__conteudo > main,
+.home-layout__conteudo > .chat-layout {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
 /* Login, cadastro etc. — rolagem interna dentro da área fixa do módulo */
 .sf-module-layout > .cp-main,
 .sf-module-layout > .sf-fullpage-scroll {
@@ -24,6 +44,7 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .sf-module-layout ::-webkit-scrollbar {
@@ -48,8 +69,61 @@
   scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
-@media (max-width: 599px) {
-  .sf-module-layout {
-    top: 56px;
+@media (max-width: 768px) {
+  .home-layout--com-nav-inferior {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+
+  .home-layout--com-nav-inferior .sidebar {
+    display: none;
+  }
+
+  .home-layout--com-nav-inferior .home-layout__conteudo {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .home-layout--com-nav-inferior .home-main,
+  .home-layout--com-nav-inferior .explorar-main,
+  .home-layout--com-nav-inferior .perfil-main,
+  .home-layout--com-nav-inferior .config-main,
+  .home-layout--com-nav-inferior .lista-perfis-main,
+  .home-layout--com-nav-inferior .ar-main {
+    padding-left: 1rem;
+    padding-right: 1rem;
+    box-sizing: border-box;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .home-layout--com-nav-inferior .chat-layout--painel-aberto {
+    overflow: hidden;
+  }
+
+  .home-layout--com-nav-inferior .chat-layout:not(.chat-layout--painel-aberto) {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
+  }
+
+  .home-layout--com-nav-inferior .home-main,
+  .home-layout--com-nav-inferior .explorar-main,
+  .home-layout--com-nav-inferior .perfil-main,
+  .home-layout--com-nav-inferior .config-main,
+  .home-layout--com-nav-inferior .lista-perfis-main,
+  .home-layout--com-nav-inferior .ar-main {
+    padding-bottom: 1.5rem;
+  }
+
+  .home-layout--com-nav-inferior .sf-barra-inferior {
+    flex-shrink: 0;
   }
 }

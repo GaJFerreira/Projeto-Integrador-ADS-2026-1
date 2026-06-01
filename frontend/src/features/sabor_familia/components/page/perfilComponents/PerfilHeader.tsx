@@ -9,6 +9,7 @@ import {
   labelPersonalizacao,
   labelRestricaoPerfil,
 } from "../../../utils/catalogoLabels";
+import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 
 interface Props {
   perfil: PerfilResponse;
@@ -68,7 +69,7 @@ export function PerfilHeader({
                 className="ph-btn-editar"
                 onClick={() => navigate("/sabor-familia/configuracoes")}
               >
-                Editar perfil
+                {TEXTOS_INTERFACE.perfil.editarPerfil}
               </button>
             )}
           </div>
@@ -84,7 +85,7 @@ export function PerfilHeader({
           <div className="ph-stats">
             <div className="ph-stat">
               <span className="ph-stat__num">{totalPosts}</span>
-              <span className="ph-stat__label">posts</span>
+              <span className="ph-stat__label">{TEXTOS_INTERFACE.perfil.statReceitas}</span>
             </div>
 
             <button
@@ -92,7 +93,7 @@ export function PerfilHeader({
               onClick={() => navigate(`/sabor-familia/perfil/${perfil.id}/seguidores`)}
             >
               <span className="ph-stat__num">{countSeguidores}</span>
-              <span className="ph-stat__label">seguidores</span>
+              <span className="ph-stat__label">{TEXTOS_INTERFACE.perfil.statSeguidores}</span>
             </button>
 
             <button
@@ -100,7 +101,7 @@ export function PerfilHeader({
               onClick={() => navigate(`/sabor-familia/perfil/${perfil.id}/seguindo`)}
             >
               <span className="ph-stat__num">{countSeguindo}</span>
-              <span className="ph-stat__label">seguindo</span>
+              <span className="ph-stat__label">{TEXTOS_INTERFACE.perfil.statSeguindo}</span>
             </button>
           </div>
 
@@ -111,10 +112,10 @@ export function PerfilHeader({
               {perfil.detalhes.bio?.trim() && (
                 <section className="ph-details-block" aria-labelledby="ph-bio">
                   <h2 id="ph-bio" className="ph-details-block__title">
-                    Sobre
+                    {TEXTOS_INTERFACE.perfil.secaoSobre}
                   </h2>
                   <p className="ph-details-block__hint">
-                    Apresentação e contexto deste perfil na comunidade.
+                    {TEXTOS_INTERFACE.perfil.secaoSobreHint}
                   </p>
                   <p className="ph-bio">{perfil.detalhes.bio.trim()}</p>
                 </section>
@@ -123,10 +124,10 @@ export function PerfilHeader({
               {perfil.personalizacao?.length > 0 && (
                 <section className="ph-details-block" aria-labelledby="ph-tags-personalizacao">
                   <h2 id="ph-tags-personalizacao" className="ph-details-block__title">
-                    Preferências
+                    {TEXTOS_INTERFACE.perfil.secaoPreferencias}
                   </h2>
                   <p className="ph-details-block__hint">
-                    Interesses e estilo culinário deste perfil.
+                    {TEXTOS_INTERFACE.perfil.secaoPreferenciasHint}
                   </p>
                   <div className="sf-pill-group">
                     {perfil.personalizacao.map((p) => (
@@ -141,10 +142,10 @@ export function PerfilHeader({
               {perfil.restricoesAlimentares?.length > 0 && (
                 <section className="ph-details-block" aria-labelledby="ph-tags-restricoes">
                   <h2 id="ph-tags-restricoes" className="ph-details-block__title">
-                    Restrições alimentares
+                    {TEXTOS_INTERFACE.perfil.secaoRestricoes}
                   </h2>
                   <p className="ph-details-block__hint">
-                    Alertas informados para filtrar receitas incompatíveis.
+                    {TEXTOS_INTERFACE.perfil.secaoRestricoesHint}
                   </p>
                   <div className="sf-pill-group">
                     {perfil.restricoesAlimentares.map((r) => (

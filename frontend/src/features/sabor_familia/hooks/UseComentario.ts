@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { comentarioService } from "../service/ComentarioService";
+import { TEXTOS_INTERFACE } from "../utils/textosInterface";
 import type { PerfilComentarioResponse } from "../dto/receita/response/PerfilComentarioResponse";
 
 export function useBuscarComentarios(receitaId: number, enabled = true) {
@@ -20,7 +21,7 @@ export function useBuscarComentarios(receitaId: number, enabled = true) {
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao carregar comentários.");
+        setError(TEXTOS_INTERFACE.erros.comentarios);
       }
     } finally {
       setLoading(false);
@@ -48,7 +49,7 @@ export function useAdicionarComentario(receitaId: number) {
     onSucesso?: (novoComentario: PerfilComentarioResponse) => void
   ) => {
     if (!texto.trim()) {
-      setError("O comentário não pode estar vazio.");
+      setError(TEXTOS_INTERFACE.erros.comentarioVazio);
       return;
     }
 
@@ -75,7 +76,7 @@ export function useAdicionarComentario(receitaId: number) {
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao adicionar comentário.");
+        setError(TEXTOS_INTERFACE.erros.adicionarComentario);
       }
     } finally {
       setLoading(false);
@@ -105,7 +106,7 @@ export function useRemoverComentario(receitaId: number) {
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao remover comentário.");
+        setError(TEXTOS_INTERFACE.erros.removerComentario);
       }
     } finally {
       setLoadingId(null);

@@ -5,13 +5,15 @@ import { useEnviarMensagem } from "../../../hooks/UseConversa";
 import type { PerfilResumoResponse } from "../../../dto/perfil/response/PerfilResumoResponse";
 import { ContextoMidiaPerfil } from "../../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
+import { TEXTOS_INTERFACE, textoEnviePrimeiraMensagem } from "../../../utils/textosInterface";
 
 interface Props {
   destinatario: PerfilResumoResponse;
   onConversaCriada: (conversaId: number) => void;
+  onVoltar?: () => void;
 }
 
-export function NovaConversa({ destinatario, onConversaCriada }: Props) {
+export function NovaConversa({ destinatario, onConversaCriada, onVoltar }: Props) {
   const { enviar, loading: enviando } = useEnviarMensagem();
   const [texto, setTexto] = useState("");
 
@@ -36,6 +38,15 @@ export function NovaConversa({ destinatario, onConversaCriada }: Props) {
     <div className="chat-messages-area">
       {/* Cabeçalho com o destinatário */}
       <div className="chat-messages-header">
+        {onVoltar && (
+          <button
+            type="button"
+            className="chat-messages-header__voltar"
+            onClick={onVoltar}
+          >
+            ← Voltar
+          </button>
+        )}
         <PerfilAvatar
           perfilId={destinatario.perfilId}
           possuiMidia={destinatario.possuiMidia}
@@ -45,27 +56,15 @@ export function NovaConversa({ destinatario, onConversaCriada }: Props) {
           placeholderClassName="chat-messages-header__avatar chat-messages-header__avatar--placeholder"
         />
         <div>
-          <span style={{ fontSize: 11, color: "var(--text-muted)", fontFamily: "var(--font-sans)" }}>
-            Nova mensagem para
+          <span className="chat-messages-header__label">
+            {TEXTOS_INTERFACE.mensagens.novaMensagemPara}
           </span>
           <div className="chat-messages-header__name">{destinatario.nome}</div>
         </div>
       </div>
 
-      {/* Área central indicando conversa vazia */}
-      <div style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "var(--text-muted)",
-        fontSize: 14,
-        fontFamily: "var(--font-sans)",
-        gap: 8,
-        opacity: 0.6,
-      }}>
-        <span>Envie a primeira mensagem para {destinatario.nome}</span>
+      <div className="chat-nova-conversa__lead">
+        <span>{textoEnviePrimeiraMensagem(destinatario.nome)}</span>
       </div>
 
       {/* Input */}

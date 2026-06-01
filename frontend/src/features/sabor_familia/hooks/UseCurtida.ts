@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { curtidaService } from "../service/CurtidaService";
+import { TEXTOS_INTERFACE } from "../utils/textosInterface";
 
 export function useAlternarCurtida(receitaId: number, curtidoInicial: boolean, totalInicial: number) {
   const [curtido, setCurtido] = useState(curtidoInicial);
@@ -32,7 +33,7 @@ export function useAlternarCurtida(receitaId: number, curtidoInicial: boolean, t
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao atualizar curtida.");
+        setError(TEXTOS_INTERFACE.erros.curtida);
       }
     } finally {
       setLoading(false);

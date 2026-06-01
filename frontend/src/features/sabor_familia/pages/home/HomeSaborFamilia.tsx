@@ -6,6 +6,7 @@ import { useAuth } from "../../hooks/UseAuth";
 import {
   TEXTOS_INTERFACE,
   opcoesDialogoApagarReceita,
+  textoBoasVindasInicio,
 } from "../../utils/textosInterface";
 import { useDialogoConfirmacao } from "../../context/DialogoConfirmacao";
 import type { ReceitaResponse } from "../../dto/receita/response/ReceitaResponse";
@@ -58,35 +59,16 @@ export function HomeSaborFamilia() {
         {!loading && !error && receitas.length === 0 && (
           <div className="home-empty" role="status">
             <h2 className="home-empty__title">
-              {perfil?.detalhes?.nome
-                ? `Bem-vindo(a), ${perfil.detalhes.nome.split(" ")[0]}!`
-                : "Bem-vindo(a) ao Sabor da Família!"}
+              {textoBoasVindasInicio(perfil?.detalhes?.nome)}
             </h2>
-            <p className="home-empty__lead">
-              Seu perfil foi criado com sucesso. Esta tela é o <strong>Início</strong>.
-              Aqui aparecem as receitas das pessoas que você segue.
-            </p>
-            <p className="home-empty__lead">
-              Como você acabou de entrar, ainda não há receitas para mostrar. Isso é normal.
-            </p>
+            <p className="home-empty__lead">{TEXTOS_INTERFACE.inicio.emptyLead1}</p>
+            <p className="home-empty__lead">{TEXTOS_INTERFACE.inicio.emptyLead2}</p>
             <ol className="home-empty__steps">
-              <li>
-                Toque em <strong>Descobrir</strong> no menu ao lado.
-                Leia: “Pessoas e receitas novas”.
-              </li>
-              <li>
-                Escolha a opção <strong>Pessoas</strong>.
-                Encontre cozinheiros que você goste.
-              </li>
-              <li>
-                Abra um perfil e toque em <strong>Seguir esta pessoa</strong>.
-                As receitas dela passam a aparecer aqui no Início.
-              </li>
+              <li>{TEXTOS_INTERFACE.inicio.emptyPasso1}</li>
+              <li>{TEXTOS_INTERFACE.inicio.emptyPasso2}</li>
+              <li>{TEXTOS_INTERFACE.inicio.emptyPasso3}</li>
             </ol>
-            <p className="home-empty__hint">
-              Você também pode publicar a sua primeira receita em{" "}
-              <strong>Publicar receita</strong> no menu.
-            </p>
+            <p className="home-empty__hint">{TEXTOS_INTERFACE.inicio.emptyDicaPublicar}</p>
             <button
               type="button"
               className="home-empty__cta"

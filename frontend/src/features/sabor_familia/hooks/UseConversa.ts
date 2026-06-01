@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { conversaService } from "../service/ConversaService";
+import { TEXTOS_INTERFACE } from "../utils/textosInterface";
 import type { ConversaResponse } from "../dto/menssagem/response/ConversaResponse";
 import type { MensagemResponse } from "../dto/menssagem/response/MensagemResponse";
 import type { EnviarMensagemRequest } from "../dto/menssagem/request/EnviarMensagemRequest";
@@ -29,7 +30,7 @@ export function useBuscarConversas(page = 0, size = 20) {
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao carregar conversas.");
+        setError(TEXTOS_INTERFACE.erros.conversas);
       }
       return null;
     } finally {
@@ -67,7 +68,7 @@ export function useMensagensConversa(conversaId: number, limit = 20) {
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao carregar mensagens.");
+        setError(TEXTOS_INTERFACE.erros.mensagens);
       }
     } finally {
       setLoadingInicial(false);
@@ -98,7 +99,7 @@ export function useMensagensConversa(conversaId: number, limit = 20) {
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao carregar mensagens anteriores.");
+        setError(TEXTOS_INTERFACE.erros.mensagensAnteriores);
       }
     } finally {
       setLoadingMais(false);
@@ -137,7 +138,7 @@ export function useEnviarMensagem() {
       if (statusCode) {
         navigate("/sabor-familia/error", { state: { statusCode } });
       } else {
-        setError("Erro ao enviar mensagem.");
+        setError(TEXTOS_INTERFACE.erros.enviarMensagem);
       }
     } finally {
       setLoading(false);

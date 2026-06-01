@@ -82,11 +82,15 @@ export function Favoritos() {
         {!loading && !error && lista.length === 0 && (
           <div className="favoritos-empty">
             <BookmarkIcon active={false} />
-            <p>{TEXTOS_INTERFACE.favoritos.mensagemVazia}</p>
-            <p>{TEXTOS_INTERFACE.favoritos.dicaVazia}</p>
+            <p className="favoritos-empty__lead">{TEXTOS_INTERFACE.favoritos.mensagemVazia}</p>
+            <ol className="favoritos-empty__passos">
+              <li>{TEXTOS_INTERFACE.favoritos.passo1}</li>
+              <li>{TEXTOS_INTERFACE.favoritos.passo2}</li>
+            </ol>
           </div>
         )}
 
+        {lista.length > 0 && (
         <div className="explorar-grid">
           {lista.map((receita) => (
             <ExplorarCard
@@ -97,6 +101,7 @@ export function Favoritos() {
             />
           ))}
         </div>
+        )}
 
         {!loading && temMais && (
           <button className="explorar-load-more" onClick={handleCarregarMais}>

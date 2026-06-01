@@ -1,5 +1,6 @@
 import "./receitaAcoesAutor.css";
 import { useNavigate } from "react-router-dom";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 
 export type ReceitaAcoesVariant = "inline" | "panel";
 
@@ -32,7 +33,7 @@ export function ReceitaAcoesAutor({
       aria-label="Ações da sua receita"
     >
       {variant === "panel" && (
-        <span className="receita-acoes__label">Sua publicação</span>
+        <span className="receita-acoes__label">{TEXTOS_INTERFACE.receita.suaReceita}</span>
       )}
 
       <div className="receita-acoes__buttons">
@@ -42,7 +43,7 @@ export function ReceitaAcoesAutor({
           onClick={irParaEditar}
           disabled={disabled}
         >
-          Editar
+          {TEXTOS_INTERFACE.receita.editar}
         </button>
         <button
           type="button"
@@ -50,7 +51,7 @@ export function ReceitaAcoesAutor({
           onClick={onRemover}
           disabled={disabled}
         >
-          {disabled ? "Apagando…" : "Apagar"}
+          {disabled ? TEXTOS_INTERFACE.acoes.apagando : TEXTOS_INTERFACE.acoes.apagar}
         </button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import type { MouseEvent } from "react";
 import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
-import "./btnSeguir.css";
+import "./sfPillToggle.css";
 
 interface Props {
   seguindo: boolean;

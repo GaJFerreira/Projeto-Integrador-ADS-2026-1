@@ -203,7 +203,7 @@ export function EditarReceita() {
             <h2 className="ar-section__title">Foto da receita</h2>
             <ImagemUploadField
               label="Nova imagem de capa (opcional)"
-              hint="Deixe em branco para manter a foto atual. JPEG ou PNG, até 1,5 MB."
+              hint={TEXTOS_INTERFACE.receita.fotoHintManter}
               arquivo={fotoReceita}
               onArquivoChange={setFotoReceita}
               previewUrl={previewCapa}

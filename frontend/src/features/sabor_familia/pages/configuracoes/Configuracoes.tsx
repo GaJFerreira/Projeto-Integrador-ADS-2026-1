@@ -16,6 +16,7 @@ import {
 import { CategoriaPersonalizacaoInfo } from "../../dto/enums/CategoriaPersonalizacaoEnum";
 import type { CategoriaPersonalizacaoEnum } from "../../dto/enums/CategoriaPersonalizacaoEnum";
 import { SfPillByCategory, SfPillList } from "../../components/common/SfCatalogoPills";
+import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 
 export function Configuracoes() {
   const navigate = useNavigate();
@@ -178,10 +179,10 @@ export function Configuracoes() {
 
             {/* Bio */}
             <div className="config-field">
-              <label className="config-label">Bio</label>
+              <label className="config-label">{TEXTOS_INTERFACE.formulario.sobreVoce}</label>
               <textarea
                 className="config-textarea"
-                placeholder="Conte um pouco sobre você…"
+                placeholder={TEXTOS_INTERFACE.formulario.sobreVocePlaceholder}
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
                 maxLength={300}
@@ -203,7 +204,7 @@ export function Configuracoes() {
                 onClick={handleSalvar}
                 disabled={salvando}
               >
-                {salvando ? "Salvando…" : "Salvar alterações"}
+                {salvando ? TEXTOS_INTERFACE.formulario.salvando : TEXTOS_INTERFACE.formulario.salvarAlteracoes}
               </button>
             </div>
           </section>
@@ -212,7 +213,7 @@ export function Configuracoes() {
           <section className="config-section">
             <h2 className="config-section__title">Restrições alimentares</h2>
             <p className="config-section__desc">
-              Marque suas restrições para que o app filtre receitas incompatíveis.
+              {TEXTOS_INTERFACE.formulario.restricoesDescConfig}
             </p>
 
             <SfPillList
@@ -221,7 +222,7 @@ export function Configuracoes() {
               onToggle={toggleRestriçao}
               getLabel={labelRestricaoPerfil}
               getTitle={(r) => r.exemplos}
-              emptyMessage="Nenhuma restrição disponível."
+              emptyMessage={TEXTOS_INTERFACE.formulario.nenhumaRestricao}
             />
 
             <div className="config-actions">
@@ -230,16 +231,16 @@ export function Configuracoes() {
                 onClick={handleSalvar}
                 disabled={salvando}
               >
-                {salvando ? "Salvando…" : "Salvar"}
+                {salvando ? TEXTOS_INTERFACE.formulario.salvando : TEXTOS_INTERFACE.formulario.salvar}
               </button>
             </div>
           </section>
 
           {/* ── Personalizações / Tags ── */}
           <section className="config-section">
-            <h2 className="config-section__title">Preferências</h2>
+            <h2 className="config-section__title">{TEXTOS_INTERFACE.formulario.preferenciasTitulo}</h2>
             <p className="config-section__desc">
-              Personalize o seu perfil com tags que te representam.
+              {TEXTOS_INTERFACE.formulario.preferenciasDescPerfil}
             </p>
 
             {catalogoPersonalizacoes && catalogoPersonalizacoes.length > 0 ? (
@@ -253,7 +254,7 @@ export function Configuracoes() {
                 }
               />
             ) : (
-              <span className="sf-pill-empty">Nenhuma tag disponível.</span>
+              <span className="sf-pill-empty">{TEXTOS_INTERFACE.formulario.nenhumaOpcao}</span>
             )}
 
             <div className="config-actions">
@@ -262,7 +263,7 @@ export function Configuracoes() {
                 onClick={handleSalvar}
                 disabled={salvando}
               >
-                {salvando ? "Salvando…" : "Salvar"}
+                {salvando ? TEXTOS_INTERFACE.formulario.salvando : TEXTOS_INTERFACE.formulario.salvar}
               </button>
             </div>
           </section>

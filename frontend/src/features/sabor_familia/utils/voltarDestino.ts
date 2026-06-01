@@ -23,13 +23,13 @@ export function obterTextoVoltar(
   switch (tipo) {
     case "explorar":
       return {
-        destino: "explorar receitas",
-        ariaLabel: "Voltar para a página de explorar receitas",
+        destino: "Descobrir",
+        ariaLabel: "Voltar para a página Descobrir",
       };
     case "favoritos":
       return {
-        destino: "favoritos",
-        ariaLabel: "Voltar para a lista de receitas favoritas",
+        destino: "receitas salvas",
+        ariaLabel: "Voltar para receitas salvas",
       };
     case "perfil":
       return {

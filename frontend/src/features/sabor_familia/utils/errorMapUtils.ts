@@ -12,12 +12,12 @@ export interface ErrorOrigemConfig {
 
 export const CONFIG_ORIGEM: Record<ErrorOrigem, ErrorOrigemConfig> = {
   feed: {
-    contexto: "ao carregar seu feed",
+    contexto: "ao carregar o Início",
     returnTo: "/sabor-familia/home",
-    retryLabel: "Recarregar feed",
+    retryLabel: "Carregar o Início de novo",
   },
   explorar: {
-    contexto: "ao buscar receitas e perfis",
+    contexto: "ao buscar no Descobrir",
     returnTo: "/sabor-familia/explorar",
     retryLabel: "Tentar busca novamente",
   },
@@ -32,14 +32,14 @@ export const CONFIG_ORIGEM: Record<ErrorOrigem, ErrorOrigemConfig> = {
     retryLabel: "Tentar novamente",
   },
   favoritos: {
-    contexto: "ao carregar seus favoritos",
+    contexto: "ao carregar suas receitas salvas",
     returnTo: "/sabor-familia/favoritos",
-    retryLabel: "Recarregar favoritos",
+    retryLabel: "Carregar receitas salvas de novo",
   },
   mensagens: {
     contexto: "ao carregar suas mensagens",
     returnTo: "/sabor-familia/mensagens",
-    retryLabel: "Recarregar conversas",
+    retryLabel: "Carregar conversas de novo",
   },
   configuracoes: {
     contexto: "ao salvar suas configurações",
@@ -85,15 +85,15 @@ export const ERROR_MAP: Record<number, ErrorInfo> = {
     icon: "warning",
     dicas: [
       "Confira se todos os campos obrigatórios estão preenchidos.",
-      "Se enviou foto, use JPEG ou PNG dentro do tamanho permitido.",
+      "Se enviou foto, use JPG ou PNG, no máximo 1,5 MB.",
     ],
   },
   401: {
-    title: "Sessão expirada",
+    title: "Precisa entrar de novo",
     description:
-      "Sua sessão não está mais válida. Entre novamente para continuar usando o Sabor Família.",
+      "Sua conta não está mais ativa aqui. Entre novamente para continuar usando o Sabor da Família.",
     icon: "lock",
-    dicas: ["Use o mesmo e-mail e senha cadastrados na plataforma."],
+    dicas: ["Use o mesmo e-mail e senha cadastrados na sua conta."],
   },
   403: {
     title: "Sem permissão",
@@ -107,21 +107,21 @@ export const ERROR_MAP: Record<number, ErrorInfo> = {
       "O endereço ou o item que você procurou não existe mais ou foi removido.",
     icon: "not-found",
     dicas: [
-      "Volte ao início e navegue pelo menu lateral.",
-      "Use Explorar para buscar receitas e perfis.",
+      "Volte ao início e navegue pelo menu.",
+      "Use Descobrir para buscar receitas e pessoas.",
     ],
   },
   408: {
     title: "Conexão demorou demais",
     description:
-      "A resposta do servidor demorou mais que o esperado. Verifique sua internet.",
+      "A resposta demorou mais que o esperado. Verifique sua internet.",
     icon: "warning",
     dicas: ["Aguarde alguns segundos e tente outra vez."],
   },
   409: {
     title: "Dados desatualizados",
     description:
-      "Algo mudou no servidor enquanto você agia. Atualize a página e tente novamente.",
+      "Algo mudou enquanto você agia. Atualize a página e tente novamente.",
     icon: "warning",
     dicas: ["Evite enviar o mesmo formulário duas vezes seguidas."],
   },
@@ -135,21 +135,21 @@ export const ERROR_MAP: Record<number, ErrorInfo> = {
   429: {
     title: "Muitas tentativas",
     description:
-      "Você fez várias requisições em pouco tempo. Aguarde um instante antes de continuar.",
+      "Você tentou várias vezes em pouco tempo. Aguarde um instante antes de continuar.",
     icon: "warning",
     dicas: ["Espere cerca de um minuto e tente novamente."],
   },
   500: {
-    title: "Falha no servidor",
+    title: "Algo deu errado",
     description:
-      "Ocorreu um problema interno. Nossa equipe pode verificar os logs; tente mais tarde.",
+      "Ocorreu um problema interno. Tente novamente em alguns instantes.",
     icon: "server",
     dicas: [
       "Se o erro continuar, anote o que você estava fazendo e avise o suporte.",
     ],
   },
   502: {
-    title: "Servidor indisponível",
+    title: "Sistema indisponível",
     description:
       "Não recebemos uma resposta válida. O sistema pode estar reiniciando.",
     icon: "server",
@@ -160,7 +160,7 @@ export const ERROR_MAP: Record<number, ErrorInfo> = {
     description:
       "O serviço está temporariamente indisponível. Tente novamente em alguns minutos.",
     icon: "server",
-    dicas: ["Verifique se o backend do projeto está em execução."],
+    dicas: ["Aguarde alguns minutos e tente de novo."],
   },
 };
 
@@ -208,12 +208,12 @@ export function resolverErroPagina(
     : `${info.title}`;
 
   const contextoSuffix = isRotaDesconhecida
-    ? "O link que você acessou não existe no Sabor Família."
+    ? "O link que você acessou não existe no Sabor da Família."
     : `Isso ocorreu ${configOrigem.contexto}.`;
 
   const mensagemApi = state?.message?.trim();
   const descricaoPadrao = isRotaDesconhecida
-    ? "Use o menu ao lado ou volte ao início para continuar navegando."
+    ? "Use o menu ou volte ao início para continuar navegando."
     : info.description;
 
   const descricao =
