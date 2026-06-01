@@ -82,7 +82,7 @@ public class DataSeeder implements CommandLineRunner {
         new Pergunta("levantar_sem_apoio",       "Consegue levantar da cadeira sem apoio?",           "forca", 13,
             new Opc("sim","Sim"), new Opc("dificuldade","Com dificuldade"), new Opc("nao_consegue","Não consigo")),
         new Pergunta("equilibrio_unipodal",      "Equilíbrio em um pé (segundos)",                   "forca", 14,
-            new Opc("10oumais","≥ 10 seg"), new Opc("5a9","5 a 9 seg"), new Opc("menos5","< 5 seg")),
+            new Opc("10oumais","10 seg ou mais"), new Opc("5a9","5 a 9 seg"), new Opc("menos5","menos de 5 seg")),
         new Pergunta("dores_membros_tronco",     "Dores em membros ou tronco?",                       "forca", 15,
             new Opc("nao","Não"), new Opc("as_vezes","Às vezes"), new Opc("frequente","Frequente")),
 
