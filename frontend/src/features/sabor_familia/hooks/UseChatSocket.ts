@@ -6,20 +6,35 @@ import type { NovaMensagemEvent } from "../dto/menssagem/response/NovaMensagemEv
 
 const FILA_MENSAGENS = "/user/queue/mensagens";
 
-interface Options {
+export interface UseChatSocketConnectionOptions {
   enabled?: boolean;
   onNovaMensagem: (event: NovaMensagemEvent) => void;
+  onConnectionChange?: (connected: boolean) => void;
 }
 
-export function useChatSocket({ enabled = true, onNovaMensagem }: Options) {
+/** Mantém uma conexão STOMP/SockJS com o backend de mensagens. */
+export function useChatSocketConnection({
+  enabled = true,
+  onNovaMensagem,
+  onConnectionChange,
+}: UseChatSocketConnectionOptions) {
   const onNovaMensagemRef = useRef(onNovaMensagem);
+  const onConnectionChangeRef = useRef(onConnectionChange);
+
   onNovaMensagemRef.current = onNovaMensagem;
+  onConnectionChangeRef.current = onConnectionChange;
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled) {
+      onConnectionChangeRef.current?.(false);
+      return;
+    }
 
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      onConnectionChangeRef.current?.(false);
+      return;
+    }
 
     const client = new Client({
       webSocketFactory: () => new SockJS(obterChatWebSocketUrl()),
@@ -27,7 +42,10 @@ export function useChatSocket({ enabled = true, onNovaMensagem }: Options) {
         Authorization: `Bearer ${token}`,
       },
       reconnectDelay: 5000,
+      heartbeatIncoming: 10000,
+      heartbeatOutgoing: 10000,
       onConnect: () => {
+        onConnectionChangeRef.current?.(true);
         client.subscribe(FILA_MENSAGENS, (message: IMessage) => {
           try {
             const event = JSON.parse(message.body) as NovaMensagemEvent;
@@ -37,12 +55,27 @@ export function useChatSocket({ enabled = true, onNovaMensagem }: Options) {
           }
         });
       },
+      onDisconnect: () => {
+        onConnectionChangeRef.current?.(false);
+      },
+      onStompError: () => {
+        onConnectionChangeRef.current?.(false);
+      },
+      onWebSocketClose: () => {
+        onConnectionChangeRef.current?.(false);
+      },
     });
 
     client.activate();
 
     return () => {
-      client.deactivate();
+      onConnectionChangeRef.current?.(false);
+      void client.deactivate();
     };
   }, [enabled]);
+}
+
+/** @deprecated Prefira ChatSocketProvider + useChatSocketSubscription no layout do módulo. */
+export function useChatSocket(options: UseChatSocketConnectionOptions) {
+  useChatSocketConnection(options);
 }

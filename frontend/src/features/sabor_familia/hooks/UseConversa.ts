@@ -43,32 +43,44 @@ export function useBuscarConversas(usuarioId: number | null, page = 0, size = 20
     buscar();
   }, [buscar]);
 
-  const aplicarNovaMensagem = useCallback((event: NovaMensagemEvent, conversaAbertaId?: number) => {
-    setConversas((prev) => {
-      if (!prev) return prev;
+  const aplicarNovaMensagem = useCallback(
+    (event: NovaMensagemEvent, conversaAbertaId?: number) => {
+      setConversas((prev) => {
+        if (!prev) return prev;
 
-      const indice = prev.content.findIndex((c) => c.id === event.conversaId);
-      if (indice === -1) return prev;
+        const indice = prev.content.findIndex((c) => c.id === event.conversaId);
+        if (indice === -1) {
+          queueMicrotask(() => {
+            void buscar();
+          });
+          return prev;
+        }
 
-      const conversaAtualizada: ConversaResponse = {
-        ...prev.content[indice],
-        ultimaMensagem: event.mensagem.texto,
-        dataUltimaMensagem: event.mensagem.dataEnvio,
-        naoLidas: event.conversaId === conversaAbertaId
-          ? 0
-          :
-          event.mensagem.perfilDestinatario.usuarioId === usuarioId
-            ? prev.content[indice].naoLidas + 1
-            : prev.content[indice].naoLidas,
-      };
+        const ehDestinatario =
+          usuarioId != null &&
+          event.mensagem.perfilDestinatario.usuarioId === usuarioId;
 
-      const demais = prev.content.filter((_, i) => i !== indice);
-      return {
-        ...prev,
-        content: [conversaAtualizada, ...demais],
-      };
-    });
-  }, [usuarioId]);
+        const conversaAtualizada: ConversaResponse = {
+          ...prev.content[indice],
+          ultimaMensagem: event.mensagem.texto,
+          dataUltimaMensagem: event.mensagem.dataEnvio,
+          naoLidas:
+            event.conversaId === conversaAbertaId
+              ? 0
+              : ehDestinatario
+                ? prev.content[indice].naoLidas + 1
+                : prev.content[indice].naoLidas,
+        };
+
+        const demais = prev.content.filter((_, i) => i !== indice);
+        return {
+          ...prev,
+          content: [conversaAtualizada, ...demais],
+        };
+      });
+    },
+    [usuarioId, buscar]
+  );
 
   const marcarConversaComoLidaLocal = useCallback((conversaId: number) => {
     setConversas((prev) => {

@@ -4,7 +4,7 @@ import "../../components/common/sfPillToggle.css";
 import { useCallback, useRef, useState } from "react";
 import { useBuscarConversas } from "../../hooks/UseConversa";
 import { useBuscarSeguindo } from "../../hooks/UsePerfil";
-import { useChatSocket } from "../../hooks/UseChatSocket";
+import { useChatSocketSubscription } from "../../context/ChatSocketContext";
 import type { NovaMensagemEvent } from "../../dto/menssagem/response/NovaMensagemEvent";
 import type { ConversaResponse } from "../../dto/menssagem/response/ConversaResponse";
 import type { PerfilResumoResponse } from "../../dto/perfil/response/PerfilResumoResponse";
@@ -43,7 +43,7 @@ export function Chat() {
     [aplicarNovaMensagem, selecionada?.id]
   );
 
-  useChatSocket({ enabled: !!perfilId, onNovaMensagem: handleNovaMensagem });
+  useChatSocketSubscription(handleNovaMensagem, !!perfilId);
 
   const lista = conversas?.content ?? [];
   const listaSeguindo = seguindo?.content ?? [];
