@@ -1,6 +1,7 @@
 import { Box, Container, Grid, Typography } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import SecurityIcon from '@mui/icons-material/Security';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
 import AdminModuleCard from '../components/AdminModuleCard';
 
 export default function AdminPage() {
@@ -30,6 +31,14 @@ export default function AdminPage() {
             description="Listar permissoes cadastradas"
             to="/admin/permissoes"
             icon={<SecurityIcon color="primary" fontSize="large" />}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <AdminModuleCard
+            title="Produtos"
+            description="Cadastrar produtos da lista de compras (nutricao e custo medio)"
+            to="/admin/produtos"
+            icon={<Inventory2Icon color="primary" fontSize="large" />}
           />
         </Grid>
       </Grid>
