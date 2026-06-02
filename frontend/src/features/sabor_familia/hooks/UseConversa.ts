@@ -7,12 +7,13 @@ import type { MensagemResponse } from "../dto/menssagem/response/MensagemRespons
 import type { EnviarMensagemRequest } from "../dto/menssagem/request/EnviarMensagemRequest";
 import type { EnviarMensagemResponse } from "../dto/menssagem/response/EnviarMensagemResponse";
 import type { PageResponse } from "../dto/page/PageResponse";
+import type { NovaMensagemEvent } from "../dto/menssagem/response/NovaMensagemEvent";
 
 function extrairStatusCode(err: unknown): number | undefined {
   return (err as { response?: { status: number } })?.response?.status;
 }
 
-export function useBuscarConversas(page = 0, size = 20) {
+export function useBuscarConversas(usuarioId: number | null, page = 0, size = 20) {
   const [conversas, setConversas] = useState<PageResponse<ConversaResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,53 @@ export function useBuscarConversas(page = 0, size = 20) {
     buscar();
   }, [buscar]);
 
-  return { conversas, loading, error, recarregar: buscar };
+  const aplicarNovaMensagem = useCallback((event: NovaMensagemEvent, conversaAbertaId?: number) => {
+    setConversas((prev) => {
+      if (!prev) return prev;
+
+      const indice = prev.content.findIndex((c) => c.id === event.conversaId);
+      if (indice === -1) return prev;
+
+      const conversaAtualizada: ConversaResponse = {
+        ...prev.content[indice],
+        ultimaMensagem: event.mensagem.texto,
+        dataUltimaMensagem: event.mensagem.dataEnvio,
+        naoLidas: event.conversaId === conversaAbertaId
+          ? 0
+          :
+          event.mensagem.perfilDestinatario.usuarioId === usuarioId
+            ? prev.content[indice].naoLidas + 1
+            : prev.content[indice].naoLidas,
+      };
+
+      const demais = prev.content.filter((_, i) => i !== indice);
+      return {
+        ...prev,
+        content: [conversaAtualizada, ...demais],
+      };
+    });
+  }, [usuarioId]);
+
+  const marcarConversaComoLidaLocal = useCallback((conversaId: number) => {
+    setConversas((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        content: prev.content.map((conversa) =>
+          conversa.id === conversaId ? { ...conversa, naoLidas: 0 } : conversa
+        ),
+      };
+    });
+  }, []);
+
+  return {
+    conversas,
+    loading,
+    error,
+    recarregar: buscar,
+    aplicarNovaMensagem,
+    marcarConversaComoLidaLocal,
+  };
 }
 
 export function useMensagensConversa(conversaId: number, limit = 20) {
@@ -63,6 +110,7 @@ export function useMensagensConversa(conversaId: number, limit = 20) {
       setMensagens([...data.items].reverse());
       setHasMore(data.hasMore);
       nextBeforeRef.current = data.nextBefore ?? undefined;
+      await conversaService.marcarConversaComoLida(conversaId);
     } catch (err: unknown) {
       const statusCode = extrairStatusCode(err);
       if (statusCode) {
@@ -106,6 +154,13 @@ export function useMensagensConversa(conversaId: number, limit = 20) {
     }
   }, [conversaId, limit, hasMore, loadingMais, navigate]);
 
+  const adicionarMensagem = useCallback((mensagem: MensagemResponse) => {
+    setMensagens((prev) => {
+      if (prev.some((m) => m.id === mensagem.id)) return prev;
+      return [...prev, mensagem];
+    });
+  }, []);
+
   return {
     mensagens,
     hasMore,
@@ -114,6 +169,7 @@ export function useMensagensConversa(conversaId: number, limit = 20) {
     error,
     carregarMais,
     recarregar: carregarInicial,
+    adicionarMensagem,
   };
 }
 

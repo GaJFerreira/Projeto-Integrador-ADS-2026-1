@@ -16,6 +16,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -74,6 +75,20 @@ public class ConversaController {
     Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     EnviarMensagemResponse response = mensagemService.enviarMensagem(usuarioId, request);
     return ResponseEntity.ok(response);
+  }
+
+  @PatchMapping(value = "/{conversaId}/marcar-lida")
+  @Operation(
+    summary = "Marcar conversa como lida",
+    description = "Marca como lidas as mensagens recebidas pelo usuário."
+  )
+  public ResponseEntity<Void> marcarConversaComoLida(
+    @RequestHeader(value = "Authorization") String authorization,
+    @PathVariable Long conversaId
+  ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
+    mensagemService.marcarConversaComoLida(usuarioId, conversaId);
+    return ResponseEntity.noContent().build();
   }
 
 }

@@ -28,6 +28,10 @@ export const conversaService = {
     return data;
   },
 
+  marcarConversaComoLida: async (conversaId: number): Promise<void> => {
+    await api.patch(`/conversa/${conversaId}/marcar-lida`);
+  },
+
   enviarMensagem: async (
     request: EnviarMensagemRequest
   ): Promise<EnviarMensagemResponse> => {

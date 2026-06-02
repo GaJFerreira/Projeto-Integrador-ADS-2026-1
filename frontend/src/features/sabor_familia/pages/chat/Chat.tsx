@@ -1,9 +1,11 @@
 import "./chat.css";
 import "../home/homeSaborFamilia.css";
 import "../../components/common/sfPillToggle.css";
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useBuscarConversas } from "../../hooks/UseConversa";
 import { useBuscarSeguindo } from "../../hooks/UsePerfil";
+import { useChatSocket } from "../../hooks/UseChatSocket";
+import type { NovaMensagemEvent } from "../../dto/menssagem/response/NovaMensagemEvent";
 import type { ConversaResponse } from "../../dto/menssagem/response/ConversaResponse";
 import type { PerfilResumoResponse } from "../../dto/perfil/response/PerfilResumoResponse";
 import { useAuth } from "../../hooks/UseAuth";
@@ -16,13 +18,32 @@ import { formatHora } from "../../utils/formatarTempo";
 import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 
 export function Chat() {
-  const { perfilId } = useAuth();
-  const { conversas, loading, recarregar } = useBuscarConversas();
+  const { perfilId, usuarioId } = useAuth();
+  const { conversas, loading, recarregar, aplicarNovaMensagem, marcarConversaComoLidaLocal } =
+    useBuscarConversas(usuarioId);
   const { seguindo, loading: loadingSeguindo } = useBuscarSeguindo(perfilId ?? 0, 0, 100);
 
   const [selecionada, setSelecionada] = useState<ConversaResponse | null>(null);
   const [novoDestinatario, setNovoDestinatario] = useState<PerfilResumoResponse | null>(null);
   const [showNova, setShowNova] = useState(false);
+  const conversaAtivaHandlerRef = useRef<((event: NovaMensagemEvent) => void) | null>(null);
+
+  const handleNovaMensagem = useCallback(
+    (event: NovaMensagemEvent) => {
+      aplicarNovaMensagem(event, selecionada?.id);
+      conversaAtivaHandlerRef.current?.(event);
+    },
+    [aplicarNovaMensagem, selecionada?.id]
+  );
+
+  const handleMensagemEnviada = useCallback(
+    (event: NovaMensagemEvent) => {
+      aplicarNovaMensagem(event, selecionada?.id);
+    },
+    [aplicarNovaMensagem, selecionada?.id]
+  );
+
+  useChatSocket({ enabled: !!perfilId, onNovaMensagem: handleNovaMensagem });
 
   const lista = conversas?.content ?? [];
   const listaSeguindo = seguindo?.content ?? [];
@@ -75,6 +96,7 @@ export function Chat() {
                         key={c.id}
                         className={`chat-list__item ${selecionada?.id === c.id && !novoDestinatario ? "chat-list__item--active" : ""}`}
                         onClick={() => {
+                          marcarConversaComoLidaLocal(c.id);
                           setSelecionada(c);
                           setNovoDestinatario(null);
                           setShowNova(false);
@@ -96,6 +118,9 @@ export function Chat() {
                           <span className="chat-list__time">
                             {formatHora(c.dataUltimaMensagem)}
                           </span>
+                        )}
+                        {c.naoLidas > 0 && (
+                          <span className="chat-list__badge">{c.naoLidas}</span>
                         )}
                       </button>
                     ))}
@@ -164,6 +189,8 @@ export function Chat() {
             conversa={selecionada}
             perfilId={perfilId}
             onVoltar={() => setSelecionada(null)}
+            onNovaMensagemRef={conversaAtivaHandlerRef}
+            onMensagemEnviada={handleMensagemEnviada}
           />
         ) : (
           <div className="chat-placeholder">

@@ -148,6 +148,21 @@
   flex-shrink: 0;
 }
 
+.chat-list__badge {
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .chat-list__empty {
   text-align: center;
   padding: 3rem 1.25rem;

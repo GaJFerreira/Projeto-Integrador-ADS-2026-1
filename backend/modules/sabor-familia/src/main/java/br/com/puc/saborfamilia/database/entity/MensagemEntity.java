@@ -58,4 +58,11 @@ public class MensagemEntity {
   @Column(name = "data_envio", nullable = false)
   private LocalDateTime dataEnvio;
 
+  @Column(name = "lida", nullable = false)
+  @Builder.Default
+  private Boolean lida = false;
+
+  @Column(name = "data_leitura")
+  private LocalDateTime dataLeitura;
+
 }

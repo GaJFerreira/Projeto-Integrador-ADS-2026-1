@@ -10,6 +10,7 @@ import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.service.mensagem.MensagemService;
+import br.com.puc.saborfamilia.service.mensagem.publisher.WebSocketPublisher;
 import br.com.puc.saborfamilia.service.midia.MidiaService;
 import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.request.EnviarMensagemRequest;
@@ -18,8 +19,10 @@ import br.com.puc.saborfamilia.service.mensagem.dto.response.EnviarMensagemRespo
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemCursorResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemResponse;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -45,6 +48,7 @@ public class MensagemServiceImpl implements MensagemService {
   private final ConversaRepository conversaRepository;
   private final PerfilRepository perfilRepository;
   private final MidiaService midiaService;
+  private final WebSocketPublisher webSocketPublisher;
 
   @Override
   @Transactional(readOnly = true)
@@ -69,13 +73,23 @@ public class MensagemServiceImpl implements MensagemService {
           .toList()
       );
 
+    Map<Long, Long> naoLidasPorConversa = new HashMap<>();
+    conversasNaPagina.forEach(conversa -> {
+      long naoLidas = mensagemRepository.countNaoLidasPorConversa(
+        conversa.getId(),
+        perfilUsuarioAutenticado.getId()
+      );
+      naoLidasPorConversa.put(conversa.getId(), naoLidas);
+    });
+
     return conversas.map(conversa -> {
       PerfilEntity contato = conversa.getOutroParticipante(perfilUsuarioAutenticado.getId());
       return new ConversaResponse(
         conversa.getId(),
         toPerfilResumoResponse(contato, perfisComFoto),
         conversa.getConteudoUltimaMensagem(),
-        conversa.getDataEnvioUltimaMensagem()
+        conversa.getDataEnvioUltimaMensagem(),
+        naoLidasPorConversa.getOrDefault(conversa.getId(), 0L)
       );
     });
   }
@@ -101,6 +115,7 @@ public class MensagemServiceImpl implements MensagemService {
       .conversa(conversa)
       .texto(request.mensagem())
       .dataEnvio(LocalDateTime.now())
+      .lida(false)
       .build();
 
     MensagemEntity mensagemSalva = mensagemRepository.save(mensagem);
@@ -114,10 +129,16 @@ public class MensagemServiceImpl implements MensagemService {
       List.of(perfilUsuarioAutenticado.getId(), destinatario.getId())
     );
 
-    return new EnviarMensagemResponse(
+    MensagemResponse mensagemResponse = toMensagemResponse(mensagemSalva, perfisComFoto);
+
+    webSocketPublisher.enviarEventoMensagem(
       conversa.getId(),
-      toMensagemResponse(mensagemSalva, perfisComFoto)
+      mensagemResponse,
+      perfilUsuarioAutenticado.getUsuarioId(),
+      destinatario.getUsuarioId()
     );
+
+    return new EnviarMensagemResponse(conversa.getId(), mensagemResponse);
   }
 
   private ConversaEntity recuperarConversa(PerfilEntity remetente, PerfilEntity destinatario) {
@@ -197,6 +218,23 @@ public class MensagemServiceImpl implements MensagemService {
       : null;
 
     return new MensagemCursorResponse(mensagens, possuiMaisPaginas, idUltimaMensagem);
+  }
+
+  @Override
+  @Transactional
+  public void marcarConversaComoLida(Long usuarioId, Long conversaId) {
+    PerfilEntity perfilUsuarioAutenticado = perfilRepository.findByUsuarioId(usuarioId)
+      .orElseThrow(() -> new ResourceNotFoundException(PERFIL_NAO_ENCONTRADO));
+
+    ConversaEntity conversa = conversaRepository.findById(conversaId)
+      .orElseThrow(() -> new ResourceNotFoundException(CONVERSA_NAO_ENCONTRADA));
+
+    if (!conversa.getPrimeiroParticipante().getId().equals(perfilUsuarioAutenticado.getId())
+      && !conversa.getSegundoParticipante().getId().equals(perfilUsuarioAutenticado.getId())) {
+      throw new ServiceException(USUARIO_NAO_PARTICIPANTE);
+    }
+
+    mensagemRepository.marcarConversaComoLida(conversaId, perfilUsuarioAutenticado.getId());
   }
 
   private MensagemResponse toMensagemResponse(MensagemEntity mensagem, Set<Long> perfisComFoto) {

@@ -156,6 +156,17 @@
   align-items: flex-start;
 }
 
+.chat-bubble__sender {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0 4px 2px;
+}
+
+.chat-bubble__sender--mine {
+  color: var(--brand-dark);
+}
+
 .chat-bubble {
   max-width: 68%;
   padding: 0.55rem 0.85rem;

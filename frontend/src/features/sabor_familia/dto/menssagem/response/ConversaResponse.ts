@@ -4,5 +4,6 @@ export interface ConversaResponse {
   id: number;
   contato: PerfilResumoResponse;
   ultimaMensagem: string;
-  dataUltimaMensagem: string; 
+  dataUltimaMensagem: string;
+  naoLidas: number;
 }

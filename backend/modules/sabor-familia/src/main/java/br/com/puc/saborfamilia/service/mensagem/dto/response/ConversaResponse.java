@@ -7,6 +7,7 @@ public record ConversaResponse(
   Long id,
   PerfilResumoResponse contato,
   String ultimaMensagem,
-  LocalDateTime dataUltimaMensagem
+  LocalDateTime dataUltimaMensagem,
+  Long naoLidas
 ) {
 }

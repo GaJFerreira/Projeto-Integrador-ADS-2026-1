@@ -15,5 +15,7 @@ public interface MensagemService {
 
   MensagemCursorResponse buscarMensagensConversa(Long usuarioId, Long conversaId, Integer limit, Long beforeId);
 
+  void marcarConversaComoLida(Long usuarioId, Long conversaId);
+
 }
 

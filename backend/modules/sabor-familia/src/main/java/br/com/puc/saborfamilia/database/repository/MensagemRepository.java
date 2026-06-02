@@ -4,6 +4,7 @@ import br.com.puc.saborfamilia.database.entity.MensagemEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -47,6 +48,34 @@ public interface MensagemRepository extends JpaRepository<MensagemEntity, Long> 
     @Param("conversaId") Long conversaId,
     @Param("beforeId") Long beforeId,
     Pageable pageable
+  );
+
+  @Query(
+    """
+      SELECT COUNT(mensagem) FROM MensagemEntity mensagem
+      WHERE mensagem.conversa.id = :conversaId
+      AND mensagem.destinatario.id = :destinatarioPerfilId
+      AND mensagem.lida = false
+    """
+  )
+  long countNaoLidasPorConversa(
+    @Param("conversaId") Long conversaId,
+    @Param("destinatarioPerfilId") Long destinatarioPerfilId
+  );
+
+  @Modifying
+  @Query(
+    """
+      UPDATE MensagemEntity mensagem
+      SET mensagem.lida = true, mensagem.dataLeitura = CURRENT_TIMESTAMP
+      WHERE mensagem.conversa.id = :conversaId
+      AND mensagem.destinatario.id = :destinatarioPerfilId
+      AND mensagem.lida = false
+    """
+  )
+  int marcarConversaComoLida(
+    @Param("conversaId") Long conversaId,
+    @Param("destinatarioPerfilId") Long destinatarioPerfilId
   );
 
 }
