@@ -17,6 +17,9 @@ import AdminProdutoCreatePage from '@/features/admin/pages/AdminProdutoCreatePag
 import AdminProdutoEditPage from '@/features/admin/pages/AdminProdutoEditPage';
 import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
 
+// Elden Care
+import QuestionarioEldenCare from '@/features/eldercare/QuestionarioDemo';
+
 //Care Hub
 import { CareHubRoutes } from '@/features/carehub/routes/CareHubRoutes';
 
@@ -118,8 +121,13 @@ export function AppRoutes() {
         <Route path="lista-compras/templates" element={<TemplatesPage />} />
         <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
 
+<<<<<<< HEAD
+        {/* Elden Care */}
+        <Route path="elden-care/questionario" element={<QuestionarioEldenCare />} />
+=======
         {/* CareHub */}
         <Route path="carehub/*" element={<CareHubRoutes />} />
+>>>>>>> origin/develop
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />

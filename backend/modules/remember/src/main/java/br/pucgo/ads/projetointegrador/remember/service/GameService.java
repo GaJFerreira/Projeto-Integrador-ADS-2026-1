@@ -19,6 +19,7 @@ import br.pucgo.ads.projetointegrador.remember.key.UsuarioConquistaKey;
 import br.pucgo.ads.projetointegrador.remember.repository.ConquistaRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.DiarioRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.LembrancaRepository;
+import br.pucgo.ads.projetointegrador.remember.repository.RespostaPerguntaUsuarioRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.UsuarioConquistaRepository;
 import br.pucgo.ads.projetointegrador.remember.repository.UsuarioRememberRepository;
 
@@ -41,6 +42,9 @@ public class GameService {
     private LembrancaRepository lembrancaRepository;
 
     @Autowired
+    private RespostaPerguntaUsuarioRepository respostaPerguntaUsuarioRepository;
+
+    @Autowired
     private UsuarioRememberRepository usuarioRepository;
 
     // Constantes para os Tipos de Conquista (conforme seu banco de dados)
@@ -48,6 +52,7 @@ public class GameService {
     private static final int TIPO_LEMBRANCA_QUANTIDADE = 2;
     private static final int TIPO_DIAS_CONSECUTIVOS = 3;
     private static final int TIPO_MESES_CONSECUTIVOS = 4;
+    private static final int TIPO_PERGUNTA_RESPONDIDA = 5;
 
     /**
      * Chamado pelo DiarioService. Verifica todas as conquistas relacionadas a Diários.
@@ -80,6 +85,16 @@ public class GameService {
         long qtdLembrancas = lembrancaRepository.countByIdentificadorUsuario(usuarioId);
 
         return verificarEConceder(usuarioId, TIPO_LEMBRANCA_QUANTIDADE, qtdLembrancas);
+    }
+
+    /**
+     * Chamado ao responder perguntas cognitivas. Verifica conquistas por quantidade de respostas.
+     */
+    @Transactional
+    public List<ConquistaResponseDTO> verificarConquistasPerguntaRespondida(Long usuarioId) {
+        long qtdRespostas = respostaPerguntaUsuarioRepository.countByIdentificadorUsuario(usuarioId);
+
+        return verificarEConceder(usuarioId, TIPO_PERGUNTA_RESPONDIDA, qtdRespostas);
     }
 
     /**

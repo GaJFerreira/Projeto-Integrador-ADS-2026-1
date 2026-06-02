@@ -5,16 +5,17 @@ import {
     Button,
     Container,
     IconButton,
-    Grid,
     Stack,
     TextField,
     Typography,
     Paper,
+    Alert,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useSnackbar } from 'notistack';
 import { adminConquistasApi, type UpdateConquistaPayload } from '../api/conquistas';
+import { usuarioPodeGerenciarConquistas } from '../utils/auth';
 
 interface ConquistaFormData {
     nome: string;
@@ -29,6 +30,7 @@ export default function AdminEditConquistaPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
+    const podeGerenciar = usuarioPodeGerenciarConquistas();
 
     const conquistaId = useMemo(() => Number(id), [id]);
     const [loading, setLoading] = useState(false);
@@ -102,6 +104,19 @@ export default function AdminEditConquistaPage() {
 
     const iconSource = form.iconeBase64 || '';
 
+    if (!podeGerenciar) {
+        return (
+            <Container sx={{ py: 3 }}>
+                <Alert severity="warning" sx={{ mb: 2 }}>
+                    Apenas administradores e cuidadores podem editar conquistas.
+                </Alert>
+                <Button variant="outlined" onClick={() => navigate('/remember')}>
+                    Voltar ao Remember
+                </Button>
+            </Container>
+        );
+    }
+
     return (
         <Container sx={{ py: 3 }}>
             <Box display="flex" alignItems="center" gap={1} mb={3}>
@@ -112,10 +127,8 @@ export default function AdminEditConquistaPage() {
             </Box>
 
             <Box component="form" onSubmit={handleSubmit} noValidate>
-                <Grid container spacing={0} justifyContent="center">
-                    <Grid item xs={12} md={8} lg={8}>
-
-                        <Stack spacing={3} component={Paper} sx={{ p: 4, borderRadius: 2 }}>
+                <Box sx={{ maxWidth: 900, mx: 'auto' }}>
+                    <Stack spacing={3} component={Paper} sx={{ p: 4, borderRadius: 2 }}>
 
                             <Typography variant="h5" color="primary">
                                 Dados da Conquista
@@ -197,9 +210,8 @@ export default function AdminEditConquistaPage() {
                                     {loading ? 'Salvando...' : 'Salvar Alterações'}
                                 </Button>
                             </Stack>
-                        </Stack>
-                    </Grid>
-                </Grid>
+                    </Stack>
+                </Box>
             </Box>
         </Container>
     );

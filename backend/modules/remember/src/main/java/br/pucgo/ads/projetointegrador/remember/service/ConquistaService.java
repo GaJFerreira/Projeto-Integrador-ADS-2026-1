@@ -61,6 +61,7 @@ public class ConquistaService {
                 Path caminho = Paths.get(CAMINHO_CONQUISTAS,
                         getNomeArquivoConquista(conquistaSalva.getIdentificadorConquista()));
 
+                Files.createDirectories(caminho.getParent());
                 Files.write(caminho, imageBytes);
             } catch (Exception e) {
                 e.printStackTrace();
