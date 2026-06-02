@@ -12,7 +12,13 @@ import AdminPermissoesPage from '@/features/admin/pages/AdminPermissoesPage';
 import AdminMedicosPage from '@/features/admin/pages/AdminMedicosPage';
 import AdminCuidadoresPage from '@/features/admin/pages/AdminCuidadoresPage';
 import AdminUsuarioCreatePage from '@/features/admin/pages/AdminUsuarioCreatePage';
+import AdminProdutosPage from '@/features/admin/pages/AdminProdutosPage';
+import AdminProdutoCreatePage from '@/features/admin/pages/AdminProdutoCreatePage';
+import AdminProdutoEditPage from '@/features/admin/pages/AdminProdutoEditPage';
 import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
+
+// Elden Care
+import QuestionarioEldenCare from '@/features/eldercare/QuestionarioDemo';
 
 //Care Hub
 import { CareHubRoutes } from '@/features/carehub/routes/CareHubRoutes';
@@ -86,6 +92,11 @@ export function AppRoutes() {
         <Route path="admin/medicos/:id/edit" element={<EditMedicoPage />} />
         <Route path="admin/cuidadores/:id/edit" element={<EditCuidadorPage />} />
 
+        {/* Admin: Produtos da Lista de Compras */}
+        <Route path="admin/produtos" element={<AdminProdutosPage />} />
+        <Route path="admin/produtos/novo" element={<AdminProdutoCreatePage />} />
+        <Route path="admin/produtos/:id/edit" element={<AdminProdutoEditPage />} />
+
         {/* Rotas gerais */}
         <Route path="usuarios" element={<UsuariosPage />} />
 
@@ -110,8 +121,13 @@ export function AppRoutes() {
         <Route path="lista-compras/templates" element={<TemplatesPage />} />
         <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
 
+<<<<<<< HEAD
+        {/* Elden Care */}
+        <Route path="elden-care/questionario" element={<QuestionarioEldenCare />} />
+=======
         {/* CareHub */}
         <Route path="carehub/*" element={<CareHubRoutes />} />
+>>>>>>> origin/develop
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />

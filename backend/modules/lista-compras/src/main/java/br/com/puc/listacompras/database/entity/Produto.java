@@ -35,8 +35,51 @@ public class Produto {
   @Column(name = "nome_normalizado")
   private String nomeNormalizado;
 
+  // Campo legado: preco original (mantido para nao quebrar contratos publicos).
+  // Novos cadastros pelo admin devem priorizar custoMedio.
   @Column(precision = 12, scale = 2)
   private BigDecimal preco;
+
+  // Custo medio de mercado em BRL, gerenciado pelo admin.
+  @Column(name = "custo_medio", precision = 12, scale = 2)
+  private BigDecimal custoMedio;
+
+  @Column(name = "custo_medio_atualizado_em")
+  private LocalDateTime custoMedioAtualizadoEm;
+
+  @Column(name = "marca", length = 120)
+  private String marca;
+
+  @Column(name = "unidade_medida", length = 20)
+  private String unidadeMedida;
+
+  // Tamanho da porcao de referencia da tabela nutricional (ex: 100, 30).
+  @Column(name = "porcao_referencia_gramas", precision = 10, scale = 3)
+  private BigDecimal porcaoReferenciaGramas;
+
+  @Column(name = "calorias", precision = 10, scale = 2)
+  private BigDecimal calorias;
+
+  @Column(name = "proteinas", precision = 10, scale = 2)
+  private BigDecimal proteinas;
+
+  @Column(name = "carboidratos", precision = 10, scale = 2)
+  private BigDecimal carboidratos;
+
+  @Column(name = "gorduras_totais", precision = 10, scale = 2)
+  private BigDecimal gordurasTotais;
+
+  @Column(name = "gorduras_saturadas", precision = 10, scale = 2)
+  private BigDecimal gordurasSaturadas;
+
+  @Column(name = "fibras", precision = 10, scale = 2)
+  private BigDecimal fibras;
+
+  @Column(name = "sodio", precision = 10, scale = 2)
+  private BigDecimal sodio;
+
+  @Column(name = "acucares", precision = 10, scale = 2)
+  private BigDecimal acucares;
 
   @Column(nullable = false)
   private Boolean ativo = true;
@@ -59,9 +102,6 @@ public class Produto {
 
   @Transient
   private String descricao;
-
-  @Transient
-  private String unidadeMedida;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "categoria_id", nullable = false)

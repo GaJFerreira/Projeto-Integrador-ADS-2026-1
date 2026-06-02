@@ -14,7 +14,7 @@ export interface ConquistaDetalhes {
 
 export interface UsuarioConquistaDTO {
     identificadorUsuario: number;
-    dataObtencao: string | null;
+    dataObtencao: string | number[] | null;
     conquista: ConquistaDetalhes;
 }
 

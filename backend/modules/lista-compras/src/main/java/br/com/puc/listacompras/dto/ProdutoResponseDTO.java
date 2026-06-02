@@ -24,4 +24,19 @@ public class ProdutoResponseDTO {
 
   private String descricao;
   private String unidadeMedida;
+
+  // Custo medio de mercado (somente leitura para usuario final).
+  private BigDecimal custoMedio;
+  private String marca;
+
+  // Tabela nutricional (somente leitura para usuario final).
+  private BigDecimal porcaoReferenciaGramas;
+  private BigDecimal calorias;
+  private BigDecimal proteinas;
+  private BigDecimal carboidratos;
+  private BigDecimal gordurasTotais;
+  private BigDecimal gordurasSaturadas;
+  private BigDecimal fibras;
+  private BigDecimal sodio;
+  private BigDecimal acucares;
 }

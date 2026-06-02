@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
     Box,
-    Grid,
     Typography,
     CircularProgress,
 } from '@mui/material';
@@ -95,17 +94,28 @@ export default function LembrancasPage({ usuarioId }: LembrancasPageProps) {
                     </Typography>
                 </Box>
             ) : (
-                <Grid container spacing={3} sx={{ mt: 1 }}>
+                <Box
+                    sx={{
+                        display: 'grid',
+                        gridTemplateColumns: {
+                            xs: '1fr',
+                            sm: 'repeat(2, minmax(0, 1fr))',
+                            md: 'repeat(3, minmax(0, 1fr))',
+                        },
+                        gap: 3,
+                        mt: 1,
+                    }}
+                >
                     {lembrancas.map((item) => (
-                        <Grid item xs={12} sm={6} md={4} key={item.identificadorLembranca}>
+                        <Box key={item.identificadorLembranca}>
                             <LembrancaCard
                                 lembranca={item}
                                 onClick={handleEditLembranca}   // Clicar no card edita
                                 onDelete={handleDeleteLembranca} // Clicar na lixeira deleta
                             />
-                        </Grid>
+                        </Box>
                     ))}
-                </Grid>
+                </Box>
             )}
 
             {/* MODAL DE EDIÇÃO */}
