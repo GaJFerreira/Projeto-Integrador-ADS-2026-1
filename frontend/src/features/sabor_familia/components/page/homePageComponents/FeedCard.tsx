@@ -17,6 +17,7 @@ import { ReceitaMidiaImage } from "../../common/ReceitaMidiaImage";
 import HeartFillIcon from "../../../icon/menu/HeartFillIcon";
 import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
 import { formatarTempo } from "../../../utils/formatarTempo";
+import { labelTipoRefeicao } from "../../../utils/tipoRefeicaoLabels";
 import { ReceitaAcoesAutor } from "../../common/ReceitaAcoesAutor";
 import type { ReceitaResponse } from "../../../dto/receita/response/ReceitaResponse";
 
@@ -77,6 +78,9 @@ function FeedCard({
     });
   };
 
+  const podeRemoverComentario = (autorComentarioPerfilId: number) =>
+    perfilId !== null && (autorComentarioPerfilId === perfilId || isAutor);
+
   const handleRemoverComentario = async (comentarioId: number) => {
     await remover(comentarioId, () => {
       setTotalComentarios((n) => Math.max(0, n - 1));
@@ -129,6 +133,39 @@ function FeedCard({
         onClick={onClick}
       />
 
+      {(receita.detalhes.titulo ||
+        receita.detalhes.tipoRefeicao ||
+        receita.restritaParaUsuario) && (
+        <div className="feed-card__caption">
+          <div className="feed-card__caption-row">
+            {receita.detalhes.titulo ? (
+              <button
+                type="button"
+                className="feed-card__title"
+                onClick={onClick}
+                aria-label={TEXTOS_INTERFACE.inicio.verReceitaDetalhe}
+              >
+                {receita.detalhes.titulo}
+              </button>
+            ) : null}
+            {(receita.detalhes.tipoRefeicao || receita.restritaParaUsuario) && (
+              <div className="feed-card__caption-meta">
+                {receita.detalhes.tipoRefeicao ? (
+                  <span className="feed-card__badge feed-card__badge--type">
+                    {labelTipoRefeicao(receita.detalhes.tipoRefeicao)}
+                  </span>
+                ) : null}
+                {receita.restritaParaUsuario ? (
+                  <span className="feed-card__badge feed-card__badge--restricted">
+                    {TEXTOS_INTERFACE.descobrir.receitaRestrita}
+                  </span>
+                ) : null}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {showComments && (
         <section className="feed-card__comments">
           <div className="feed-card__comments-list">
@@ -153,11 +190,17 @@ function FeedCard({
                     <div className="feed-card__comment-body">
                   <div className="feed-card__comment-header">
                     <strong className="feed-card__comment-author">{comentario.nomePerfil}</strong>
-                    {perfilId !== null && comentario.perfilId === perfilId && (
+                    {podeRemoverComentario(comentario.perfilId) && (
                       <button
+                        type="button"
                         className="feed-card__comment-remove"
                         onClick={() => handleRemoverComentario(comentario.id)}
                         disabled={removendoComentarioId === comentario.id}
+                        title={
+                          isAutor && comentario.perfilId !== perfilId
+                            ? TEXTOS_INTERFACE.acoes.apagarComentarioComoAutorReceita
+                            : TEXTOS_INTERFACE.acoes.apagar
+                        }
                       >
                         {removendoComentarioId === comentario.id
                           ? TEXTOS_INTERFACE.acoes.apagando

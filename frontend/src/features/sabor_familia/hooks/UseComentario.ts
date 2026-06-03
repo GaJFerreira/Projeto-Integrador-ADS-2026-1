@@ -1,8 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSnackbar } from "notistack";
 import { comentarioService } from "../service/ComentarioService";
 import { TEXTOS_INTERFACE } from "../utils/textosInterface";
 import type { PerfilComentarioResponse } from "../dto/receita/response/PerfilComentarioResponse";
+
+const DURACAO_FEEDBACK_MS = 5000;
 
 export function useBuscarComentarios(receitaId: number, enabled = true) {
   const [comentarios, setComentarios] = useState<PerfilComentarioResponse[]>([]);
@@ -90,6 +93,7 @@ export function useRemoverComentario(receitaId: number) {
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   const remover = async (
     comentarioId: number,
@@ -100,6 +104,10 @@ export function useRemoverComentario(receitaId: number) {
 
     try {
       await comentarioService.removerComentario(receitaId, comentarioId);
+      enqueueSnackbar(TEXTOS_INTERFACE.sucesso.comentarioRemovido, {
+        variant: "success",
+        autoHideDuration: DURACAO_FEEDBACK_MS,
+      });
       onSucesso?.(comentarioId);
     } catch (err: unknown) {
       const statusCode = (err as { response?: { status: number } })?.response?.status;

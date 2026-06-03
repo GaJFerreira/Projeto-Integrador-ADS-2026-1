@@ -29,7 +29,8 @@ public class ComentarioServiceImpl implements ComentarioService {
   private static final String PERFIL_NAO_ENCONTRADO = "Perfil não encontrado para o usuário informado.";
   private static final String RECEITA_NAO_ENCONTRADA = "Receita não encontrada para o ID informado.";
   private static final String COMENTARIO_NAO_ENCONTRADO = "Comentário não encontrado para a receita informada.";
-  private static final String AUTOR_COMENTARIO_INVALIDO = "O usuário informado não é o autor do comentário.";
+  private static final String SEM_PERMISSAO_REMOVER_COMENTARIO =
+    "Você não tem permissão para remover este comentário.";
 
   private final ComentarioReceitaRepository comentarioReceitaRepository;
   private final PerfilRepository perfilRepository;
@@ -98,12 +99,18 @@ public class ComentarioServiceImpl implements ComentarioService {
       .findByIdAndReceitaId(comentarioId, receitaId)
       .orElseThrow(() -> new ResourceNotFoundException(COMENTARIO_NAO_ENCONTRADO));
 
-    if (!comentario.getPerfil().getId().equals(perfilUsuarioAutenticado.getId())) {
-      throw new ServiceException(AUTOR_COMENTARIO_INVALIDO);
+    ReceitaEntity receita = comentario.getReceita();
+    
+    boolean isAutorComentario = comentario.getPerfil().getId().equals(perfilUsuarioAutenticado.getId());
+    boolean isDonoReceita = receita.getPerfil().getId().equals(perfilUsuarioAutenticado.getId());
+
+    if (!isAutorComentario && !isDonoReceita) {
+      throw new ServiceException(SEM_PERMISSAO_REMOVER_COMENTARIO);
     }
 
+    Long receitaIdDoComentario = receita.getId();
     comentarioReceitaRepository.delete(comentario);
-    receitaRepository.reduzirContadorComentarios(comentario.getReceita().getId());
+    receitaRepository.reduzirContadorComentarios(receitaIdDoComentario);
 
     return new RemoverComentarioResponse(comentarioId, true, "Comentário removido.");
   }

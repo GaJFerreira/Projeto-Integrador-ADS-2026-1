@@ -44,6 +44,7 @@ export const TEXTOS_INTERFACE = {
       "Abra um perfil e toque em Seguir esta pessoa. As receitas dela passam a aparecer aqui no Início.",
     emptyDicaPublicar:
       "Você também pode publicar a sua primeira receita em Publicar receita no menu.",
+    verReceitaDetalhe: "Ver detalhes da receita",
   },
   descobrir: {
     titulo: "Descobrir",
@@ -137,6 +138,7 @@ export const TEXTOS_INTERFACE = {
   acoes: {
     apagar: "Apagar",
     apagando: "Apagando…",
+    apagarComentarioComoAutorReceita: "Remover comentário da sua publicação",
     comentarios: "Comentários",
     fechar: "Fechar",
     comentariosVazios: "Nenhum comentário ainda.",
@@ -184,6 +186,7 @@ export const TEXTOS_INTERFACE = {
     receitaAtualizada: "Receita atualizada com sucesso",
     receitaSalvaFavoritos: "Receita salva",
     receitaRemovidaFavoritos: "Receita removida das salvas",
+    comentarioRemovido: "Comentário removido",
     seguirSemNome: "Você passou a seguir esta pessoa",
     deixarSeguirSemNome: "Você deixou de seguir esta pessoa",
   },

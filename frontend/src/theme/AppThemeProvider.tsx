@@ -1,6 +1,7 @@
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
 import { theme } from './index';
+import snackbarComponents from './SnackbarClickToDismiss';
 import type { PropsWithChildren } from 'react';
 
 export function AppThemeProvider({ children }: PropsWithChildren) {
@@ -11,6 +12,7 @@ export function AppThemeProvider({ children }: PropsWithChildren) {
         maxSnack={3}
         autoHideDuration={4000}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        Components={snackbarComponents}
       >
         {children}
       </SnackbarProvider>
