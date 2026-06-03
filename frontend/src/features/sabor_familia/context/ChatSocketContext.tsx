@@ -9,9 +9,9 @@ import {
   type ReactNode,
 } from "react";
 import { useChatSocketConnection } from "../hooks/UseChatSocket";
-import type { NovaMensagemEvent } from "../dto/menssagem/response/NovaMensagemEvent";
+import type { EventoMensagemWs } from "../dto/menssagem/response/EventoMensagemWs";
 
-type ChatSocketListener = (event: NovaMensagemEvent) => void;
+type ChatSocketListener = (event: EventoMensagemWs) => void;
 
 interface ChatSocketContextValue {
   subscribe: (listener: ChatSocketListener) => () => void;
@@ -30,7 +30,7 @@ export function ChatSocketProvider({
   const listenersRef = useRef(new Set<ChatSocketListener>());
   const [connected, setConnected] = useState(false);
 
-  const notify = useCallback((event: NovaMensagemEvent) => {
+  const notify = useCallback((event: EventoMensagemWs) => {
     listenersRef.current.forEach((listener) => listener(event));
   }, []);
 

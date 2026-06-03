@@ -80,6 +80,9 @@ export const TEXTOS_INTERFACE = {
     semMensagens: "Escreva a primeira mensagem",
     digiteMensagem: "Digite uma mensagem…",
     novaMensagemPara: "Nova mensagem para",
+    textoApagada: "Mensagem apagada",
+    apagarMensagem: "Apagar mensagem",
+    confirmarApagarMensagem: "Apagar esta mensagem para todos na conversa?",
   },
   receita: {
     salvarFavoritos: "Salvar receita",
@@ -163,6 +166,7 @@ export const TEXTOS_INTERFACE = {
     mensagens: "Erro ao carregar mensagens.",
     mensagensAnteriores: "Erro ao carregar mensagens anteriores.",
     enviarMensagem: "Erro ao enviar mensagem.",
+    apagarMensagem: "Erro ao apagar mensagem.",
     favorito: "Erro ao salvar receita.",
     comentarioVazio: "O comentário não pode estar vazio.",
   },
@@ -187,6 +191,7 @@ export const TEXTOS_INTERFACE = {
     receitaSalvaFavoritos: "Receita salva",
     receitaRemovidaFavoritos: "Receita removida das salvas",
     comentarioRemovido: "Comentário removido",
+    mensagemApagada: "Mensagem apagada",
     seguirSemNome: "Você passou a seguir esta pessoa",
     deixarSeguirSemNome: "Você deixou de seguir esta pessoa",
   },
@@ -217,6 +222,16 @@ function textoPerguntaApagarReceita(titulo?: string): string {
     return `Deseja apagar a receita “${nome}”? Ela sumirá do seu perfil.`;
   }
   return "Deseja apagar esta receita? Ela sumirá do seu perfil.";
+}
+
+export function opcoesDialogoApagarMensagem(): OpcoesDialogoConfirmacao {
+  return {
+    titulo: TEXTOS_INTERFACE.mensagens.apagarMensagem,
+    mensagem: TEXTOS_INTERFACE.mensagens.confirmarApagarMensagem,
+    textoConfirmar: TEXTOS_INTERFACE.confirmacao.apagarReceita.confirmar,
+    textoCancelar: TEXTOS_INTERFACE.confirmacao.apagarReceita.cancelar,
+    acaoPerigosa: true,
+  };
 }
 
 export function opcoesDialogoApagarReceita(titulo?: string): OpcoesDialogoConfirmacao {

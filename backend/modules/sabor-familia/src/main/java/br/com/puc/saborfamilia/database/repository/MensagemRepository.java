@@ -1,6 +1,7 @@
 package br.com.puc.saborfamilia.database.repository;
 
 import br.com.puc.saborfamilia.database.entity.MensagemEntity;
+import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +10,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface MensagemRepository extends JpaRepository<MensagemEntity, Long> {
+
+  @Query(
+    """
+      SELECT mensagem FROM MensagemEntity mensagem
+      JOIN FETCH mensagem.remetente
+      JOIN FETCH mensagem.destinatario
+      JOIN FETCH mensagem.conversa
+      WHERE mensagem.id = :mensagemId
+    """
+  )
+  Optional<MensagemEntity> findByIdComRelacionamentos(@Param("mensagemId") Long mensagemId);
+
+  Optional<MensagemEntity> findFirstByConversaIdAndApagadaFalseOrderByIdDesc(Long conversaId);
+
+  Optional<MensagemEntity> findFirstByConversaIdOrderByIdDesc(Long conversaId);
 
   @Query(
     value =
@@ -56,6 +72,7 @@ public interface MensagemRepository extends JpaRepository<MensagemEntity, Long> 
       WHERE mensagem.conversa.id = :conversaId
       AND mensagem.destinatario.id = :destinatarioPerfilId
       AND mensagem.lida = false
+      AND mensagem.apagada = false
     """
   )
   long countNaoLidasPorConversa(

@@ -4,6 +4,7 @@ import br.com.puc.saborfamilia.service.mensagem.dto.request.EnviarMensagemReques
 import br.com.puc.saborfamilia.service.mensagem.dto.response.ConversaResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.EnviarMensagemResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemCursorResponse;
+import br.com.puc.saborfamilia.service.mensagem.dto.response.RemoverMensagemResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,6 +17,8 @@ public interface MensagemService {
   MensagemCursorResponse buscarMensagensConversa(Long usuarioId, Long conversaId, Integer limit, Long beforeId);
 
   void marcarConversaComoLida(Long usuarioId, Long conversaId);
+
+  RemoverMensagemResponse removerMensagem(Long usuarioId, Long mensagemId);
 
 }
 

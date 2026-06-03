@@ -18,8 +18,10 @@ import br.com.puc.saborfamilia.service.mensagem.dto.response.ConversaResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.EnviarMensagemResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemCursorResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemResponse;
+import br.com.puc.saborfamilia.service.mensagem.dto.response.RemoverMensagemResponse;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,11 @@ public class MensagemServiceImpl implements MensagemService {
   private static final String CONVERSA_NAO_ENCONTRADA = "A conversa informada não foi encontrada.";
   private static final String USUARIO_NAO_PARTICIPANTE = "A conversa informada não foi encontrada.";
   private static final String IMPOSSIVEL_ENVIAR_MENSAGEM_PARA_SI = "Não é possível enviar mensagem para si mesmo.";
+  private static final String MENSAGEM_NAO_ENCONTRADA = "Mensagem não encontrada.";
+  private static final String SEM_PERMISSAO_APAGAR_MENSAGEM =
+    "Você só pode apagar mensagens que você enviou.";
+  private static final String MENSAGEM_JA_APAGADA = "Esta mensagem já foi apagada.";
+  public static final String PREVIEW_MENSAGEM_APAGADA = "Mensagem apagada";
 
   private final MensagemRepository mensagemRepository;
   private final ConversaRepository conversaRepository;
@@ -237,13 +244,113 @@ public class MensagemServiceImpl implements MensagemService {
     mensagemRepository.marcarConversaComoLida(conversaId, perfilUsuarioAutenticado.getId());
   }
 
+  @Override
+  @Transactional
+  public RemoverMensagemResponse removerMensagem(Long usuarioId, Long mensagemId) {
+    PerfilEntity perfilUsuarioAutenticado = perfilRepository.findByUsuarioId(usuarioId)
+      .orElseThrow(() -> new ResourceNotFoundException(PERFIL_NAO_ENCONTRADO));
+
+    MensagemEntity mensagem = mensagemRepository.findByIdComRelacionamentos(mensagemId)
+      .orElseThrow(() -> new ResourceNotFoundException(MENSAGEM_NAO_ENCONTRADA));
+
+    if (!mensagem.getRemetente().getId().equals(perfilUsuarioAutenticado.getId())) {
+      throw new ServiceException(SEM_PERMISSAO_APAGAR_MENSAGEM);
+    }
+
+    if (mensagem.getApagada()) {
+      throw new ServiceException(MENSAGEM_JA_APAGADA);
+    }
+
+    ConversaEntity conversa = mensagem.getConversa();
+
+    if (!conversa.getPrimeiroParticipante().getId().equals(perfilUsuarioAutenticado.getId())
+      && !conversa.getSegundoParticipante().getId().equals(perfilUsuarioAutenticado.getId())) {
+      throw new ServiceException(USUARIO_NAO_PARTICIPANTE);
+    }
+
+    mensagem.setApagada(true);
+    mensagem.setDataApagada(LocalDateTime.now());
+    mensagemRepository.save(mensagem);
+
+    atualizarConversa(conversa);
+    conversaRepository.save(conversa);
+
+    Set<Long> perfisComFoto = midiaService.buscarEntidadeIdsComMidia(
+      TipoEntidadeEnum.PERFIL,
+      List.of(mensagem.getRemetente().getId(), mensagem.getDestinatario().getId())
+    );
+
+    MensagemResponse mensagemResponse = toMensagemResponse(mensagem, perfisComFoto);
+
+    long naoLidasRemetente = mensagemRepository.countNaoLidasPorConversa(
+      conversa.getId(),
+      mensagem.getRemetente().getId()
+    );
+    long naoLidasDestinatario = mensagemRepository.countNaoLidasPorConversa(
+      conversa.getId(),
+      mensagem.getDestinatario().getId()
+    );
+
+    webSocketPublisher.enviarEventoMensagemApagada(
+      conversa.getId(),
+      mensagemResponse,
+      conversa.getConteudoUltimaMensagem(),
+      conversa.getDataEnvioUltimaMensagem(),
+      naoLidasRemetente,
+      naoLidasDestinatario,
+      mensagem.getRemetente().getUsuarioId(),
+      mensagem.getDestinatario().getUsuarioId()
+    );
+
+    return new RemoverMensagemResponse(
+      conversa.getId(),
+      mensagemResponse,
+      conversa.getConteudoUltimaMensagem(),
+      conversa.getDataEnvioUltimaMensagem(),
+      naoLidasRemetente
+    );
+  }
+
+  private void atualizarConversa(ConversaEntity conversa) {
+    Optional<MensagemEntity> ultimaMensagemPreview = mensagemRepository
+      .findFirstByConversaIdAndApagadaFalseOrderByIdDesc(conversa.getId());
+
+    if (ultimaMensagemPreview.isPresent()) {
+      MensagemEntity mensagem = ultimaMensagemPreview.get();
+      conversa.setConteudoUltimaMensagem(mensagem.getTexto());
+      conversa.setDataEnvioUltimaMensagem(mensagem.getDataEnvio());
+      return;
+    }
+
+    Optional<MensagemEntity> ultimaMensagemQualquer = mensagemRepository
+      .findFirstByConversaIdOrderByIdDesc(conversa.getId());
+
+    if (ultimaMensagemQualquer.isEmpty()) {
+      conversa.setConteudoUltimaMensagem(null);
+      conversa.setDataEnvioUltimaMensagem(null);
+      return;
+    }
+
+    MensagemEntity ultimaMensagem = ultimaMensagemQualquer.get();
+
+    LocalDateTime dataEnvioUltimaMensagem = ultimaMensagem.getDataApagada() != null
+      ? ultimaMensagem.getDataApagada()
+      : ultimaMensagem.getDataEnvio();
+
+    conversa.setConteudoUltimaMensagem(PREVIEW_MENSAGEM_APAGADA);
+    conversa.setDataEnvioUltimaMensagem(dataEnvioUltimaMensagem);
+  }
+
   private MensagemResponse toMensagemResponse(MensagemEntity mensagem, Set<Long> perfisComFoto) {
+    boolean apagada = Boolean.TRUE.equals(mensagem.getApagada());
+
     return new MensagemResponse(
       mensagem.getId(),
       toPerfilResumoResponse(mensagem.getRemetente(), perfisComFoto),
       toPerfilResumoResponse(mensagem.getDestinatario(), perfisComFoto),
-      mensagem.getTexto(),
-      mensagem.getDataEnvio()
+      apagada ? null : mensagem.getTexto(),
+      mensagem.getDataEnvio(),
+      apagada
     );
   }
 

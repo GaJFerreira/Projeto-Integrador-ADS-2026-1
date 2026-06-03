@@ -1,14 +1,21 @@
 import "./conversaAtiva.css";
 import SendIcon from "../../../icon/messagem/SendIcon";
+import TrashIcon from "../../../icon/menu/TrashIcon";
 import { formatDataHora } from "../../../utils/formatarTempo";
-import { TEXTOS_INTERFACE } from "../../../utils/textosInterface";
+import {
+  TEXTOS_INTERFACE,
+  opcoesDialogoApagarMensagem,
+} from "../../../utils/textosInterface";
 import {
   useMensagensConversa,
   useEnviarMensagem,
+  useRemoverMensagem,
 } from "../../../hooks/UseConversa";
+import { useDialogoConfirmacao } from "../../../context/DialogoConfirmacao";
 import { useState, useEffect, useRef, type RefObject } from "react";
 import type { ConversaResponse } from "../../../dto/menssagem/response/ConversaResponse";
-import type { NovaMensagemEvent } from "../../../dto/menssagem/response/NovaMensagemEvent";
+import type { EventoMensagemWs } from "../../../dto/menssagem/response/EventoMensagemWs";
+import type { EnviarMensagemResponse } from "../../../dto/menssagem/response/EnviarMensagemResponse";
 import { ContextoMidiaPerfil } from "../../../dto/enums/ContextoMidiaEnum";
 import { PerfilAvatar } from "../../common/PerfilAvatar";
 
@@ -18,16 +25,27 @@ export function ConversaAtiva({
   onVoltar,
   onNovaMensagemRef,
   onMensagemEnviada,
+  onMensagemApagada,
 }: {
   conversa: ConversaResponse;
   perfilId: number;
   onVoltar?: () => void;
-  onNovaMensagemRef?: RefObject<((event: NovaMensagemEvent) => void) | null>;
-  onMensagemEnviada?: (event: NovaMensagemEvent) => void;
+  onNovaMensagemRef?: RefObject<((event: EventoMensagemWs) => void) | null>;
+  onMensagemEnviada?: (response: EnviarMensagemResponse) => void;
+  onMensagemApagada?: (event: EventoMensagemWs) => void;
 }) {
-  const { mensagens, hasMore, loadingInicial, loadingMais, carregarMais, adicionarMensagem } =
-    useMensagensConversa(conversa.id);
+  const {
+    mensagens,
+    hasMore,
+    loadingInicial,
+    loadingMais,
+    carregarMais,
+    adicionarMensagem,
+    aplicarMensagemApagada,
+  } = useMensagensConversa(conversa.id);
   const { enviar, loading: enviando } = useEnviarMensagem();
+  const { remover, loadingId: removendoMensagemId } = useRemoverMensagem();
+  const pedirConfirmacao = useDialogoConfirmacao();
   const [texto, setTexto] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
   const mensagensPreviasRef = useRef(0);
@@ -35,9 +53,13 @@ export function ConversaAtiva({
   useEffect(() => {
     if (!onNovaMensagemRef) return;
 
-    const handler = (event: NovaMensagemEvent) => {
+    const handler = (event: EventoMensagemWs) => {
       if (event.conversaId !== conversa.id) return;
-      adicionarMensagem(event.mensagem);
+      if (event.tipo === "NOVA") {
+        adicionarMensagem(event.mensagem);
+        return;
+      }
+      aplicarMensagemApagada(event.mensagem);
     };
 
     onNovaMensagemRef.current = handler;
@@ -46,7 +68,7 @@ export function ConversaAtiva({
         onNovaMensagemRef.current = null;
       }
     };
-  }, [conversa.id, adicionarMensagem, onNovaMensagemRef]);
+  }, [conversa.id, adicionarMensagem, aplicarMensagemApagada, onNovaMensagemRef]);
 
   useEffect(() => {
     mensagensPreviasRef.current = 0;
@@ -59,14 +81,12 @@ export function ConversaAtiva({
     const totalAtual = mensagens.length;
     const totalAnterior = mensagensPreviasRef.current;
 
-    // Ao abrir a conversa, começar no fim (mensagens mais recentes).
     if (totalAnterior === 0 && totalAtual > 0) {
       scrollEl.scrollTop = scrollEl.scrollHeight;
       mensagensPreviasRef.current = totalAtual;
       return;
     }
 
-    // Em novas mensagens, manter foco no fim se o usuário já estava perto do final.
     if (!loadingMais && totalAtual > totalAnterior) {
       const distanciaDoFim =
         scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight;
@@ -86,12 +106,26 @@ export function ConversaAtiva({
       { destinatarioId: conversa.contato.usuarioId, mensagem: msg },
       (response) => {
         adicionarMensagem(response.mensagem);
-        onMensagemEnviada?.({
-          conversaId: response.conversaId,
-          mensagem: response.mensagem,
-        });
+        onMensagemEnviada?.(response);
       }
     );
+  };
+
+  const handleApagarMensagem = async (mensagemId: number) => {
+    const confirmou = await pedirConfirmacao(opcoesDialogoApagarMensagem());
+    if (!confirmou) return;
+
+    await remover(mensagemId, (response) => {
+      aplicarMensagemApagada(response.mensagem);
+      onMensagemApagada?.({
+        tipo: "APAGADA",
+        conversaId: response.conversaId,
+        mensagem: response.mensagem,
+        ultimaMensagem: response.ultimaMensagem,
+        dataUltimaMensagem: response.dataUltimaMensagem,
+        naoLidas: response.naoLidas,
+      });
+    });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -103,7 +137,6 @@ export function ConversaAtiva({
 
   return (
     <div className="chat-messages-area">
-      {/* ── Cabeçalho ── */}
       <div className="chat-messages-header">
         {onVoltar && (
           <button
@@ -125,9 +158,7 @@ export function ConversaAtiva({
         <span className="chat-messages-header__name">{conversa.contato.nome}</span>
       </div>
 
-      {/* ── Mensagens ── */}
       <div ref={scrollRef} className="chat-messages-scroll">
-        {/* Carregar mensagens anteriores */}
         {hasMore && !loadingMais && (
           <button className="chat-load-more" onClick={carregarMais}>
             {TEXTOS_INTERFACE.mensagens.carregarAnteriores}
@@ -149,28 +180,53 @@ export function ConversaAtiva({
         ) : (
           mensagens.map((msg) => {
             const mine = msg.perfilRemetente.perfilId === perfilId;
-            const nomeRemetente = mine ? "Você" : msg.perfilRemetente.nome;
+            const textoExibido = msg.apagada
+              ? TEXTOS_INTERFACE.mensagens.textoApagada
+              : msg.texto;
             return (
               <div
                 key={msg.id}
                 className={`chat-bubble-wrap ${mine ? "chat-bubble-wrap--mine" : "chat-bubble-wrap--other"}`}
               >
-                <span className={`chat-bubble__sender ${mine ? "chat-bubble__sender--mine" : ""}`}>
-                  {nomeRemetente}
-                </span>
-                <div className={`chat-bubble ${mine ? "chat-bubble--mine" : "chat-bubble--other"}`}>
-                  {msg.texto}
+                {!mine && (
+                  <span className="chat-bubble__sender">{msg.perfilRemetente.nome}</span>
+                )}
+                <div className="chat-bubble-row">
+                  {mine && !msg.apagada && (
+                    <button
+                      type="button"
+                      className="chat-bubble__delete-btn"
+                      onClick={() => handleApagarMensagem(msg.id)}
+                      disabled={removendoMensagemId === msg.id}
+                      aria-label={TEXTOS_INTERFACE.mensagens.apagarMensagem}
+                      title={TEXTOS_INTERFACE.mensagens.apagarMensagem}
+                    >
+                      {removendoMensagemId === msg.id ? (
+                        <span className="chat-bubble__delete-spinner" />
+                      ) : (
+                        <TrashIcon />
+                      )}
+                    </button>
+                  )}
+                  <div
+                    className={`chat-bubble ${mine ? "chat-bubble--mine" : "chat-bubble--other"} ${
+                      msg.apagada ? "chat-bubble--deleted" : ""
+                    }`}
+                  >
+                    {textoExibido}
+                  </div>
                 </div>
-                <span className="chat-bubble__time">
-                  {formatDataHora(msg.dataEnvio)}
-                </span>
+                {!msg.apagada && (
+                  <span className="chat-bubble__time">
+                    {formatDataHora(msg.dataEnvio)}
+                  </span>
+                )}
               </div>
             );
           })
         )}
       </div>
 
-      {/* ── Input de envio ── */}
       <div className="chat-input-area">
         <textarea
           className="chat-input"

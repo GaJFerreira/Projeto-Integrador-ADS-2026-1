@@ -4,6 +4,7 @@ export interface MensagemResponse {
   id: number;
   perfilRemetente: PerfilResumoResponse;
   perfilDestinatario: PerfilResumoResponse;
-  texto: string;
-  dataEnvio: string; 
+  texto: string | null;
+  dataEnvio: string;
+  apagada: boolean;
 }

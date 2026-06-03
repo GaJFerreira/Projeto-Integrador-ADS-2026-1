@@ -1,6 +1,2 @@
-import type { MensagemResponse } from "./MensagemResponse";
-
-export interface NovaMensagemEvent {
-  conversaId: number;
-  mensagem: MensagemResponse;
-}
+/** @deprecated Use EventoMensagemWs */
+export type { EventoMensagemWs as NovaMensagemEvent } from "./EventoMensagemWs";

@@ -30,8 +30,14 @@ FROM (VALUES
           ('OVOS', 'Sem ovos', 'Contém ovos', 'ovos e derivados'),
           ('CASTANHAS', 'Sem castanhas', 'Pode conter castanhas', 'castanhas e derivados'),
           ('ORIGEM_ANIMAL', 'Sem origem animal', 'Contém ingredientes de origem animal', 'alimentos de origem animal'),
-          ('ADOCANTE', 'Sem adoçantes artificiais', 'Com adoçantes', 'adoçantes'),
-          ('CAFEINA', 'Sem cafeína', 'Contém cafeína', 'café e bebidas com cafeína')
+          ('ADOCANTE', 'Sem adoçantes artificiais', 'Possui adoçantes artificiais', 'adoçantes'),
+          ('CAFEINA', 'Sem cafeína', 'Contém cafeína', 'café e bebidas com cafeína'),
+          ('GORDURA_SATURADA', 'Baixo em gordura saturada', 'Rico em gordura saturada', 'fritura, bacon, carnes gordas, creme de leite, embutidos'),
+          ('PICANTE_ACIDO', 'Evito picante ou muito ácido', 'Picante ou muito ácido', 'pimenta, limão em excesso, vinagre forte, molhos ácidos'),
+          ('ALCOOL', 'Sem álcool', 'Contém álcool', 'vinho, cerveja, licor, bebidas alcoólicas no preparo'),
+          ('FIBRA_ALTA', 'Preciso de pouca fibra', 'Muita fibra', 'integrais, cascas, leguminosas em grande volume, grãos integrais'),
+          ('FIBRA_BAIXA', 'Preciso de mais fibra', 'Pouca fibra', 'dieta branca, poucos vegetais, sem grãos integrais'),
+          ('TEXTURA_DURA', 'Dificuldade com alimentos duros', 'Textura dura ou em pedaços', 'carne seca, nozes inteiras, legumes crus duros, torradas')
      ) AS v(codigo, label_perfil, label_receita, exemplos)
 WHERE NOT EXISTS (SELECT 1 FROM restricao_alimentar LIMIT 1);
 

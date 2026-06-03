@@ -86,6 +86,11 @@
   .chat-messages-header__voltar {
     display: inline-flex;
   }
+
+  .chat-bubble-wrap--mine .chat-bubble__delete-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .chat-messages-scroll {
@@ -148,6 +153,71 @@
   flex-direction: column;
 }
 
+.chat-bubble-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+  max-width: 68%;
+}
+
+.chat-bubble-wrap--mine .chat-bubble-row {
+  margin-left: auto;
+}
+
+.chat-bubble-wrap--other .chat-bubble-row {
+  margin-right: auto;
+}
+
+.chat-bubble__delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, color 0.15s ease, background 0.15s ease;
+}
+
+.chat-bubble-wrap--mine:hover .chat-bubble__delete-btn,
+.chat-bubble-wrap--mine:focus-within .chat-bubble__delete-btn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.chat-bubble__delete-btn:hover:not(:disabled) {
+  color: var(--danger);
+  background: #fff5f5;
+}
+
+.chat-bubble__delete-btn:disabled {
+  opacity: 1;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.chat-bubble__delete-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--danger);
+  border-radius: 50%;
+  animation: chat-delete-spin 0.7s linear infinite;
+}
+
+@keyframes chat-delete-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .chat-bubble-wrap--mine {
   align-items: flex-end;
 }
@@ -163,8 +233,8 @@
   margin: 0 4px 2px;
 }
 
-.chat-bubble__sender--mine {
-  color: var(--brand-dark);
+.chat-bubble-row .chat-bubble {
+  max-width: 100%;
 }
 
 .chat-bubble {
@@ -188,6 +258,21 @@
   color: var(--text);
   border: 1px solid var(--border);
   border-bottom-left-radius: 4px;
+}
+
+.chat-bubble--deleted {
+  font-style: italic;
+  opacity: 0.85;
+}
+
+.chat-bubble--mine.chat-bubble--deleted {
+  background: var(--bg);
+  color: var(--text-muted);
+  border: 1px dashed var(--border);
+}
+
+.chat-bubble--other.chat-bubble--deleted {
+  color: var(--text-muted);
 }
 
 .chat-bubble__time {

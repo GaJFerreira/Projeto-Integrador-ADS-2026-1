@@ -65,4 +65,11 @@ public class MensagemEntity {
   @Column(name = "data_leitura")
   private LocalDateTime dataLeitura;
 
+  @Column(name = "apagada", nullable = false)
+  @Builder.Default
+  private Boolean apagada = false;
+
+  @Column(name = "data_apagada")
+  private LocalDateTime dataApagada;
+
 }

@@ -8,6 +8,7 @@ public record MensagemResponse(
   PerfilResumoResponse perfilRemetente,
   PerfilResumoResponse perfilDestinatario,
   String texto,
-  LocalDateTime dataEnvio
+  LocalDateTime dataEnvio,
+  boolean apagada
 ) {
 }

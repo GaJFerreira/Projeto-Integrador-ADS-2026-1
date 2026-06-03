@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Sabor Família API",
-    "description": "Collection da API Sabor Família.\n\nFluxo sugerido:\n1. Autenticação → Criar usuário (opcional) ou use usuário existente.\n2. Autenticação → Login (salva accessToken e userId).\n3. Criar perfil e demais operações com Bearer {{accessToken}}.\n\nMídia: JSON traz possuiMidia; bytes em GET /midia/...?contexto=... (perfil: avatar, listagem; receita: capa-feed, capa-lista). Upload grava original; redimensiona na busca.\n\nSabor Família: {{baseUrl}}\nPlataforma: {{authBaseUrl}}",
+    "description": "Collection da API Sabor Família.\n\nFluxo sugerido:\n1. Autenticação → Criar usuário (opcional) ou use usuário existente.\n2. Autenticação → Login (salva accessToken e userId).\n3. Criar perfil e demais operações com Bearer {{accessToken}}.\n\nMídia: JSON traz possuiMidia; bytes em GET /midia/...?contexto=... (perfil: avatar, listagem; receita: capa-feed, capa-lista). Upload grava original; redimensiona na busca.\n\nRestrições alimentares (catálogo): GLUTEN, LACTOSE, ACUCAR, SODIO, SOJA, OVOS, CASTANHAS, ORIGEM_ANIMAL, ADOCANTE, CAFEINA, GORDURA_SATURADA, PICANTE_ACIDO, ALCOOL, FIBRA_ALTA, FIBRA_BAIXA, TEXTURA_DURA.\n\nChat: mensagens com soft delete (apagada); WebSocket /user/queue/mensagens envia eventos tipo NOVA e APAGADA.\n\nSabor Família: {{baseUrl}}\nPlataforma: {{authBaseUrl}}",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -66,8 +66,13 @@
     },
     {
       "key": "restricaoCodigo",
-      "value": "GLUTEN",
-      "description": "Código em restricao_alimentar.codigo (GET /restricao-alimentar/{codigo})"
+      "value": "GORDURA_SATURADA",
+      "description": "Código em restricao_alimentar.codigo (GET /restricao-alimentar/{codigo}). Catálogo: GLUTEN, LACTOSE, ACUCAR, SODIO, SOJA, OVOS, CASTANHAS, ORIGEM_ANIMAL, ADOCANTE, CAFEINA, GORDURA_SATURADA, PICANTE_ACIDO, ALCOOL, FIBRA_ALTA, FIBRA_BAIXA, TEXTURA_DURA."
+    },
+    {
+      "key": "mensagemId",
+      "value": "",
+      "description": "ID da mensagem. Preencha após listar mensagens ou enviar mensagem."
     }
   ],
   "item": [
@@ -386,7 +391,7 @@
               "formdata": [
                 {
                   "key": "dados",
-                  "value": "{\n  \"titulo\": \"Bolo de Capim\",\n  \"tipoRefeicao\": \"SOBREMESA\",\n  \"ingredientes\": \"Farinha, ovos, capim, açúcar e manteiga\",\n  \"modoPreparo\": \"Junte o capim em um campo, misturar tudo e assar por 45 minutos\",\n  \"historia\": \"Era uma vez um bolo de capim\",\n  \"tempoPreparoMin\": 70,\n  \"qtdPorcoes\": 10,\n  \"restricoesAlimentares\": [\n    \"GLUTEN\"\n  ],\n  \"personalizacoes\": [\n    \"ECONOMICA\"\n  ]\n}",
+                  "value": "{\n  \"titulo\": \"Bolo de Capim\",\n  \"tipoRefeicao\": \"SOBREMESA\",\n  \"ingredientes\": \"Farinha, ovos, capim, açúcar e manteiga\",\n  \"modoPreparo\": \"Junte o capim em um campo, misturar tudo e assar por 45 minutos\",\n  \"historia\": \"Era uma vez um bolo de capim\",\n  \"tempoPreparoMin\": 70,\n  \"qtdPorcoes\": 10,\n  \"restricoesAlimentares\": [\n    \"GLUTEN\",\n    \"GORDURA_SATURADA\",\n    \"ALCOOL\"\n  ],\n  \"personalizacoes\": [\n    \"ECONOMICA\"\n  ]\n}",
                   "contentType": "application/json",
                   "type": "text"
                 },
@@ -547,7 +552,7 @@
               "formdata": [
                 {
                   "key": "dados",
-                  "value": "{\n  \"nome\": \"Jimmy Jhonson\",\n  \"email\": \"jimmy.jhonson@email.com\",\n  \"dataNascimento\": \"10/03/1940\",\n  \"bio\": \"Apaixonado por culinária e ação\",\n  \"restricoesAlimentares\": [\"GLUTEN\", \"LACTOSE\"],\n  \"personalizacoes\": [\"RAPIDA\", \"PARA_FAMILIA\", \"USO_AIR_FRYER\"]\n}",
+                  "value": "{\n  \"nome\": \"Jimmy Jhonson\",\n  \"email\": \"jimmy.jhonson@email.com\",\n  \"dataNascimento\": \"10/03/1940\",\n  \"bio\": \"Apaixonado por culinária e ação\",\n  \"restricoesAlimentares\": [\"SODIO\", \"GORDURA_SATURADA\", \"TEXTURA_DURA\"],\n  \"personalizacoes\": [\"RAPIDA\", \"PARA_FAMILIA\", \"USO_AIR_FRYER\"]\n}",
                   "contentType": "application/json",
                   "type": "text"
                 },
@@ -1261,7 +1266,7 @@
                 "restricao-alimentar"
               ]
             },
-            "description": "Lista restrições alimentares ativas disponíveis no catálogo."
+            "description": "Lista restrições alimentares ativas (16 códigos): GLUTEN, LACTOSE, ACUCAR, SODIO, SOJA, OVOS, CASTANHAS, ORIGEM_ANIMAL, ADOCANTE, CAFEINA, GORDURA_SATURADA, PICANTE_ACIDO, ALCOOL, FIBRA_ALTA, FIBRA_BAIXA, TEXTURA_DURA. Use os códigos em restricoesAlimentares ao criar/editar perfil e receita."
           }
         },
         {
@@ -1391,6 +1396,25 @@
         },
         {
           "name": "Listar mensagens da conversa",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    const items = body.items || [];",
+                  "    if (items.length > 0) {",
+                  "        const ultima = items[items.length - 1];",
+                  "        pm.collectionVariables.set('mensagemId', String(ultima.id));",
+                  "        console.log('mensagemId salvo (última do lote):', ultima.id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "GET",
             "header": [
@@ -1417,7 +1441,7 @@
                 }
               ]
             },
-            "description": "Últimas mensagens em ordem cronológica. Resposta: items, hasMore, nextBefore. Remetente e destinatário com possuiMidia."
+            "description": "Últimas mensagens em ordem cronológica. Resposta: items (id, texto, dataEnvio, apagada), hasMore, nextBefore. Mensagens apagadas retornam texto null e apagada true. Script salva mensagemId da última mensagem do lote."
           }
         },
         {
@@ -1457,6 +1481,26 @@
         },
         {
           "name": "Enviar mensagem",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    if (body.conversaId != null) {",
+                  "        pm.collectionVariables.set('conversaId', String(body.conversaId));",
+                  "    }",
+                  "    if (body.mensagem && body.mensagem.id != null) {",
+                  "        pm.collectionVariables.set('mensagemId', String(body.mensagem.id));",
+                  "        console.log('conversaId e mensagemId salvos');",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -1485,7 +1529,77 @@
                 "mensagens"
               ]
             },
-            "description": "destinatarioId é o usuarioId da plataforma do destinatário, não o perfilId."
+            "description": "destinatarioId é o usuarioId da plataforma do destinatário, não o perfilId. Resposta: conversaId e mensagem (apagada false)."
+          }
+        },
+        {
+          "name": "Apagar mensagem (soft delete)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Apagar mensagem retornou 200', function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "if (pm.response.code === 200) {",
+                  "    const body = pm.response.json();",
+                  "    pm.test('mensagem marcada como apagada', function () {",
+                  "        pm.expect(body.mensagem.apagada).to.eql(true);",
+                  "    });",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversa/mensagens/{{mensagemId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversa",
+                "mensagens",
+                "{{mensagemId}}"
+              ]
+            },
+            "description": "Soft delete: apenas o remetente pode apagar. Atualiza preview da conversa se for a última mensagem. Resposta: conversaId, mensagem (apagada, texto null), ultimaMensagem, dataUltimaMensagem. WebSocket: evento tipo APAGADA."
+          }
+        },
+        {
+          "name": "Marcar conversa como lida",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversa/{{conversaId}}/marcar-lida",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "conversa",
+                "{{conversaId}}",
+                "marcar-lida"
+              ]
+            },
+            "description": "Marca como lidas as mensagens recebidas pelo usuário autenticado nesta conversa. Retorna 204."
           }
         }
       ]

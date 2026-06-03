@@ -2,13 +2,13 @@ import { Client, type IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { useEffect, useRef } from "react";
 import { obterChatWebSocketUrl } from "../lib/chatWebSocketUrl";
-import type { NovaMensagemEvent } from "../dto/menssagem/response/NovaMensagemEvent";
+import type { EventoMensagemWs } from "../dto/menssagem/response/EventoMensagemWs";
 
 const FILA_MENSAGENS = "/user/queue/mensagens";
 
 export interface UseChatSocketConnectionOptions {
   enabled?: boolean;
-  onNovaMensagem: (event: NovaMensagemEvent) => void;
+  onNovaMensagem: (event: EventoMensagemWs) => void;
   onConnectionChange?: (connected: boolean) => void;
 }
 
@@ -48,7 +48,21 @@ export function useChatSocketConnection({
         onConnectionChangeRef.current?.(true);
         client.subscribe(FILA_MENSAGENS, (message: IMessage) => {
           try {
-            const event = JSON.parse(message.body) as NovaMensagemEvent;
+            const raw = JSON.parse(message.body) as EventoMensagemWs & {
+              tipo?: EventoMensagemWs["tipo"];
+            };
+            const event: EventoMensagemWs = raw.tipo
+              ? raw
+              : {
+                  tipo: "NOVA",
+                  conversaId: raw.conversaId,
+                  mensagem: {
+                    ...raw.mensagem,
+                    apagada: raw.mensagem.apagada ?? false,
+                  },
+                  ultimaMensagem: raw.mensagem.texto,
+                  dataUltimaMensagem: raw.mensagem.dataEnvio,
+                };
             onNovaMensagemRef.current(event);
           } catch {
             /* payload inválido — ignorar */

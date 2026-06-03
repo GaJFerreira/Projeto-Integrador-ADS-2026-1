@@ -5,7 +5,8 @@ import { useCallback, useRef, useState } from "react";
 import { useBuscarConversas } from "../../hooks/UseConversa";
 import { useBuscarSeguindo } from "../../hooks/UsePerfil";
 import { useChatSocketSubscription } from "../../context/ChatSocketContext";
-import type { NovaMensagemEvent } from "../../dto/menssagem/response/NovaMensagemEvent";
+import type { EventoMensagemWs } from "../../dto/menssagem/response/EventoMensagemWs";
+import type { EnviarMensagemResponse } from "../../dto/menssagem/response/EnviarMensagemResponse";
 import type { ConversaResponse } from "../../dto/menssagem/response/ConversaResponse";
 import type { PerfilResumoResponse } from "../../dto/perfil/response/PerfilResumoResponse";
 import { useAuth } from "../../hooks/UseAuth";
@@ -19,31 +20,47 @@ import { TEXTOS_INTERFACE } from "../../utils/textosInterface";
 
 export function Chat() {
   const { perfilId, usuarioId } = useAuth();
-  const { conversas, loading, recarregar, aplicarNovaMensagem, marcarConversaComoLidaLocal } =
+  const { conversas, loading, recarregar, aplicarEventoConversa, marcarConversaComoLidaLocal } =
     useBuscarConversas(usuarioId);
   const { seguindo, loading: loadingSeguindo } = useBuscarSeguindo(perfilId ?? 0, 0, 100);
 
   const [selecionada, setSelecionada] = useState<ConversaResponse | null>(null);
   const [novoDestinatario, setNovoDestinatario] = useState<PerfilResumoResponse | null>(null);
   const [showNova, setShowNova] = useState(false);
-  const conversaAtivaHandlerRef = useRef<((event: NovaMensagemEvent) => void) | null>(null);
+  const conversaAtivaHandlerRef = useRef<((event: EventoMensagemWs) => void) | null>(null);
 
-  const handleNovaMensagem = useCallback(
-    (event: NovaMensagemEvent) => {
-      aplicarNovaMensagem(event, selecionada?.id);
+  const handleEventoMensagem = useCallback(
+    (event: EventoMensagemWs) => {
+      aplicarEventoConversa(event, selecionada?.id);
       conversaAtivaHandlerRef.current?.(event);
     },
-    [aplicarNovaMensagem, selecionada?.id]
+    [aplicarEventoConversa, selecionada?.id]
   );
 
   const handleMensagemEnviada = useCallback(
-    (event: NovaMensagemEvent) => {
-      aplicarNovaMensagem(event, selecionada?.id);
+    (response: EnviarMensagemResponse) => {
+      aplicarEventoConversa(
+        {
+          tipo: "NOVA",
+          conversaId: response.conversaId,
+          mensagem: response.mensagem,
+          ultimaMensagem: response.mensagem.texto,
+          dataUltimaMensagem: response.mensagem.dataEnvio,
+        },
+        selecionada?.id
+      );
     },
-    [aplicarNovaMensagem, selecionada?.id]
+    [aplicarEventoConversa, selecionada?.id]
   );
 
-  useChatSocketSubscription(handleNovaMensagem, !!perfilId);
+  const handleMensagemApagada = useCallback(
+    (event: EventoMensagemWs) => {
+      aplicarEventoConversa(event, selecionada?.id);
+    },
+    [aplicarEventoConversa, selecionada?.id]
+  );
+
+  useChatSocketSubscription(handleEventoMensagem, !!perfilId);
 
   const lista = conversas?.content ?? [];
   const listaSeguindo = seguindo?.content ?? [];
@@ -191,6 +208,7 @@ export function Chat() {
             onVoltar={() => setSelecionada(null)}
             onNovaMensagemRef={conversaAtivaHandlerRef}
             onMensagemEnviada={handleMensagemEnviada}
+            onMensagemApagada={handleMensagemApagada}
           />
         ) : (
           <div className="chat-placeholder">

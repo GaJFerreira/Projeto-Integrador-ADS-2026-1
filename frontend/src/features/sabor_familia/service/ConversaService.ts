@@ -3,6 +3,7 @@ import type { EnviarMensagemRequest } from "../dto/menssagem/request/EnviarMensa
 import type { ConversaResponse } from "../dto/menssagem/response/ConversaResponse";
 import type { EnviarMensagemResponse } from "../dto/menssagem/response/EnviarMensagemResponse";
 import type { MensagemCursorResponse } from "../dto/menssagem/response/MensagemCursorResponse";
+import type { RemoverMensagemResponse } from "../dto/menssagem/response/RemoverMensagemResponse";
 import type { PageResponse } from "../dto/page/PageResponse";
 
 export const conversaService = {
@@ -38,6 +39,13 @@ export const conversaService = {
     const { data } = await api.post<EnviarMensagemResponse>(
       "/conversa/mensagens",
       request
+    );
+    return data;
+  },
+
+  removerMensagem: async (mensagemId: number): Promise<RemoverMensagemResponse> => {
+    const { data } = await api.delete<RemoverMensagemResponse>(
+      `/conversa/mensagens/${mensagemId}`
     );
     return data;
   },

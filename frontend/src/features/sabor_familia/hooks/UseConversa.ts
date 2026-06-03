@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSnackbar } from "notistack";
 import { conversaService } from "../service/ConversaService";
 import { TEXTOS_INTERFACE } from "../utils/textosInterface";
 import type { ConversaResponse } from "../dto/menssagem/response/ConversaResponse";
@@ -7,7 +8,8 @@ import type { MensagemResponse } from "../dto/menssagem/response/MensagemRespons
 import type { EnviarMensagemRequest } from "../dto/menssagem/request/EnviarMensagemRequest";
 import type { EnviarMensagemResponse } from "../dto/menssagem/response/EnviarMensagemResponse";
 import type { PageResponse } from "../dto/page/PageResponse";
-import type { NovaMensagemEvent } from "../dto/menssagem/response/NovaMensagemEvent";
+import type { EventoMensagemWs } from "../dto/menssagem/response/EventoMensagemWs";
+import type { RemoverMensagemResponse } from "../dto/menssagem/response/RemoverMensagemResponse";
 
 function extrairStatusCode(err: unknown): number | undefined {
   return (err as { response?: { status: number } })?.response?.status;
@@ -43,8 +45,8 @@ export function useBuscarConversas(usuarioId: number | null, page = 0, size = 20
     buscar();
   }, [buscar]);
 
-  const aplicarNovaMensagem = useCallback(
-    (event: NovaMensagemEvent, conversaAbertaId?: number) => {
+  const aplicarEventoConversa = useCallback(
+    (event: EventoMensagemWs, conversaAbertaId?: number) => {
       setConversas((prev) => {
         if (!prev) return prev;
 
@@ -56,20 +58,31 @@ export function useBuscarConversas(usuarioId: number | null, page = 0, size = 20
           return prev;
         }
 
+        const previewTexto =
+          event.ultimaMensagem ?? event.mensagem.texto ?? TEXTOS_INTERFACE.mensagens.textoApagada;
+        const previewData = event.dataUltimaMensagem ?? event.mensagem.dataEnvio;
+
         const ehDestinatario =
           usuarioId != null &&
           event.mensagem.perfilDestinatario.usuarioId === usuarioId;
 
+        const incrementarNaoLidas =
+          event.tipo === "NOVA" &&
+          event.conversaId !== conversaAbertaId &&
+          ehDestinatario;
+
+        const naoLidasAtualizadas =
+          event.tipo === "APAGADA" && event.naoLidas != null
+            ? event.naoLidas
+            : incrementarNaoLidas
+              ? prev.content[indice].naoLidas + 1
+              : prev.content[indice].naoLidas;
+
         const conversaAtualizada: ConversaResponse = {
           ...prev.content[indice],
-          ultimaMensagem: event.mensagem.texto,
-          dataUltimaMensagem: event.mensagem.dataEnvio,
-          naoLidas:
-            event.conversaId === conversaAbertaId
-              ? 0
-              : ehDestinatario
-                ? prev.content[indice].naoLidas + 1
-                : prev.content[indice].naoLidas,
+          ultimaMensagem: previewTexto,
+          dataUltimaMensagem: previewData,
+          naoLidas: naoLidasAtualizadas,
         };
 
         const demais = prev.content.filter((_, i) => i !== indice);
@@ -99,7 +112,7 @@ export function useBuscarConversas(usuarioId: number | null, page = 0, size = 20
     loading,
     error,
     recarregar: buscar,
-    aplicarNovaMensagem,
+    aplicarEventoConversa,
     marcarConversaComoLidaLocal,
   };
 }
@@ -173,6 +186,12 @@ export function useMensagensConversa(conversaId: number, limit = 20) {
     });
   }, []);
 
+  const aplicarMensagemApagada = useCallback((mensagem: MensagemResponse) => {
+    setMensagens((prev) =>
+      prev.map((item) => (item.id === mensagem.id ? mensagem : item))
+    );
+  }, []);
+
   return {
     mensagens,
     hasMore,
@@ -182,7 +201,44 @@ export function useMensagensConversa(conversaId: number, limit = 20) {
     carregarMais,
     recarregar: carregarInicial,
     adicionarMensagem,
+    aplicarMensagemApagada,
   };
+}
+
+export function useRemoverMensagem() {
+  const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const remover = async (
+    mensagemId: number,
+    onSucesso?: (response: RemoverMensagemResponse) => void
+  ) => {
+    if (loadingId !== null) return;
+
+    setLoadingId(mensagemId);
+    setError(null);
+    try {
+      const response = await conversaService.removerMensagem(mensagemId);
+      enqueueSnackbar(TEXTOS_INTERFACE.sucesso.mensagemApagada, {
+        variant: "success",
+        autoHideDuration: 5000,
+      });
+      onSucesso?.(response);
+    } catch (err: unknown) {
+      const statusCode = extrairStatusCode(err);
+      if (statusCode) {
+        navigate("/sabor-familia/error", { state: { statusCode } });
+      } else {
+        setError(TEXTOS_INTERFACE.erros.apagarMensagem);
+      }
+    } finally {
+      setLoadingId(null);
+    }
+  };
+
+  return { remover, loadingId, error };
 }
 
 export function useEnviarMensagem() {
