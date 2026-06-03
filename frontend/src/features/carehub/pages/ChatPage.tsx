@@ -94,25 +94,44 @@ export default function ChatPage() {
     refetchInterval: 10000, // Atualiza a cada 10 segundos
   });
 
+  // Rastreia o último (contato, número de msgs) que foi marcado como lido
+  // para não chamar marcarConversaComoLida a cada poll de 5s
+  const lastMarkedRef = useRef<{ contatoId: number; count: number } | null>(null);
+
   // Fetch conversa com polling a cada 5s
   const { data: msgs = [], isLoading, isError } = useQuery({
     queryKey: ['mensagens', userId, contatoSelecionado],
     queryFn: async () => {
       if (!userId || !contatoSelecionado) return [];
       const mensagens = await mensagensApi.conversa(contatoSelecionado);
-      
-      // Marca mensagens como lidas quando abre a conversa
-      if (mensagens.length > 0) {
-        await marcarConversaComoLida(contatoSelecionado);
-        // Invalida o contador de não lidas para atualizar o badge
-        queryClient.invalidateQueries({ queryKey: ['mensagens-nao-lidas', userId] });
-      }
-      
       return mensagens;
     },
     enabled: !!(userId && contatoSelecionado),
     refetchInterval: 5000, // Auto-refresh a cada 5s
   });
+
+  // Marca mensagens como lidas SOMENTE quando:
+  //   a) O usuário abre um novo chat (contatoSelecionado muda)
+  //   b) Chegam mensagens novas (msgs.length aumentou)
+  // NUNCA nos refetches periódicos de um chat já aberto sem mudanças.
+  // Isso impede que o polling do Idoso zere o contador de não lidas do Cuidador
+  // (e vice-versa), que era o bug de "leitura cruzada" relatado.
+  useEffect(() => {
+    if (!userId || !contatoSelecionado || msgs.length === 0) return;
+
+    const last = lastMarkedRef.current;
+    const contatoMudou = !last || last.contatoId !== contatoSelecionado;
+    const chegouMensagemNova = last && last.contatoId === contatoSelecionado && msgs.length > last.count;
+
+    if (contatoMudou || chegouMensagemNova) {
+      lastMarkedRef.current = { contatoId: contatoSelecionado, count: msgs.length };
+      marcarConversaComoLida(contatoSelecionado).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['contatos', userId] });
+        queryClient.invalidateQueries({ queryKey: ['mensagens-nao-lidas', userId] });
+      }).catch(() => { /* silencia erros de rede */ });
+    }
+  }, [contatoSelecionado, msgs.length, userId]);
+
 
   // Verifica se o chat está ativo (agendamento em curso) ou encerrado (concluído/cancelado)
   const { data: chatAtivoData } = useQuery({

@@ -27,7 +27,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useSnackbar } from 'notistack';
 import { adminUsersApi, type UpdateUserPayload } from '../features/admin/api/users';
 import { setAuthToken } from '@/lib/http';
-import { GlobalAlertListener } from '@/features/carehub';
+import { GlobalAlertListener, GlobalMessageListener } from '@/features/carehub';
 
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -211,6 +211,10 @@ export default function AppLayout() {
 
       {userRole && userRole.toUpperCase().includes('CUIDADOR') && (
         <GlobalAlertListener />
+      )}
+
+      {userRole && (
+        <GlobalMessageListener />
       )}
 
       <Dialog

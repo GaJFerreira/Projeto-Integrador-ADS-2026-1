@@ -20,6 +20,7 @@ export { ProximosAtendimentosPage } from './pages/ProximosAtendimentosPage';
 export { HistoricoAtendimentosPage } from './pages/HistoricoAtendimentosPage';
 export { default as PainelAlertasPage } from './pages/PainelAlertasPage';
 export { GlobalAlertListener } from './components/GlobalAlertListener';
+export { GlobalMessageListener } from './components/GlobalMessageListener';
 
 // Utilitários de autenticação
 export { 

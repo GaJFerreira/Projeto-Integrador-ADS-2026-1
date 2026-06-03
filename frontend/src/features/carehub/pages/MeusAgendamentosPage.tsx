@@ -239,6 +239,47 @@ export function MeusAgendamentosPage() {
     }
   };
 
+  const getStatusStyles = (status: string) => {
+    switch (status) {
+      case 'PENDENTE':
+        return {
+          color: '#b45309', // amber escuro
+          backgroundColor: '#fef3c7', // amber suave
+          borderColor: '#fcd34d',
+        };
+      case 'CONFIRMADO':
+        return {
+          color: '#0f766e', // teal escuro
+          backgroundColor: '#f0fdfa', // teal suave
+          borderColor: '#99f6e4',
+        };
+      case 'EM_ANDAMENTO':
+        return {
+          color: '#1d4ed8', // blue escuro
+          backgroundColor: '#eff6ff', // blue suave
+          borderColor: '#bfdbfe',
+        };
+      case 'CONCLUIDO':
+        return {
+          color: '#15803d', // green escuro
+          backgroundColor: '#f0fdf4', // green suave
+          borderColor: '#bbf7d0',
+        };
+      case 'CANCELADO':
+        return {
+          color: '#b91c1c', // red escuro
+          backgroundColor: '#fef2f2', // red suave
+          borderColor: '#fecaca',
+        };
+      default:
+        return {
+          color: '#475569',
+          backgroundColor: '#f1f5f9',
+          borderColor: '#e2e8f0',
+        };
+    }
+  };
+
   const formatarData = (dataISO: string) => {
     const data = parseDate(dataISO);
     if (!data) return '-';
@@ -309,7 +350,7 @@ export function MeusAgendamentosPage() {
   if (loading) {
     return (
       <Box>
-        <PageHeader title="Meus Agendamentos" backTo="/carehub" />
+        <PageHeader title="Meus Agendamentos" backTo="/carehub/agendamentos-menu" />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
           <CircularProgress />
         </Box>
@@ -319,7 +360,7 @@ export function MeusAgendamentosPage() {
 
   return (
     <Box>
-      <PageHeader title="Meus Agendamentos" backTo="/carehub" />
+      <PageHeader title="Meus Agendamentos" backTo="/carehub/agendamentos-menu" />
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -360,118 +401,264 @@ export function MeusAgendamentosPage() {
           {agendamentosFiltrados.map((agendamento) => (
             <Card
               key={agendamento.id}
-              elevation={2}
+              elevation={0}
               sx={{
                 height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
-                transition: 'transform 0.2s, box-shadow 0.2s',
+                borderRadius: 4,
+                border: '1px solid rgba(15, 118, 110, 0.09)',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 4px 20px rgba(15, 23, 42, 0.03)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                overflow: 'hidden',
                 '&:hover': {
-                  transform: 'translateY(-4px)',
-                  boxShadow: 6,
+                  transform: 'translateY(-6px)',
+                  boxShadow: '0 12px 30px rgba(15, 118, 110, 0.08)',
+                  borderColor: 'rgba(15, 118, 110, 0.22)',
                 },
               }}
             >
-              <CardContent sx={{ flexGrow: 1 }}>
+              <CardContent sx={{ p: 3, pb: 2.5, flexGrow: 1 }}>
                 {/* Status */}
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2.5 }}>
                   <Chip
                     icon={getStatusIcon(agendamento.status)}
                     label={getStatusLabel(agendamento.status)}
-                    color={getStatusColor(agendamento.status)}
+                    variant="outlined"
                     size="small"
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      height: 26,
+                      borderRadius: 1.5,
+                      borderWidth: '1px',
+                      borderStyle: 'solid',
+                      px: 0.5,
+                      '& .MuiChip-icon': { 
+                        color: 'inherit',
+                        fontSize: '1rem',
+                        marginLeft: '4px',
+                        marginRight: '-4px'
+                      },
+                      ...getStatusStyles(agendamento.status)
+                    }}
                   />
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography 
+                    variant="caption" 
+                    fontWeight={600}
+                    sx={{ 
+                      color: '#94a3b8',
+                      backgroundColor: '#f8fafc',
+                      px: 1,
+                      py: 0.25,
+                      borderRadius: 1,
+                      border: '1px solid #e2e8f0'
+                    }}
+                  >
                     ID: {agendamento.id}
                   </Typography>
                 </Box>
 
                 {/* Cliente */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                  <Person color="primary" aria-label="Ícone de pessoa" />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
+                  <Box
+                    sx={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: '50%',
+                      backgroundColor: '#f0fdfa',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#0f766e',
+                      border: '1px solid rgba(15, 118, 110, 0.12)',
+                    }}
+                  >
+                    <Person sx={{ fontSize: 20 }} />
+                  </Box>
                   <Box>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography 
+                      variant="caption" 
+                      fontWeight={600} 
+                      sx={{ color: '#94a3b8', display: 'block', lineHeight: 1.2 }}
+                    >
                       Cliente
                     </Typography>
-                    <Typography variant="body1" fontWeight={600}>
+                    <Typography 
+                      variant="body1" 
+                      fontWeight={700} 
+                      sx={{ color: '#1e293b', fontSize: '1rem', mt: 0.25 }}
+                    >
                       {agendamento.clienteNome}
                     </Typography>
                   </Box>
                 </Box>
 
                 {/* Data e Hora */}
-                <Stack spacing={1} sx={{ mb: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CalendarToday fontSize="small" color="action" aria-label="Ícone de calendário" />
-                    <Typography variant="body2">
-                      {formatarData(agendamento.dataHoraInicio)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <AccessTime fontSize="small" color="action" aria-label="Ícone de relógio" />
-                    <Typography variant="body2">
-                      {formatarHorarioAtendimento(agendamento.dataHoraInicio, agendamento.dataHoraFim)}
-                    </Typography>
-                  </Box>
-                </Stack>
+                <Box
+                  sx={{
+                    backgroundColor: '#f8fafc',
+                    borderRadius: 3,
+                    p: 2,
+                    mb: 2.5,
+                    border: '1px solid #f1f5f9',
+                  }}
+                >
+                  <Stack spacing={1.25}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                      <CalendarToday sx={{ fontSize: 16, color: '#0f766e' }} aria-label="Ícone de calendário" />
+                      <Typography variant="body2" fontWeight={600} sx={{ color: '#334155' }}>
+                        {formatarData(agendamento.dataHoraInicio)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                      <AccessTime sx={{ fontSize: 16, color: '#64748b' }} aria-label="Ícone de relógio" />
+                      <Typography variant="body2" sx={{ color: '#475569', fontWeight: 500 }}>
+                        {formatarHorarioAtendimento(agendamento.dataHoraInicio, agendamento.dataHoraFim)}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Box>
 
                 {/* Tipo de Atendimento */}
                 {agendamento.tipoAtendimento && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                    <strong>Tipo:</strong> {TIPOS_ATENDIMENTO[agendamento.tipoAtendimento] || agendamento.tipoAtendimento}
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      mb: 1.5, 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: 0.75,
+                      color: '#64748b',
+                      fontSize: '0.875rem' 
+                    }}
+                  >
+                    <span>Tipo:</span>
+                    <strong style={{ color: '#334155', fontWeight: 600 }}>
+                      {TIPOS_ATENDIMENTO[agendamento.tipoAtendimento] || agendamento.tipoAtendimento}
+                    </strong>
                   </Typography>
                 )}
 
                 {/* Observações */}
                 {agendamento.observacoes && (
-                  <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-                    "{agendamento.observacoes}"
-                  </Typography>
+                  <Box
+                    sx={{
+                      mt: 2,
+                      p: 1.5,
+                      backgroundColor: '#fffdf5',
+                      borderLeft: '3px solid #f59e0b',
+                      borderRadius: '0 8px 8px 0',
+                    }}
+                  >
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        fontStyle: 'italic', 
+                        fontSize: '0.825rem',
+                        color: '#d97706',
+                        lineHeight: 1.4
+                      }}
+                    >
+                      "{agendamento.observacoes}"
+                    </Typography>
+                  </Box>
                 )}
               </CardContent>
 
               {/* Ações */}
               {agendamento.status === 'PENDENTE' && (
-                <Box sx={{ p: 2, pt: 0 }}>
-                  <Stack spacing={1}>
+                <Box sx={{ p: 3, pt: 0 }}>
+                  <Stack spacing={1.25}>
                     {isUserCuidador ? (
                       <>
                         <Button
                           fullWidth
                           variant="contained"
-                          color="success"
                           onClick={() => atualizarStatus(agendamento.id, 'CONFIRMADO')}
+                          sx={{
+                            borderRadius: 2.5,
+                            py: 1.15,
+                            fontWeight: 700,
+                            textTransform: 'none',
+                            backgroundColor: '#0f766e',
+                            boxShadow: '0 4px 12px rgba(15, 118, 110, 0.15)',
+                            transition: 'all 0.2s',
+                            '&:hover': {
+                              backgroundColor: '#0d625b',
+                              boxShadow: '0 6px 16px rgba(15, 118, 110, 0.25)',
+                              transform: 'translateY(-1px)'
+                            },
+                            '&:active': {
+                              transform: 'translateY(0)'
+                            }
+                          }}
                         >
                           ✓ Confirmar Disponibilidade
                         </Button>
                         <Button
                           fullWidth
                           variant="outlined"
-                          color="warning"
                           onClick={() => {
                             setAgendamentoReproposta(agendamento);
                             setRepropostaModalOpen(true);
+                          }}
+                          sx={{
+                            borderRadius: 2.5,
+                            py: 1,
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            color: '#d97706',
+                            borderColor: '#f59e0b',
+                            '&:hover': {
+                              borderColor: '#d97706',
+                              backgroundColor: '#fffbeb'
+                            }
                           }}
                         >
                           📅 Propor Outro Horário
                         </Button>
                         <Button
                           fullWidth
-                          variant="outlined"
-                          color="error"
+                          variant="text"
                           onClick={() => atualizarStatus(agendamento.id, 'CANCELADO')}
+                          sx={{
+                            borderRadius: 2.5,
+                            py: 0.75,
+                            fontWeight: 500,
+                            textTransform: 'none',
+                            color: '#dc2626',
+                            fontSize: '0.85rem',
+                            '&:hover': {
+                              backgroundColor: '#fef2f2'
+                            }
+                          }}
                         >
-                          ✕ Cancelar Definitivamente
+                          ✕ Recusar Proposta
                         </Button>
                       </>
                     ) : (
                       <>
-                        <Alert severity="info">Aguardando confirmação do cuidador.</Alert>
+                        <Alert severity="info" sx={{ borderRadius: 2 }}>
+                          Aguardando confirmação do cuidador.
+                        </Alert>
                         <Button
                           fullWidth
                           variant="outlined"
-                          color="error"
                           onClick={() => atualizarStatus(agendamento.id, 'CANCELADO')}
+                          sx={{
+                            borderRadius: 2.5,
+                            py: 1,
+                            fontWeight: 600,
+                            textTransform: 'none',
+                            color: '#dc2626',
+                            borderColor: '#fca5a5',
+                            '&:hover': {
+                              borderColor: '#dc2626',
+                              backgroundColor: '#fef2f2'
+                            }
+                          }}
                         >
                           Cancelar Solicitação
                         </Button>
@@ -482,15 +669,15 @@ export function MeusAgendamentosPage() {
               )}
 
               {agendamento.status === 'CONFIRMADO' && (
-                <Box sx={{ p: 2, pt: 0 }}>
-                  <Stack spacing={1}>
+                <Box sx={{ p: 3, pt: 0 }}>
+                  <Stack spacing={1.5}>
                     {validacoes[agendamento.id] && !validacoes[agendamento.id].podeIniciar && (
-                      <Alert severity="info" sx={{ fontSize: '0.85rem' }}>
+                      <Alert severity="info" sx={{ fontSize: '0.825rem', borderRadius: 2 }}>
                         <strong>Aguarde:</strong> {validacoes[agendamento.id].motivo}
                       </Alert>
                     )}
                     {validacoes[agendamento.id]?.podeIniciar && (
-                      <Alert severity="success" sx={{ fontSize: '0.85rem' }}>
+                      <Alert severity="success" sx={{ fontSize: '0.825rem', borderRadius: 2 }}>
                         ✓ Você pode iniciar o atendimento agora!
                       </Alert>
                     )}
@@ -498,57 +685,106 @@ export function MeusAgendamentosPage() {
                       <Button
                         fullWidth
                         variant="contained"
-                        color="primary"
                         onClick={() => atualizarStatus(agendamento.id, 'EM_ANDAMENTO')}
                         disabled={validacoes[agendamento.id] && !validacoes[agendamento.id].podeIniciar}
+                        sx={{
+                          borderRadius: 2.5,
+                          py: 1.15,
+                          fontWeight: 700,
+                          textTransform: 'none',
+                          backgroundColor: '#0f766e',
+                          boxShadow: '0 4px 12px rgba(15, 118, 110, 0.15)',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            backgroundColor: '#0d625b',
+                            boxShadow: '0 6px 16px rgba(15, 118, 110, 0.25)',
+                            transform: 'translateY(-1px)'
+                          },
+                          '&:active': {
+                            transform: 'translateY(0)'
+                          },
+                          '&.Mui-disabled': {
+                            backgroundColor: '#e2e8f0',
+                            color: '#94a3b8'
+                          }
+                        }}
                       >
                         {validacoes[agendamento.id]?.podeIniciar
                           ? '▶ Iniciar Atendimento'
                           : '⏰ Aguardando Horário'}
                       </Button>
                     ) : (
-                      <Alert severity="info">Aguarde o cuidador iniciar o atendimento.</Alert>
+                      <Alert severity="info" sx={{ borderRadius: 2 }}>
+                        Aguarde o cuidador iniciar o atendimento.
+                      </Alert>
                     )}
                     <Button
                       fullWidth
-                      variant="outlined"
-                      color="error"
-                      size="small"
+                      variant="text"
                       onClick={() => atualizarStatus(agendamento.id, 'CANCELADO')}
+                      sx={{
+                        borderRadius: 2.5,
+                        py: 0.75,
+                        fontWeight: 500,
+                        textTransform: 'none',
+                        color: '#dc2626',
+                        fontSize: '0.85rem',
+                        '&:hover': {
+                          backgroundColor: '#fef2f2'
+                        }
+                      }}
                     >
-                      Cancelar
+                      Cancelar Agendamento
                     </Button>
                   </Stack>
                 </Box>
               )}
 
               {agendamento.status === 'EM_ANDAMENTO' && (
-                <Box sx={{ p: 2, pt: 0 }}>
-                  <Stack spacing={1}>
-                    <Alert severity="success" sx={{ fontSize: '0.85rem' }}>
+                <Box sx={{ p: 3, pt: 0 }}>
+                  <Stack spacing={1.5}>
+                    <Alert severity="success" sx={{ fontSize: '0.825rem', borderRadius: 2 }}>
                       Atendimento em andamento. Não esqueça de preencher o registro de acompanhamento!
                     </Alert>
                     {isUserCuidador ? (
                       <Button
                         fullWidth
                         variant="contained"
-                        color="success"
                         onClick={() => atualizarStatus(agendamento.id, 'CONCLUIDO')}
+                        sx={{
+                          borderRadius: 2.5,
+                          py: 1.15,
+                          fontWeight: 700,
+                          textTransform: 'none',
+                          backgroundColor: '#16a34a',
+                          boxShadow: '0 4px 12px rgba(22, 163, 74, 0.15)',
+                          transition: 'all 0.2s',
+                          '&:hover': {
+                            backgroundColor: '#15803d',
+                            boxShadow: '0 6px 16px rgba(22, 163, 74, 0.25)',
+                            transform: 'translateY(-1px)'
+                          },
+                          '&:active': {
+                            transform: 'translateY(0)'
+                          }
+                        }}
                       >
                         ✓ Finalizar Atendimento
                       </Button>
                     ) : (
-                      <Alert severity="info">O cuidador pode finalizar o atendimento quando concluído.</Alert>
+                      <Alert severity="info" sx={{ borderRadius: 2 }}>
+                        O cuidador pode finalizar o atendimento quando concluído.
+                      </Alert>
                     )}
                   </Stack>
                 </Box>
               )}
 
               {(agendamento.status === 'CONCLUIDO' || agendamento.status === 'CANCELADO') && (
-                <Box sx={{ p: 2, pt: 0 }}>
+                <Box sx={{ p: 3, pt: 0 }}>
                   <Alert
                     severity={agendamento.status === 'CONCLUIDO' ? 'success' : 'error'}
-                    sx={{ fontSize: '0.85rem' }}
+                    sx={{ fontSize: '0.825rem', borderRadius: 2 }}
                   >
                     {agendamento.status === 'CONCLUIDO'
                       ? '✓ Atendimento concluído com sucesso!'
@@ -559,7 +795,6 @@ export function MeusAgendamentosPage() {
                       <Button
                         fullWidth
                         variant="contained"
-                        color="secondary"
                         onClick={() => {
                           // abrir modal de avaliação e pré-selecionar o agendamento
                           setAvaliacaoCuidadorId(agendamento.cuidadorId ?? undefined as any);
@@ -567,8 +802,18 @@ export function MeusAgendamentosPage() {
                           setAvaliacaoAgendamentoId(agendamento.id);
                           setAvaliacoesModalOpen(true);
                         }}
+                        sx={{
+                          borderRadius: 2.5,
+                          py: 1.15,
+                          fontWeight: 700,
+                          textTransform: 'none',
+                          backgroundColor: '#0f766e',
+                          '&:hover': {
+                            backgroundColor: '#0d625b',
+                          }
+                        }}
                       >
-                        Avaliar
+                        Avaliar Atendimento
                       </Button>
                     </Box>
                   )}

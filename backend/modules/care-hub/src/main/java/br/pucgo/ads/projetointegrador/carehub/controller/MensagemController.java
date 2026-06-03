@@ -311,7 +311,25 @@ public class MensagemController {
         TipoUsuario tipoContato = usuarioEhCuidador ? TipoUsuario.CLIENTE : TipoUsuario.CUIDADOR;
 
         List<ContatoDTO> contatos = mensagemService.listarContatos(usuarioAutenticado.id, usuarioEhCuidador);
-        contatos.forEach(c -> c.setId(obterIdPlataforma(c.getId(), tipoContato)));
+        contatos.forEach(c -> {
+            c.setId(obterIdPlataforma(c.getId(), tipoContato));
+            if (c.getUltimoRemetenteId() != null) {
+                // Calcula o booleano ANTES de converter o ID para platformId.
+                // Usa IDs locais, que são sempre consistentes no banco CareHub —
+                // sem risco de mismatch com platformUserId que pode estar nulo.
+                boolean euEnviei = c.getUltimoRemetenteId().equals(usuarioAutenticado.id);
+                c.setUltimaMensagemEnviadaPorMim(euEnviei);
+
+                if (euEnviei) {
+                    c.setUltimoRemetenteId(obterIdPlataforma(usuarioAutenticado.id, usuarioAutenticado.tipo));
+                } else {
+                    c.setUltimoRemetenteId(c.getId());
+                }
+            } else {
+                // Sem última mensagem: campo indefinido (null = desconhecido)
+                c.setUltimaMensagemEnviadaPorMim(null);
+            }
+        });
         return ResponseEntity.ok(contatos);
     }
 

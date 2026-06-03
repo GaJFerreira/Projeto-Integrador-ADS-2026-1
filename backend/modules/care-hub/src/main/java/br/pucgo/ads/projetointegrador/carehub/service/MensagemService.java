@@ -179,6 +179,7 @@ public class MensagemService {
                             dto.setUltimaMensagem("🎤 Áudio");
                         }
                         dto.setDataUltimaMensagem(ultimaMensagem.getDataEnvio());
+                        dto.setUltimoRemetenteId(ultimaMensagem.getRemetenteId());
                     }
                     return dto;
                 })

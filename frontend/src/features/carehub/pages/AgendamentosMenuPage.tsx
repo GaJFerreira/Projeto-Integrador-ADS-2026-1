@@ -27,7 +27,7 @@ export default function AgendamentosMenuPage() {
       highlight: 'Futuros',
     },
     {
-      title: 'Ver Agendamentos Já Feitos',
+      title: 'Ver Agendamentos em Andamento',
       description: 'Consulte a lista principal de agendamentos e seus status.',
       icon: <AssignmentTurnedIn />,
       to: usuarioCuidador ? '/carehub/cuidador/agendamentos' : '/carehub/agendamentos',
