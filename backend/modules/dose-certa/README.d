@@ -2,6 +2,7 @@
 
 Este submódulo é dedicado exclusivamente às regras de negócio do grupo **[Nome do Grupo]**.
 
+
 ## 📦 O que deve conter aqui?
 Para manter a organização e evitar o "vazamento" de código entre grupos, todo o desenvolvimento deve ocorrer dentro do pacote:
 `br.pucgo.ads.projetointegrador.[nomedomodulo]`
