@@ -2,7 +2,7 @@ package br.com.puc.saborfamilia.service.mensagem.publisher;
 
 import br.com.puc.saborfamilia.config.WebSocketConfig;
 import br.com.puc.saborfamilia.enums.TipoEventoMensagem;
-import br.com.puc.saborfamilia.service.mensagem.dto.response.EventoMensagemWs;
+import br.com.puc.saborfamilia.service.mensagem.dto.response.EventoMensagemWebSocket;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemResponse;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +23,7 @@ public class WebSocketPublisher {
     Long remetenteUsuarioId,
     Long destinatarioUsuarioId
   ) {
-    EventoMensagemWs evento = new EventoMensagemWs(
+    EventoMensagemWebSocket evento = new EventoMensagemWebSocket(
       TipoEventoMensagem.NOVA,
       conversaId,
       mensagem,
@@ -45,7 +45,7 @@ public class WebSocketPublisher {
     Long remetenteUsuarioId,
     Long destinatarioUsuarioId
   ) {
-    EventoMensagemWs eventoRemetente = new EventoMensagemWs(
+    EventoMensagemWebSocket eventoRemetente = new EventoMensagemWebSocket(
       TipoEventoMensagem.APAGADA,
       conversaId,
       mensagem,
@@ -54,18 +54,18 @@ public class WebSocketPublisher {
       naoLidasRemetente
     );
 
-    EventoMensagemWs eventoDestinatario = new EventoMensagemWs(
-      TipoEventoMensagem.APAGADA,
-      conversaId,
-      mensagem,
-      ultimaMensagem,
-      dataUltimaMensagem,
-      naoLidasDestinatario
-    );
-
     enviarMensagem(remetenteUsuarioId, eventoRemetente);
 
     if (!remetenteUsuarioId.equals(destinatarioUsuarioId)) {
+      EventoMensagemWebSocket eventoDestinatario = new EventoMensagemWebSocket(
+        TipoEventoMensagem.APAGADA,
+        conversaId,
+        mensagem,
+        ultimaMensagem,
+        dataUltimaMensagem,
+        naoLidasDestinatario
+      );
+
       enviarMensagem(destinatarioUsuarioId, eventoDestinatario);
     }
   }
@@ -73,7 +73,7 @@ public class WebSocketPublisher {
   private void publicarEvento(
     Long remetenteUsuarioId,
     Long destinatarioUsuarioId,
-    EventoMensagemWs evento
+    EventoMensagemWebSocket evento
   ) {
     enviarMensagem(remetenteUsuarioId, evento);
 
@@ -82,7 +82,7 @@ public class WebSocketPublisher {
     }
   }
 
-  private void enviarMensagem(Long usuarioId, EventoMensagemWs evento) {
+  private void enviarMensagem(Long usuarioId, EventoMensagemWebSocket evento) {
     messagingTemplate.convertAndSendToUser(
       String.valueOf(usuarioId),
       WebSocketConfig.FILA_MENSAGENS,
