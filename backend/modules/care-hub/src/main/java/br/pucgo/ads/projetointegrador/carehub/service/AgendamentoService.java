@@ -145,9 +145,9 @@ public class AgendamentoService {
 
     private void gerarMensagemConfirmacaoAutomatica(Agendamento agendamento) {
         Mensagem mensagem = new Mensagem();
-        mensagem.setRemetenteId(agendamento.getCuidador().getId());
+        mensagem.setRemetenteId(agendamento.getCuidador().getPlatformUserId());
         mensagem.setRemetenteTipo("CUIDADOR");
-        mensagem.setDestinatarioId(agendamento.getCliente().getId());
+        mensagem.setDestinatarioId(agendamento.getCliente().getPlatformUserId());
         mensagem.setDestinatarioTipo("CLIENTE");
         mensagem.setConteudo("O agendamento foi confirmado! O bate-papo agora está disponível.");
         mensagem.setDataEnvio(OffsetDateTime.now(ZoneOffset.UTC));
@@ -269,7 +269,7 @@ public class AgendamentoService {
                 agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
                 // Apaga todo o histórico de mensagens ao cancelar
                 mensagemRepository.deleteConversaBetween(
-                        agendamento.getCuidador().getId(), agendamento.getCliente().getId());
+                        agendamento.getCuidador().getPlatformUserId(), agendamento.getCliente().getPlatformUserId());
                 break;
 
             case CONCLUIDO:
@@ -345,7 +345,7 @@ public class AgendamentoService {
                 agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
                 // Apaga todo o histórico de mensagens ao cancelar
                 mensagemRepository.deleteConversaBetween(
-                        agendamento.getCuidador().getId(), agendamento.getCliente().getId());
+                        agendamento.getCuidador().getPlatformUserId(), agendamento.getCliente().getPlatformUserId());
                 break;
             case CONCLUIDO:
                 if (!isCuidadorCaller) {
@@ -478,7 +478,7 @@ public class AgendamentoService {
         agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
         // Apaga todo o hist\u00f3rico de mensagens ao cancelar
         mensagemRepository.deleteConversaBetween(
-                agendamento.getCuidador().getId(), agendamento.getCliente().getId());
+                agendamento.getCuidador().getPlatformUserId(), agendamento.getCliente().getPlatformUserId());
         agendamentoRepository.save(agendamento);
     }
 

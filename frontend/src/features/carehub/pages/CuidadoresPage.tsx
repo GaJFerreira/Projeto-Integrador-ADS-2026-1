@@ -352,7 +352,7 @@ export default function CuidadoresPage() {
                       sx={{
                         width: 56,
                         height: 56,
-                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        background: '#1565C0',
                         color: 'white',
                         fontSize: '1.4rem',
                         fontWeight: 700,

@@ -50,29 +50,6 @@ public class MensagemController {
     @Autowired
     private br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository clienteRepository;
 
-    private Long obterIdLocal(Long platformUserId) {
-        if (platformUserId == null) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "ID de usuario e obrigatorio");
-        }
-
-        var c = cuidadorRepository.findByPlatformUserId(platformUserId);
-        if (c.isPresent())
-            return c.get().getId();
-
-        var cli = clienteRepository.findByPlatformUserId(platformUserId);
-        if (cli.isPresent())
-            return cli.get().getId();
-
-        throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuário local do CareHub não encontrado para o platformUserId: " + platformUserId);
-    }
-
-    private Long obterIdLocalAutenticado(Principal principal) {
-        return obterUsuarioLocalAutenticado(principal).id;
-    }
-
     private UsuarioLocal obterUsuarioLocalAutenticado(Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
             throw new org.springframework.web.server.ResponseStatusException(
@@ -83,50 +60,19 @@ public class MensagemController {
 
         var cuidador = cuidadorRepository.findByUsername(usernameOrEmail)
                 .or(() -> cuidadorRepository.findByEmail(usernameOrEmail));
-        if (cuidador.isPresent()) {
-            return new UsuarioLocal(cuidador.get().getId(), TipoUsuario.CUIDADOR);
+        if (cuidador.isPresent() && cuidador.get().getPlatformUserId() != null) {
+            return new UsuarioLocal(cuidador.get().getPlatformUserId(), TipoUsuario.CUIDADOR);
         }
 
         var cliente = clienteRepository.findByUsername(usernameOrEmail)
                 .or(() -> clienteRepository.findByEmail(usernameOrEmail));
-        if (cliente.isPresent()) {
-            return new UsuarioLocal(cliente.get().getId(), TipoUsuario.CLIENTE);
+        if (cliente.isPresent() && cliente.get().getPlatformUserId() != null) {
+            return new UsuarioLocal(cliente.get().getPlatformUserId(), TipoUsuario.CLIENTE);
         }
 
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuário local do CareHub não encontrado para o principal autenticado: " + usernameOrEmail);
-    }
-
-    private Long obterIdPlataforma(Long localUserId) {
-        if (localUserId == null)
-            return null;
-        var c = cuidadorRepository.findById(localUserId);
-        if (c.isPresent() && c.get().getPlatformUserId() != null)
-            return c.get().getPlatformUserId();
-
-        var cli = clienteRepository.findById(localUserId);
-        if (cli.isPresent() && cli.get().getPlatformUserId() != null)
-            return cli.get().getPlatformUserId();
-
-        return localUserId;
-    }
-
-    private Long obterIdPlataforma(Long localUserId, TipoUsuario tipo) {
-        if (localUserId == null)
-            return null;
-
-        if (tipo == TipoUsuario.CUIDADOR) {
-            var c = cuidadorRepository.findById(localUserId);
-            if (c.isPresent() && c.get().getPlatformUserId() != null)
-                return c.get().getPlatformUserId();
-        } else {
-            var cli = clienteRepository.findById(localUserId);
-            if (cli.isPresent() && cli.get().getPlatformUserId() != null)
-                return cli.get().getPlatformUserId();
-        }
-
-        return localUserId;
+                "Usuário platformUserId não encontrado para o principal autenticado: " + usernameOrEmail);
     }
 
     private TipoUsuario tipoOposto(TipoUsuario tipo) {
@@ -148,21 +94,11 @@ public class MensagemController {
             return null;
 
         TipoUsuario remetenteTipo = parseTipo(dto.getRemetenteTipo());
-        TipoUsuario destinatarioTipo = parseTipo(dto.getDestinatarioTipo());
         boolean remetenteEhUsuario = dto.getRemetenteId() != null
                 && dto.getRemetenteId().equals(usuarioAutenticado.id)
                 && (remetenteTipo == null || remetenteTipo == usuarioAutenticado.tipo);
 
-        if (remetenteTipo == null) {
-            remetenteTipo = remetenteEhUsuario ? usuarioAutenticado.tipo : tipoOposto(usuarioAutenticado.tipo);
-        }
-        if (destinatarioTipo == null) {
-            destinatarioTipo = remetenteEhUsuario ? tipoOposto(usuarioAutenticado.tipo) : usuarioAutenticado.tipo;
-        }
-
         dto.setEnviadaPeloUsuarioLogado(remetenteEhUsuario);
-        dto.setRemetenteId(obterIdPlataforma(dto.getRemetenteId(), remetenteTipo));
-        dto.setDestinatarioId(obterIdPlataforma(dto.getDestinatarioId(), destinatarioTipo));
         return dto;
     }
 
@@ -182,9 +118,8 @@ public class MensagemController {
         Long localRemetenteId = usuarioAutenticado.id;
         Long platformDestinatarioId = dtoMap.get("destinatarioId") == null ? null
                 : Long.valueOf(dtoMap.get("destinatarioId").toString());
-        Long localDestinatarioId = obterIdLocal(platformDestinatarioId);
         String conteudo = dtoMap.get("conteudo") == null ? null : dtoMap.get("conteudo").toString();
-        MensagemRequestDTO dto = new MensagemRequestDTO(localDestinatarioId, conteudo, null, null);
+        MensagemRequestDTO dto = new MensagemRequestDTO(platformDestinatarioId, conteudo, null, null);
         MensagemResponseDTO mensagem = mensagemService.enviarMensagem(
                 localRemetenteId,
                 dto,
@@ -207,8 +142,7 @@ public class MensagemController {
             @PathVariable Long usuarioId) {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
         Long localUsuarioAutenticadoId = usuarioAutenticado.id;
-        Long localUsuarioId = obterIdLocal(usuarioId);
-        List<MensagemResponseDTO> mensagens = mensagemService.buscarConversa(localUsuarioAutenticadoId, localUsuarioId);
+        List<MensagemResponseDTO> mensagens = mensagemService.buscarConversa(localUsuarioAutenticadoId, usuarioId);
         return ResponseEntity.ok(converterListaParaPlataforma(mensagens, usuarioAutenticado));
     }
 
@@ -219,13 +153,12 @@ public class MensagemController {
             @RequestParam("file") MultipartFile file) throws Exception {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
         Long localRemetenteId = usuarioAutenticado.id;
-        Long localDestinatarioId = obterIdLocal(destinatarioId);
         byte[] data = file.getBytes();
         String storageKey = java.util.UUID.randomUUID().toString();
         String mediaUrl = "/api/carehub/mensagens/media/" + storageKey;
 
         MensagemResponseDTO mensagem = mensagemService.enviarMensagem(localRemetenteId,
-                new br.pucgo.ads.projetointegrador.carehub.dto.mensagem.MensagemRequestDTO(localDestinatarioId, null,
+                new br.pucgo.ads.projetointegrador.carehub.dto.mensagem.MensagemRequestDTO(destinatarioId, null,
                         mediaUrl, file.getContentType()),
                 usuarioAutenticado.tipo.name(),
                 tipoOposto(usuarioAutenticado.tipo).name());
@@ -250,7 +183,7 @@ public class MensagemController {
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<Resource> serveMedia(Principal principal,
             @PathVariable String filename) throws Exception {
-        Long localUsuarioId = obterIdLocalAutenticado(principal);
+        Long localUsuarioId = obterUsuarioLocalAutenticado(principal).id;
         br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = messageMediaRepository
                 .findByStorageKey(filename);
         if (mm == null) {
@@ -299,7 +232,7 @@ public class MensagemController {
 
     @GetMapping("/contador-nao-lidas")
     public ResponseEntity<Long> contarNaoLidas(Principal principal) {
-        Long localUsuarioId = obterIdLocalAutenticado(principal);
+        Long localUsuarioId = obterUsuarioLocalAutenticado(principal).id;
         long count = mensagemService.contarMensagensNaoLidas(localUsuarioId);
         return ResponseEntity.ok(count);
     }
@@ -308,25 +241,13 @@ public class MensagemController {
     public ResponseEntity<List<ContatoDTO>> listarContatos(Principal principal) {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
         boolean usuarioEhCuidador = usuarioAutenticado.tipo == TipoUsuario.CUIDADOR;
-        TipoUsuario tipoContato = usuarioEhCuidador ? TipoUsuario.CLIENTE : TipoUsuario.CUIDADOR;
 
         List<ContatoDTO> contatos = mensagemService.listarContatos(usuarioAutenticado.id, usuarioEhCuidador);
         contatos.forEach(c -> {
-            c.setId(obterIdPlataforma(c.getId(), tipoContato));
             if (c.getUltimoRemetenteId() != null) {
-                // Calcula o booleano ANTES de converter o ID para platformId.
-                // Usa IDs locais, que são sempre consistentes no banco CareHub —
-                // sem risco de mismatch com platformUserId que pode estar nulo.
                 boolean euEnviei = c.getUltimoRemetenteId().equals(usuarioAutenticado.id);
                 c.setUltimaMensagemEnviadaPorMim(euEnviei);
-
-                if (euEnviei) {
-                    c.setUltimoRemetenteId(obterIdPlataforma(usuarioAutenticado.id, usuarioAutenticado.tipo));
-                } else {
-                    c.setUltimoRemetenteId(c.getId());
-                }
             } else {
-                // Sem última mensagem: campo indefinido (null = desconhecido)
                 c.setUltimaMensagemEnviadaPorMim(null);
             }
         });
@@ -337,9 +258,8 @@ public class MensagemController {
     public ResponseEntity<Void> marcarConversaComoLida(
             @PathVariable Long remetenteId,
             Principal principal) {
-        Long localUsuarioId = obterIdLocalAutenticado(principal);
-        Long localRemetenteId = obterIdLocal(remetenteId);
-        mensagemService.marcarConversaComoLida(localUsuarioId, localRemetenteId);
+        Long localUsuarioId = obterUsuarioLocalAutenticado(principal).id;
+        mensagemService.marcarConversaComoLida(localUsuarioId, remetenteId);
         return ResponseEntity.noContent().build();
     }
 
@@ -351,9 +271,8 @@ public class MensagemController {
     public ResponseEntity<java.util.Map<String, Boolean>> verificarChatAtivo(
             Principal principal,
             @PathVariable Long usuarioId) {
-        Long localUsuarioAutenticadoId = obterIdLocalAutenticado(principal);
-        Long localUsuarioId = obterIdLocal(usuarioId);
-        boolean ativo = mensagemService.chatAtivo(localUsuarioAutenticadoId, localUsuarioId);
+        Long localUsuarioAutenticadoId = obterUsuarioLocalAutenticado(principal).id;
+        boolean ativo = mensagemService.chatAtivo(localUsuarioAutenticadoId, usuarioId);
         return ResponseEntity.ok(java.util.Map.of("ativo", ativo));
     }
 }

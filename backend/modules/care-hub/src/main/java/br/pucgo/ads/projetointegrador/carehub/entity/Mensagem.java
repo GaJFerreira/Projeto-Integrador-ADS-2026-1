@@ -12,6 +12,7 @@ import java.time.OffsetDateTime;
  * Mensagem trocada entre dois usuários do CareHub.
  *
  * <p>
+
  * <strong>Mudança de arquitetura:</strong> os campos {@code remetente} e
  * {@code destinatario} eram anteriormente {@code User} (import da plataforma).
  * Agora são representados apenas por seus IDs Long ({@code remetenteId} e
@@ -19,8 +20,8 @@ import java.time.OffsetDateTime;
  *
  * <p>
  * O {@link br.pucgo.ads.projetointegrador.carehub.service.MensagemService}
- * resolve os nomes consultando repositórios locais (ex: CuidadorRepository,
- * ClienteRepository)
+ * resolve os nomes consultando repositórios locais usando o platformUserId
+ * (ex: CuidadorRepository, ClienteRepository)
  * quando necessário para montar o DTO de resposta.
  */
 @Entity
@@ -35,8 +36,8 @@ public class Mensagem {
     private Long id;
 
     /**
-     * ID do usuário remetente (referência a {@code care_hub.usuario.id}).
-     * Sem FK explícita para permitir independência de schema.
+     * ID do usuário remetente (agora armazenando o platformUserId).
+     * O platformUserId garante unicidade global evitando conflitos entre Cuidador e Cliente.
      */
     @Column(name = "remetente_id", nullable = false)
     private Long remetenteId;
@@ -45,7 +46,7 @@ public class Mensagem {
     private String remetenteTipo;
 
     /**
-     * ID do usuário destinatário (referência a {@code care_hub.usuario.id}).
+     * ID do usuário destinatário (armazenando o platformUserId).
      */
     @Column(name = "destinatario_id", nullable = false)
     private Long destinatarioId;
