@@ -10,7 +10,7 @@ import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.service.curtida.CurtidaService;
 import br.com.puc.saborfamilia.service.curtida.dto.CurtidaResponse;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
-import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
 import br.com.puc.saborfamilia.service.receita.dto.response.PerfilCurtidaResponse;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,7 +30,7 @@ public class CurtidaServiceImpl implements CurtidaService {
   private final CurtidaReceitaRepository curtidaReceitaRepository;
   private final PerfilRepository perfilRepository;
   private final ReceitaRepository receitaRepository;
-  private final MidiaService midiaService;
+  private final GerenciadorMidiaService gerenciadorMidiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -42,7 +42,7 @@ public class CurtidaServiceImpl implements CurtidaService {
 
     Set<Long> perfisComFoto = curtidas.isEmpty()
       ? Set.of()
-      : midiaService.buscarEntidadeIdsComMidia(
+      : gerenciadorMidiaService.buscarEntidadeIdsComMidia(
         TipoEntidadeEnum.PERFIL,
         curtidas.stream().map(c -> c.getPerfil().getId()).distinct().toList()
       );

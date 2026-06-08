@@ -18,7 +18,7 @@ import javax.imageio.stream.ImageOutputStream;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
-public final class MidiaUtils {
+public final class GerenciadorMidiaUtils {
 
   public static final String MENSAGEM_LARGURA_UPLOAD_EXCEDIDA = "A largura da imagem excede o máximo permitido no upload.";
 

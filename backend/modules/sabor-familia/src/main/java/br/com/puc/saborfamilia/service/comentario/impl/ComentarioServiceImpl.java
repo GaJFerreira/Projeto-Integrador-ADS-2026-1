@@ -13,7 +13,7 @@ import br.com.puc.saborfamilia.service.comentario.dto.request.ComentarioRequest;
 import br.com.puc.saborfamilia.service.comentario.dto.response.ComentarioResponse;
 import br.com.puc.saborfamilia.service.comentario.dto.response.RemoverComentarioResponse;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
-import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
 import br.com.puc.saborfamilia.service.receita.dto.response.PerfilComentarioResponse;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,7 +35,7 @@ public class ComentarioServiceImpl implements ComentarioService {
   private final ComentarioReceitaRepository comentarioReceitaRepository;
   private final PerfilRepository perfilRepository;
   private final ReceitaRepository receitaRepository;
-  private final MidiaService midiaService;
+  private final GerenciadorMidiaService gerenciadorMidiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -47,7 +47,7 @@ public class ComentarioServiceImpl implements ComentarioService {
 
     Set<Long> perfisComFoto = comentarios.isEmpty()
       ? Set.of()
-      : midiaService.buscarEntidadeIdsComMidia(
+      : gerenciadorMidiaService.buscarEntidadeIdsComMidia(
         TipoEntidadeEnum.PERFIL,
         comentarios.stream().map(c -> c.getPerfil().getId()).distinct().toList()
       );

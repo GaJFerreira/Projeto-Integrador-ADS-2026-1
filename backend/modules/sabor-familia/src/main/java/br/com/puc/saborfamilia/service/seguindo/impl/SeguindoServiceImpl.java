@@ -7,7 +7,7 @@ import br.com.puc.saborfamilia.database.repository.SeguindoRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.service.feed.FeedService;
-import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
 import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
 import br.com.puc.saborfamilia.service.seguindo.SeguindoService;
 import br.com.puc.saborfamilia.service.seguindo.dto.SeguindoResponse;
@@ -31,7 +31,7 @@ public class SeguindoServiceImpl implements SeguindoService {
   private final SeguindoRepository seguindoRepository;
   private final PerfilRepository perfilRepository;
   private final FeedService feedService;
-  private final MidiaService midiaService;
+  private final GerenciadorMidiaService gerenciadorMidiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -78,7 +78,7 @@ public class SeguindoServiceImpl implements SeguindoService {
 
     Set<Long> perfisComFoto = idsNaPagina.isEmpty()
       ? Set.of()
-      : midiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, idsNaPagina);
+      : gerenciadorMidiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, idsNaPagina);
 
     Set<Long> seguidoIdsFinal = seguidoIds;
 

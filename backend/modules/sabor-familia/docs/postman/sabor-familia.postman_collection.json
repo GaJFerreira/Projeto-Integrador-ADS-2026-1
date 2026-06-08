@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Sabor Família API",
-    "description": "Collection da API Sabor Família.\n\nFluxo sugerido:\n1. Autenticação → Criar usuário (opcional) ou use usuário existente.\n2. Autenticação → Login (salva accessToken e userId).\n3. Criar perfil e demais operações com Bearer {{accessToken}}.\n\nMídia: JSON traz possuiMidia; bytes em GET /midia/...?contexto=... (perfil: avatar, listagem; receita: capa-feed, capa-lista). Upload grava original; redimensiona na busca.\n\nRestrições alimentares (catálogo): GLUTEN, LACTOSE, ACUCAR, SODIO, SOJA, OVOS, CASTANHAS, ORIGEM_ANIMAL, ADOCANTE, CAFEINA, GORDURA_SATURADA, PICANTE_ACIDO, ALCOOL, FIBRA_ALTA, FIBRA_BAIXA, TEXTURA_DURA.\n\nChat: mensagens com soft delete (apagada); WebSocket /user/queue/mensagens envia eventos tipo NOVA e APAGADA.\n\nSabor Família: {{baseUrl}}\nPlataforma: {{authBaseUrl}}",
+    "description": "Collection da API Sabor Família.\n\nFluxo sugerido:\n1. Autenticação → Criar usuário (opcional) ou use usuário existente.\n2. Autenticação → Login (salva accessToken e userId).\n3. Criar perfil e demais operações com Bearer {{accessToken}}.\n\nMídia: JSON traz possuiMidia; bytes em GET /midia/...?contexto=... (perfil: avatar, capa-perfil; receita: capa-feed, capa-grid). Upload grava original; redimensiona na busca.\n\nRestrições alimentares (catálogo): GLUTEN, LACTOSE, ACUCAR, SODIO, SOJA, OVOS, CASTANHAS, ORIGEM_ANIMAL, ADOCANTE, CAFEINA, GORDURA_SATURADA, PICANTE_ACIDO, ALCOOL, FIBRA_ALTA, FIBRA_BAIXA, TEXTURA_DURA.\n\nChat: mensagens com soft delete (apagada); WebSocket /user/queue/mensagens envia eventos tipo NOVA e APAGADA.\n\nSabor Família: {{baseUrl}}\nPlataforma: {{authBaseUrl}}",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
@@ -676,7 +676,7 @@
     },
     {
       "name": "Mídia",
-      "description": "GET com query contexto (obrigatório). Upload do original em POST/PUT /perfil e /receita. Contextos perfil: avatar (128px), listagem (256px). Receita: capa-feed (560px), capa-lista (400px).",
+      "description": "GET com query contexto (obrigatório). Upload do original em POST/PUT /perfil e /receita. Contextos perfil: avatar (128px), capa-perfil (256px). Receita: capa-feed (896px), capa-grid (448px).",
       "item": [
         {
           "name": "Buscar foto de perfil avatar",
@@ -710,7 +710,7 @@
           }
         },
         {
-          "name": "Buscar foto de perfil listagem",
+          "name": "Buscar foto de perfil capa-perfil",
           "request": {
             "method": "GET",
             "header": [
@@ -721,7 +721,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/midia/perfil/{{perfilId}}?contexto=listagem",
+              "raw": "{{baseUrl}}/midia/perfil/{{perfilId}}?contexto=capa-perfil",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -733,11 +733,11 @@
               "query": [
                 {
                   "key": "contexto",
-                  "value": "listagem"
+                  "value": "capa-perfil"
                 }
               ]
             },
-            "description": "Listas, curtidas, comentários (largura máx. 256px)."
+            "description": "Capa de perfil em listas, chat e cards (largura máx. 256px)."
           }
         },
         {
@@ -768,11 +768,11 @@
                 }
               ]
             },
-            "description": "Home, favoritos e cards largos (largura máx. 560px)."
+            "description": "Home, favoritos e cards largos (largura máx. 896px)."
           }
         },
         {
-          "name": "Buscar capa de receita lista",
+          "name": "Buscar capa de receita capa-grid",
           "request": {
             "method": "GET",
             "header": [
@@ -783,7 +783,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/midia/receita/{{receitaId}}?contexto=capa-lista",
+              "raw": "{{baseUrl}}/midia/receita/{{receitaId}}?contexto=capa-grid",
               "host": [
                 "{{baseUrl}}"
               ],
@@ -795,11 +795,11 @@
               "query": [
                 {
                   "key": "contexto",
-                  "value": "capa-lista"
+                  "value": "capa-grid"
                 }
               ]
             },
-            "description": "Explorar, grid do perfil e miniaturas (largura máx. 400px)."
+            "description": "Explorar, grid do perfil e miniaturas (largura máx. 448px)."
           }
         }
       ]

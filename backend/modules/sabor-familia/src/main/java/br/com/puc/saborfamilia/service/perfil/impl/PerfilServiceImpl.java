@@ -9,7 +9,7 @@ import br.com.puc.saborfamilia.database.repository.SeguindoRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
-import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
 import br.com.puc.saborfamilia.service.perfil.PerfilService;
 import br.com.puc.saborfamilia.service.perfil.dto.request.EditarPerfilRequest;
 import br.com.puc.saborfamilia.service.perfil.dto.request.PerfilRequest;
@@ -51,7 +51,7 @@ public class PerfilServiceImpl implements PerfilService {
   private final RestricaoAlimentarService restricaoAlimentarService;
   private final PersonalizacaoService personalizacaoService;
   private final PersonalizacaoPerfilService personalizacaoPerfilService;
-  private final MidiaService midiaService;
+  private final GerenciadorMidiaService gerenciadorMidiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -226,7 +226,7 @@ public class PerfilServiceImpl implements PerfilService {
 
   private void salvarMidiaPerfil(Long usuarioId, MultipartFile fotoPerfil) {
     if (fotoPerfil != null && !fotoPerfil.isEmpty()) {
-      midiaService.salvarMidia(usuarioId, TipoEntidadeEnum.PERFIL, null, fotoPerfil);
+      gerenciadorMidiaService.salvarMidia(usuarioId, TipoEntidadeEnum.PERFIL, null, fotoPerfil);
     }
   }
 
@@ -248,7 +248,7 @@ public class PerfilServiceImpl implements PerfilService {
       seguindoPerfil,
       seguidores,
       seguindo,
-      midiaService.possuiMidia(TipoEntidadeEnum.PERFIL, perfil.getId()),
+      gerenciadorMidiaService.possuiMidia(TipoEntidadeEnum.PERFIL, perfil.getId()),
       restricoes,
       personalizacao
     );

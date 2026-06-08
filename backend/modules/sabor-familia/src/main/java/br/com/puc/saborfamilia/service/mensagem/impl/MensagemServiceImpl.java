@@ -11,7 +11,7 @@ import br.com.puc.saborfamilia.exception.model.ServiceException;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.service.mensagem.MensagemService;
 import br.com.puc.saborfamilia.service.mensagem.publisher.WebSocketPublisher;
-import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
 import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.request.EnviarMensagemRequest;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.ConversaResponse;
@@ -54,7 +54,7 @@ public class MensagemServiceImpl implements MensagemService {
   private final MensagemRepository mensagemRepository;
   private final ConversaRepository conversaRepository;
   private final PerfilRepository perfilRepository;
-  private final MidiaService midiaService;
+  private final GerenciadorMidiaService gerenciadorMidiaService;
   private final WebSocketPublisher webSocketPublisher;
 
   @Override
@@ -72,7 +72,7 @@ public class MensagemServiceImpl implements MensagemService {
 
     Set<Long> perfisComFoto = conversasNaPagina.isEmpty()
       ? Set.of()
-      : midiaService.buscarEntidadeIdsComMidia(
+      : gerenciadorMidiaService.buscarEntidadeIdsComMidia(
         TipoEntidadeEnum.PERFIL,
         conversasNaPagina.stream()
           .map(c -> c.getOutroParticipante(perfilUsuarioAutenticado.getId()).getId())
@@ -131,7 +131,7 @@ public class MensagemServiceImpl implements MensagemService {
     conversa.setConteudoUltimaMensagem(mensagemSalva.getTexto());
     conversaRepository.save(conversa);
 
-    Set<Long> perfisComFoto = midiaService.buscarEntidadeIdsComMidia(
+    Set<Long> perfisComFoto = gerenciadorMidiaService.buscarEntidadeIdsComMidia(
       TipoEntidadeEnum.PERFIL,
       List.of(perfilUsuarioAutenticado.getId(), destinatario.getId())
     );
@@ -209,7 +209,7 @@ public class MensagemServiceImpl implements MensagemService {
 
     Set<Long> perfisComFoto = perfilIds.isEmpty()
       ? Set.of()
-      : midiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, perfilIds);
+      : gerenciadorMidiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, perfilIds);
 
     List<MensagemResponse> mensagens = content.stream()
       .map(mensagem -> toMensagemResponse(mensagem, perfisComFoto))
@@ -275,7 +275,7 @@ public class MensagemServiceImpl implements MensagemService {
     atualizarConversa(conversa);
     conversaRepository.save(conversa);
 
-    Set<Long> perfisComFoto = midiaService.buscarEntidadeIdsComMidia(
+    Set<Long> perfisComFoto = gerenciadorMidiaService.buscarEntidadeIdsComMidia(
       TipoEntidadeEnum.PERFIL,
       List.of(mensagem.getRemetente().getId(), mensagem.getDestinatario().getId())
     );

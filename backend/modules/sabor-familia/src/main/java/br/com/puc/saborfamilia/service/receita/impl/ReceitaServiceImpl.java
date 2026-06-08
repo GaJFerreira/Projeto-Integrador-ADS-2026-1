@@ -8,7 +8,7 @@ import br.com.puc.saborfamilia.database.entity.ReceitaEntity;
 import br.com.puc.saborfamilia.database.entity.RestricaoAlimentarEntity;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.enums.TipoRefeicaoEnum;
-import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
 import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
 import br.com.puc.saborfamilia.database.repository.ComentarioReceitaRepository;
 import br.com.puc.saborfamilia.database.repository.CurtidaReceitaRepository;
@@ -67,7 +67,7 @@ public class ReceitaServiceImpl implements ReceitaService {
   private final PersonalizacaoService personalizacaoService;
   private final PersonalizacaoReceitaService personalizacaoReceitaService;
   private final PersonalizacaoPerfilRepository personalizacaoPerfilRepository;
-  private final MidiaService midiaService;
+  private final GerenciadorMidiaService gerenciadorMidiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -152,7 +152,7 @@ public class ReceitaServiceImpl implements ReceitaService {
     Map<Long, Boolean> restritaPorReceita = restricaoAlimentarReceitaService
       .buscarRestricoesUsuario(page.getContent(), usuarioId);
 
-    Set<Long> receitasComMidia = midiaService.buscarEntidadeIdsComMidia(
+    Set<Long> receitasComMidia = gerenciadorMidiaService.buscarEntidadeIdsComMidia(
       TipoEntidadeEnum.RECEITA,
       page.getContent().stream().map(ReceitaEntity::getId).toList()
     );
@@ -172,9 +172,10 @@ public class ReceitaServiceImpl implements ReceitaService {
   public Page<ReceitaResumoResponse> buscarReceitasPerfil(Long usuarioId, Long perfilId, Pageable pageable) {
     Page<ReceitaEntity> page = receitaRepository.findByPerfilId(perfilId, pageable);
 
-    Map<Long, Boolean> restritaPorReceita = restricaoAlimentarReceitaService.buscarRestricoesUsuario(page.getContent(), usuarioId);
+    Map<Long, Boolean> restritaPorReceita = restricaoAlimentarReceitaService
+      .buscarRestricoesUsuario(page.getContent(), usuarioId);
 
-    Set<Long> receitasComMidia = midiaService.buscarEntidadeIdsComMidia(
+    Set<Long> receitasComMidia = gerenciadorMidiaService.buscarEntidadeIdsComMidia(
       TipoEntidadeEnum.RECEITA,
       page.getContent().stream().map(ReceitaEntity::getId).toList()
     );
@@ -210,7 +211,8 @@ public class ReceitaServiceImpl implements ReceitaService {
 
     Boolean restritaParaUsuario = restricaoAlimentarReceitaService.buscarRestricoesUsuario(List.of(receita), usuarioId).get(receitaId);
 
-    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService.buscarPersonalizacoesReceita(receitaId);
+    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService
+      .buscarPersonalizacoesReceita(receitaId);
 
     return toResponse(
       receita,
@@ -257,7 +259,8 @@ public class ReceitaServiceImpl implements ReceitaService {
 
     personalizacaoReceitaService.sincronizarPersonalizacoesReceita(receitaSalva, personalizacoesValidadas);
 
-    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService.buscarPersonalizacoesReceita(receitaSalva.getId());
+    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService
+      .buscarPersonalizacoesReceita(receitaSalva.getId());
 
     feedService.publicarReceitaFeed(perfilUsuarioAutenticado, receitaSalva);
 
@@ -321,7 +324,8 @@ public class ReceitaServiceImpl implements ReceitaService {
 
     personalizacaoReceitaService.sincronizarPersonalizacoesReceita(receitaAtualizada, personalizacoesValidadas);
 
-    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService.buscarPersonalizacoesReceita(receitaAtualizada.getId());
+    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService
+      .buscarPersonalizacoesReceita(receitaAtualizada.getId());
 
     salvarMidiaReceita(usuarioId, receitaAtualizada.getId(), midia);
 
@@ -374,7 +378,7 @@ public class ReceitaServiceImpl implements ReceitaService {
     favoritoReceitaRepository.deleteByReceitaId(receitaId);
     restricaoAlimentarReceitaService.removerRestricoesReceita(receitaId);
     personalizacaoReceitaService.removerVinculosReceita(receitaId);
-    midiaService.removerMidia(TipoEntidadeEnum.RECEITA, receitaId);
+    gerenciadorMidiaService.removerMidia(TipoEntidadeEnum.RECEITA, receitaId);
     receitaRepository.delete(receita);
 
     return new RemoverReceitaResponse(receitaId, true, "Receita removida com sucesso.");
@@ -430,7 +434,7 @@ public class ReceitaServiceImpl implements ReceitaService {
 
   private void salvarMidiaReceita(Long usuarioId, Long receitaId, MultipartFile fotoMidia) {
     if (fotoMidia != null && !fotoMidia.isEmpty()) {
-      midiaService.salvarMidia(usuarioId, TipoEntidadeEnum.RECEITA, receitaId, fotoMidia);
+      gerenciadorMidiaService.salvarMidia(usuarioId, TipoEntidadeEnum.RECEITA, receitaId, fotoMidia);
     }
   }
 
@@ -477,8 +481,8 @@ public class ReceitaServiceImpl implements ReceitaService {
       .toList();
 
     return new MidiaLote(
-      midiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.RECEITA, receitaIds),
-      midiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, perfilIds)
+      gerenciadorMidiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.RECEITA, receitaIds),
+      gerenciadorMidiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, perfilIds)
     );
   }
 

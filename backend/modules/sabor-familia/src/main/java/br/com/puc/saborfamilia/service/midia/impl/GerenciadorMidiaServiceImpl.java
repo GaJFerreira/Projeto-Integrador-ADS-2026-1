@@ -4,7 +4,7 @@ import br.com.puc.saborfamilia.config.UploadMediaConfig;
 import br.com.puc.saborfamilia.database.entity.MidiaEntity;
 import br.com.puc.saborfamilia.database.entity.PerfilEntity;
 import br.com.puc.saborfamilia.database.entity.ReceitaEntity;
-import br.com.puc.saborfamilia.database.repository.MidiaRepository;
+import br.com.puc.saborfamilia.database.repository.GerenciadorMidiaRepository;
 import br.com.puc.saborfamilia.database.repository.PerfilRepository;
 import br.com.puc.saborfamilia.database.repository.ReceitaRepository;
 import br.com.puc.saborfamilia.enums.ContextoMidiaEnum;
@@ -12,10 +12,10 @@ import br.com.puc.saborfamilia.enums.FormatoMidiaEnum;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
-import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
 import br.com.puc.saborfamilia.service.midia.dto.MidiaResponse;
 import br.com.puc.saborfamilia.utils.MidiaPathResolver;
-import br.com.puc.saborfamilia.utils.MidiaUtils;
+import br.com.puc.saborfamilia.utils.GerenciadorMidiaUtils;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -42,7 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class MidiaServiceImpl implements MidiaService {
+public class GerenciadorMidiaServiceImpl implements GerenciadorMidiaService {
 
   private static final String ARQUIVO_OBRIGATORIO = "É necessário enviar um arquivo de imagem.";
   private static final String TIPO_INVALIDO = "Formato de imagem não permitido. Use JPEG ou PNG.";
@@ -56,7 +56,7 @@ public class MidiaServiceImpl implements MidiaService {
   private static final String RECEITA_NAO_ENCONTRADA = "Receita não encontrada para o ID informado.";
   private static final String SEM_PERMISSAO_REMOCAO = "Não foi possível alterar a mídia da receita, o usuário informado não é o criador.";
 
-  private final MidiaRepository midiaRepository;
+  private final GerenciadorMidiaRepository gerenciadorMidiaRepository;
   private final PerfilRepository perfilRepository;
   private final ReceitaRepository receitaRepository;
   private final UploadMediaConfig uploadMediaConfig;
@@ -128,7 +128,7 @@ public class MidiaServiceImpl implements MidiaService {
   @Override
   @Transactional(readOnly = true)
   public boolean possuiMidia(TipoEntidadeEnum tipoEntidade, Long entidadeId) {
-    return midiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
+    return gerenciadorMidiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
       .filter(this::midiaComArquivoNoDisco)
       .isPresent();
   }
@@ -149,7 +149,7 @@ public class MidiaServiceImpl implements MidiaService {
       return Set.of();
     }
 
-    return midiaRepository.findByTipoEntidadeAndEntidadeIdIn(tipoEntidade, idsDistintos)
+    return gerenciadorMidiaRepository.findByTipoEntidadeAndEntidadeIdIn(tipoEntidade, idsDistintos)
       .stream()
       .filter(this::midiaComArquivoNoDisco)
       .map(MidiaEntity::getEntidadeId)
@@ -173,10 +173,10 @@ public class MidiaServiceImpl implements MidiaService {
   @Override
   @Transactional
   public void removerMidia(TipoEntidadeEnum tipoEntidade, Long entidadeId) {
-    midiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
+    gerenciadorMidiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
       .ifPresent(midia -> {
         removerArquivo(midia.getCaminhoRelativo());
-        midiaRepository.delete(midia);
+        gerenciadorMidiaRepository.delete(midia);
       });
   }
 
@@ -191,7 +191,7 @@ public class MidiaServiceImpl implements MidiaService {
     FormatoMidiaEnum formato;
 
     try {
-      formato = MidiaUtils.ajustarFormato(arquivo.getContentType());
+      formato = GerenciadorMidiaUtils.ajustarFormato(arquivo.getContentType());
     }
     catch (IOException e) {
       throw new ServiceException(TIPO_INVALIDO);
@@ -200,10 +200,10 @@ public class MidiaServiceImpl implements MidiaService {
     byte[] imagemOriginal;
 
     try {
-      imagemOriginal = MidiaUtils.codificarMidiaOriginal(arquivo.getInputStream(), maxUploadWidthPx, formato);
+      imagemOriginal = GerenciadorMidiaUtils.codificarMidiaOriginal(arquivo.getInputStream(), maxUploadWidthPx, formato);
     }
     catch (IOException e) {
-      if (MidiaUtils.MENSAGEM_LARGURA_UPLOAD_EXCEDIDA.equals(e.getMessage())) {
+      if (GerenciadorMidiaUtils.MENSAGEM_LARGURA_UPLOAD_EXCEDIDA.equals(e.getMessage())) {
         throw new ServiceException(LARGURA_EXCEDIDA);
       }
 
@@ -218,7 +218,7 @@ public class MidiaServiceImpl implements MidiaService {
     String caminhoRelativo = resolverCaminho.apply(formato);
     Path destino = validarCaminhoArquivo(caminhoRelativo);
 
-    midiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
+    gerenciadorMidiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
       .ifPresent(midiaExistente -> {
         if (!caminhoRelativo.equals(midiaExistente.getCaminhoRelativo())) {
           removerArquivo(midiaExistente.getCaminhoRelativo());
@@ -234,7 +234,7 @@ public class MidiaServiceImpl implements MidiaService {
       throw new ServiceException(FALHA_PROCESSAR);
     }
 
-    MidiaEntity midia = midiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
+    MidiaEntity midia = gerenciadorMidiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
       .orElseGet(() -> MidiaEntity.builder()
         .tipoEntidade(tipoEntidade)
         .entidadeId(entidadeId)
@@ -246,7 +246,7 @@ public class MidiaServiceImpl implements MidiaService {
     midia.setTamanhoBytes((long) imagemOriginal.length);
     midia.setUltimaAtualizacao(LocalDateTime.now());
 
-    midiaRepository.save(midia);
+    gerenciadorMidiaRepository.save(midia);
   }
 
   private Optional<MidiaResponse> buscarConteudo(
@@ -254,7 +254,7 @@ public class MidiaServiceImpl implements MidiaService {
     Long entidadeId,
     ContextoMidiaEnum contexto
   ) {
-    return midiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
+    return gerenciadorMidiaRepository.findByTipoEntidadeAndEntidadeId(tipoEntidade, entidadeId)
       .flatMap(midia -> {
         try {
           Path arquivo = validarCaminhoArquivo(midia.getCaminhoRelativo());
@@ -266,8 +266,8 @@ public class MidiaServiceImpl implements MidiaService {
           }
 
           byte[] midiaOriginal = Files.readAllBytes(arquivo);
-          FormatoMidiaEnum formato = MidiaUtils.ajustarFormato(midia.getContentType());
-          byte[] midiaAjustada = MidiaUtils.redimensionarMidia(midiaOriginal, contexto.getLarguraMaximaPx(), formato);
+          FormatoMidiaEnum formato = GerenciadorMidiaUtils.ajustarFormato(midia.getContentType());
+          byte[] midiaAjustada = GerenciadorMidiaUtils.redimensionarMidia(midiaOriginal, contexto.getLarguraMaximaPx(), formato);
 
           return Optional.of(new MidiaResponse(midiaAjustada, formato.getContentType()));
         }
@@ -283,7 +283,7 @@ public class MidiaServiceImpl implements MidiaService {
       throw new ServiceException(ARQUIVO_OBRIGATORIO);
     }
 
-    if (!MidiaUtils.validarContentType(arquivo.getContentType())) {
+    if (!GerenciadorMidiaUtils.validarContentType(arquivo.getContentType())) {
       throw new ServiceException(TIPO_INVALIDO);
     }
   }

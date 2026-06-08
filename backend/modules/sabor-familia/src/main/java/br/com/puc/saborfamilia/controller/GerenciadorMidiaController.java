@@ -2,7 +2,7 @@ package br.com.puc.saborfamilia.controller;
 
 import br.com.puc.saborfamilia.enums.ContextoMidiaEnum;
 import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
-import br.com.puc.saborfamilia.service.midia.MidiaService;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
 import br.com.puc.saborfamilia.utils.JwtClaimsUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -18,18 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @AllArgsConstructor
 @RequestMapping(value = "/api/sabor-familia/midia")
-@Tag(name = "Mídia", description = "Download de imagens de perfil e receitas.")
-public class MidiaController {
+@Tag(name = "Gerenciador de Mídias", description = "Download de imagens de perfil e receitas.")
+public class GerenciadorMidiaController {
 
-  private final MidiaService midiaService;
+  private final GerenciadorMidiaService gerenciadorMidiaService;
 
   @GetMapping(value = "/perfil/{perfilId}")
   @Operation(
     summary = "Buscar imagem de um perfil",
-    description = """
-      Retorna a imagem redimensionada conforme o contexto de uso.
-      Perfil: avatar (128px), listagem (256px).
-      """
+    description = "Retorna a imagem redimensionada conforme o contexto de uso."
   )
   public ResponseEntity<byte[]> buscarMidiaPerfil(
     @RequestHeader(value = "Authorization") String authorization,
@@ -38,16 +35,13 @@ public class MidiaController {
   ) {
     JwtClaimsUtils.getUserId(authorization);
     ContextoMidiaEnum contextoMidia = ContextoMidiaEnum.parseContextoMidia(TipoEntidadeEnum.PERFIL, contexto);
-    return midiaService.buscarMidia(TipoEntidadeEnum.PERFIL, perfilId, contextoMidia);
+    return gerenciadorMidiaService.buscarMidia(TipoEntidadeEnum.PERFIL, perfilId, contextoMidia);
   }
 
   @GetMapping(value = "/receita/{receitaId}")
   @Operation(
     summary = "Buscar imagem de uma receita",
-    description = """
-      Retorna a capa redimensionada conforme o contexto de uso.
-      Receita: capa-feed (560px) para o feed; capa-lista (400px) para grids e miniaturas.
-      """
+    description = "Retorna a capa redimensionada conforme o contexto de uso."
   )
   public ResponseEntity<byte[]> buscarMidiaReceita(
     @RequestHeader(value = "Authorization") String authorization,
@@ -56,7 +50,7 @@ public class MidiaController {
   ) {
     JwtClaimsUtils.getUserId(authorization);
     ContextoMidiaEnum contextoMidia = ContextoMidiaEnum.parseContextoMidia(TipoEntidadeEnum.RECEITA, contexto);
-    return midiaService.buscarMidia(TipoEntidadeEnum.RECEITA, receitaId, contextoMidia);
+    return gerenciadorMidiaService.buscarMidia(TipoEntidadeEnum.RECEITA, receitaId, contextoMidia);
   }
 
 }

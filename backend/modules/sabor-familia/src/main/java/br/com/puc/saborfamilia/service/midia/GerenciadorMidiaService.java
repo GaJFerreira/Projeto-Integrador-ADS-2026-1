@@ -7,7 +7,7 @@ import java.util.Set;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface MidiaService {
+public interface GerenciadorMidiaService {
 
   ResponseEntity<byte[]> buscarMidia(TipoEntidadeEnum tipoEntidade, Long entidadeId, ContextoMidiaEnum contexto);
 

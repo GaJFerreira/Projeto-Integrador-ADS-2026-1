@@ -39,7 +39,7 @@ Table midia {
     (tipo_entidade, entidade_id) [name: 'uk_midia_tipo_entidade', unique]
   }
 
-  Note: 'MidiaEntity — original em disco; GET /midia/...?contexto= redimensiona (perfil: avatar|listagem; receita: capa-feed 560px | capa-lista 400px). Sem FK fisica; UK por tipo_entidade + entidade_id.'
+  Note: 'MidiaEntity — original em disco; GET /midia/...?contexto= redimensiona (perfil: avatar 128px | capa-perfil 256px; receita: capa-feed 896px | capa-grid 448px). Sem FK fisica; UK por tipo_entidade + entidade_id.'
 }
 
 Table restricao_alimentar {
