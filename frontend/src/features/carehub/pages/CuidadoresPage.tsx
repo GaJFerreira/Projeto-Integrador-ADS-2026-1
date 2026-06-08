@@ -287,13 +287,20 @@ export default function CuidadoresPage() {
             {data.content.map((c) => (
               <Card
                 key={c.id}
+                elevation={0}
                 sx={{
                   position: 'relative',
                   overflow: 'visible',
+                  borderRadius: '20px',
+                  border: '1px solid',
+                  borderColor: 'rgba(0, 0, 0, 0.08)',
+                  bgcolor: 'background.paper',
                   transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
                   '&:hover': {
-                    transform: 'translateY(-8px)',
-                    boxShadow: '0 12px 40px rgba(0,0,0,0.15)'
+                    transform: 'translateY(-6px)',
+                    borderColor: 'primary.main',
+                    boxShadow: '0 20px 40px rgba(99, 102, 241, 0.08)'
                   }
                 }}
               >
@@ -302,98 +309,169 @@ export default function CuidadoresPage() {
                   <Box
                     sx={{
                       position: 'absolute',
-                      top: -8,
+                      top: 16,
                       right: 16,
-                      bgcolor: 'success.main',
-                      color: 'white',
-                      px: 2,
+                      bgcolor: 'success.50',
+                      color: 'success.dark',
+                      border: '1px solid',
+                      borderColor: 'success.200',
+                      px: 1.5,
                       py: 0.5,
-                      borderRadius: 2,
+                      borderRadius: '20px',
                       fontSize: '0.75rem',
                       fontWeight: 'bold',
-                      boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)',
-                      zIndex: 1
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 0.8,
+                      zIndex: 1,
+                      boxShadow: '0 2px 8px rgba(46, 125, 50, 0.08)'
                     }}
                   >
-                    ● DISPONÍVEL
+                    <Box
+                      sx={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: '50%',
+                        bgcolor: 'success.main',
+                        animation: 'pulse 1.8s infinite ease-in-out',
+                        '@keyframes pulse': {
+                          '0%': { transform: 'scale(0.8)', opacity: 0.5 },
+                          '50%': { transform: 'scale(1.3)', opacity: 1 },
+                          '100%': { transform: 'scale(0.8)', opacity: 0.5 },
+                        }
+                      }}
+                    />
+                    Disponível
                   </Box>
                 )}
 
                 <CardContent sx={{ p: 3 }}>
                   {/* Header com Avatar e Nome */}
-                  <Stack direction="row" spacing={2} alignItems="center" mb={2}>
+                  <Stack direction="row" spacing={2} alignItems="center" mb={2.5}>
                     <Avatar
                       sx={{
                         width: 56,
                         height: 56,
-                        bgcolor: 'primary.main',
-                        fontSize: '1.5rem',
-                        fontWeight: 'bold'
+                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        color: 'white',
+                        fontSize: '1.4rem',
+                        fontWeight: 700,
+                        boxShadow: '0 4px 10px rgba(99, 102, 241, 0.15)',
+                        border: '2px solid white',
                       }}
                     >
                       {c.nome?.charAt(0).toUpperCase()}
                     </Avatar>
                     <Box flex={1}>
-                      <Typography variant="h6" fontWeight="bold" mb={0.5}>
+                      <Typography
+                        variant="h6"
+                        fontWeight={750}
+                        mb={0.5}
+                        sx={{
+                          color: '#1e293b',
+                          fontSize: '1.1rem',
+                          lineHeight: 1.2,
+                          letterSpacing: '-0.01em',
+                          marginTop: '25px'
+                        }}
+                      >
                         {c.nome}
                       </Typography>
-                      <Stack direction="row" alignItems="center" gap={0.5} color="text.secondary">
-                        <LocationOn fontSize="small" />
-                        <Typography variant="caption">
+                      <Stack direction="row" alignItems="center" gap={0.5} sx={{ color: '#64748b' }}>
+                        <LocationOn fontSize="small" sx={{ color: 'primary.main', fontSize: '1rem', opacity: 0.8 }} />
+                        <Typography variant="caption" fontWeight={600}>
                           {c.cidade} - {c.estado}
                         </Typography>
                       </Stack>
                     </Box>
                   </Stack>
 
-                  <Divider sx={{ mb: 2 }} />
+                  <Divider sx={{ mb: 2, borderColor: 'rgba(0, 0, 0, 0.05)' }} />
 
                   {/* Avaliação em destaque */}
                   <Paper
                     elevation={0}
                     sx={{
-                      bgcolor: 'primary.50',
+                      bgcolor: '#f8fafc',
                       p: 1.5,
-                      mb: 2,
-                      borderRadius: 2,
+                      mb: 2.5,
+                      borderRadius: '12px',
                       border: '1px solid',
-                      borderColor: 'primary.100'
+                      borderColor: '#e2e8f0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
                     }}
                   >
-                    <Stack direction="row" alignItems="center" justifyContent="space-between">
-                      <Stack direction="row" alignItems="center" gap={1}>
-                        <Rating
-                          value={c.avaliacaoMedia || 0}
-                          readOnly
-                          precision={0.1}
-                          size="small"
-                          sx={{ color: 'warning.main' }}
-                        />
-                        <Typography variant="body2" fontWeight="bold" color="primary.dark">
-                          {c.avaliacaoMedia?.toFixed(1) || '0.0'}
-                        </Typography>
-                      </Stack>
-                      <Typography variant="caption" color="text.secondary">
-                        {c.totalAvaliacoes || 0} {c.totalAvaliacoes === 1 ? 'avaliação' : 'avaliações'}
+                    <Stack direction="row" alignItems="center" gap={1}>
+                      <Rating
+                        value={c.avaliacaoMedia || 0}
+                        readOnly
+                        precision={0.1}
+                        size="small"
+                        sx={{
+                          color: '#f59e0b',
+                          '& .MuiRating-iconFilled': {
+                            color: '#f59e0b'
+                          }
+                        }}
+                      />
+                      <Typography variant="body2" fontWeight="700" sx={{ color: '#1e293b' }}>
+                        {c.avaliacaoMedia?.toFixed(1) || '0.0'}
                       </Typography>
                     </Stack>
+                    <Typography
+                      variant="caption"
+                      fontWeight={700}
+                      sx={{
+                        color: 'primary.main',
+                        bgcolor: 'primary.50',
+                        px: 1.2,
+                        py: 0.5,
+                        borderRadius: '20px'
+                      }}
+                    >
+                      {c.totalAvaliacoes || 0} {c.totalAvaliacoes === 1 ? 'avaliação' : 'avaliações'}
+                    </Typography>
                   </Paper>
 
                   {/* Experiência */}
-                  <Box mb={2}>
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium">
-                      EXPERIÊNCIA
+                  <Box mb={2.5}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: '#94a3b8',
+                        fontWeight: 800,
+                        fontSize: '0.65rem',
+                        letterSpacing: '0.05em',
+                        textTransform: 'uppercase',
+                        display: 'block',
+                        mb: 0.5
+                      }}
+                    >
+                      Experiência
                     </Typography>
-                    <Typography variant="body2" mt={0.5}>
-                      {c.experiencia || 'Não informada'}
+                    <Typography variant="body2" fontWeight={600} color="#334155" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      💼 {c.experiencia || 'Não informada'}
                     </Typography>
                   </Box>
 
                   {/* Especialidades */}
                   {c.especialidades && c.especialidades.length > 0 && (
-                    <Box mb={2}>
-                      <Typography variant="caption" color="text.secondary" fontWeight="medium" mb={1} display="block">
-                        ESPECIALIDADES
+                    <Box mb={3.5}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: '#94a3b8',
+                          fontWeight: 800,
+                          fontSize: '0.65rem',
+                          letterSpacing: '0.05em',
+                          textTransform: 'uppercase',
+                          display: 'block',
+                          mb: 1
+                        }}
+                      >
+                        Especialidades
                       </Typography>
                       <Stack direction="row" gap={0.5} flexWrap="wrap">
                         {c.especialidades.map((e, i) => (
@@ -401,60 +479,72 @@ export default function CuidadoresPage() {
                             key={i}
                             label={e}
                             size="small"
-                            color="secondary"
-                            variant="outlined"
-                            sx={{ fontWeight: 500 }}
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '0.72rem',
+                              bgcolor: '#f1f5f9',
+                              color: '#475569',
+                              border: 'none',
+                              borderRadius: '8px',
+                              '&:hover': {
+                                bgcolor: '#e2e8f0'
+                              }
+                            }}
                           />
                         ))}
                       </Stack>
                     </Box>
                   )}
 
-                  {/* Botões de ação - Maiores e mais acessíveis */}
-                  <Stack gap={1.5} mt={3}>
+                  {/* Botões de ação */}
+                  <Stack gap={1.5}>
                     {/* Botão Principal - Agendar */}
                     <Button
                       variant="contained"
-                      size="large"
                       fullWidth
                       onClick={() => navigate(`/carehub/agendamentos?cuidadorId=${c.id}`)}
-                      startIcon={<Schedule />}
+                      startIcon={<Schedule fontSize="small" />}
                       sx={{
-                        borderRadius: 2,
+                        borderRadius: '12px',
                         textTransform: 'none',
-                        fontWeight: 'bold',
-                        py: 1.5,
-                        fontSize: '1.1rem',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        fontWeight: 700,
+                        py: 1.2,
+                        fontSize: '0.95rem',
+                        background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
+                        boxShadow: '0 4px 12px rgba(99, 102, 241, 0.15)',
                         '&:hover': {
-                          background: 'linear-gradient(135deg, #667eea 20%, #764ba2 120%)',
-                          transform: 'translateY(-2px)',
-                          boxShadow: '0 6px 20px rgba(102, 126, 234, 0.4)'
+                          background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
+                          transform: 'translateY(-1px)',
+                          boxShadow: '0 6px 20px rgba(99, 102, 241, 0.25)'
                         },
-                        transition: 'all 0.3s'
+                        transition: 'all 0.2s'
                       }}
                     >
-                      📅 Agendar Atendimento
+                      Agendar Atendimento
                     </Button>
 
                     {/* Link para ver avaliações */}
                     <Button
-                      size="large"
+                      component="a"
                       href={`/carehub/avaliacoes/${c.id}`}
-                      variant="outlined"
+                      variant="text"
                       fullWidth
-                      startIcon={<Visibility />}
+                      startIcon={<Visibility fontSize="small" />}
                       sx={{
-                        borderRadius: 2,
+                        borderRadius: '12px',
                         textTransform: 'none',
-                        py: 1.2,
-                        fontSize: '1rem',
+                        fontWeight: 650,
+                        py: 1,
+                        fontSize: '0.88rem',
+                        color: '#64748b',
                         '&:hover': {
-                          bgcolor: 'grey.100'
-                        }
+                          bgcolor: '#f1f5f9',
+                          color: '#1e293b'
+                        },
+                        transition: 'all 0.2s'
                       }}
                     >
-                      👁️ Ver {c.totalAvaliacoes || 0} avaliações de outros clientes
+                      Ver avaliações ({c.totalAvaliacoes || 0})
                     </Button>
                   </Stack>
                 </CardContent>

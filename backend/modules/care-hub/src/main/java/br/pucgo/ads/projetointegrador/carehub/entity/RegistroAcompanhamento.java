@@ -11,7 +11,8 @@ import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 
 /**
- * Registro de acompanhamento clÃ­nico realizado pelo Cuidador durante um atendimento.
+ * Registro de acompanhamento clínico realizado pelo Cuidador durante um
+ * atendimento.
  */
 @Entity
 @Table(name = "ch_registro_acompanhamento", schema = "care_hub")
@@ -63,6 +64,9 @@ public class RegistroAcompanhamento {
     @Column(name = "sinais_vitais", columnDefinition = "TEXT")
     private String sinaisVitais;
 
+    @Column(name = "humor_estado", columnDefinition = "TEXT")
+    private String humorEstado;
+
     @CreationTimestamp
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private OffsetDateTime dataCriacao;
@@ -78,4 +82,3 @@ public class RegistroAcompanhamento {
         }
     }
 }
-

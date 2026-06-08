@@ -102,12 +102,15 @@ export interface MensagemRequestDTO {
 export interface MensagemResponseDTO {
   id: number;
   remetenteId: number;
+  remetenteTipo?: string;
   destinatarioId: number;
-  conteudo: string;
+  destinatarioTipo?: string;
+  conteudo: string | null;
   lida: boolean;
   dataEnvio: string;
   mediaUrl?: string;
   mediaType?: string;
+  enviadaPeloUsuarioLogado?: boolean;
 }
 
 export interface AvaliacaoRequestDTO {
@@ -127,4 +130,34 @@ export interface AvaliacaoResponseDTO {
   cuidadorNome?: string;
   dataAvaliacao: string;
   agendamentoId?: number;
+}
+
+export interface DispositivoIoTCreateRequestDTO {
+  nome?: string;
+  deviceId?: string;
+  deviceKey?: string;
+}
+
+export interface DispositivoIoTResponseDTO {
+  id: number;
+  nome: string;
+  deviceId: string;
+  ativo: boolean;
+  ultimoBatimentoEm?: string;
+  deviceKeyPlain?: string; // retornado apenas na criação
+}
+
+export interface AlertaEmergenciaResponseDTO {
+  id: number;
+  status: string;
+  tipo: string;
+  origem: string;
+  observacao?: string;
+  clienteId: number;
+  clienteNome: string;
+  dispositivoId: number;
+  deviceId: string;
+  dispositivoNome: string;
+  criadoEm: string;
+  reconhecidoEm?: string;
 }

@@ -6,10 +6,12 @@ import br.pucgo.ads.projetointegrador.carehub.dto.agendamento.ContrapropostaRequ
 import br.pucgo.ads.projetointegrador.carehub.entity.Agendamento;
 import br.pucgo.ads.projetointegrador.carehub.entity.Cliente;
 import br.pucgo.ads.projetointegrador.carehub.entity.Cuidador;
+import br.pucgo.ads.projetointegrador.carehub.entity.Mensagem;
 import br.pucgo.ads.projetointegrador.carehub.entity.RegistroAcompanhamento;
 import br.pucgo.ads.projetointegrador.carehub.entity.TipoAtendimento;
 import br.pucgo.ads.projetointegrador.carehub.exception.OperacaoNaoPermitidaException;
 import br.pucgo.ads.projetointegrador.carehub.repository.AgendamentoRepository;
+import br.pucgo.ads.projetointegrador.carehub.repository.CareHubMensagemRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.RegistroAcompanhamentoRepository;
@@ -28,9 +30,10 @@ import java.util.stream.Collectors;
 /**
  * Service de Agendamentos do CareHub.
  *
- * <p><strong>MudanÃ§a de arquitetura:</strong> removidos os imports de
- * {@code plataforma.repository.UserRepository} e {@code plataforma.entity.User}.
- * O mÃ©todo {@code getUserIdByUsernameOrEmail} agora consulta o
+ * Mudança de arquitetura: removidos os imports de
+ * {@code plataforma.repository.UserRepository} e
+ * {@code plataforma.entity.User}.
+ * O método {@code getUserIdByUsernameOrEmail} agora consulta o
  * {@link UsuarioRepository} local ({@code care_hub.usuario}).
  */
 @Service
@@ -42,14 +45,15 @@ public class AgendamentoService {
     private final ClienteRepository clienteRepository;
     private final RegistroAcompanhamentoRepository registroRepository;
     private final UsuarioSyncService usuarioSyncService;
+    private final CareHubMensagemRepository mensagemRepository;
 
-    // â”€â”€ Helper: resolve ID do usuÃ¡rio pelo principal (JWT) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Helper: resolve ID do usuário pelo principal (JWT)
 
     /**
-     * Retorna o ID do usuÃ¡rio local ({@code care_hub.usuario.id}) a partir do
-     * username ou email extraÃ­do do JWT ({@code principal.getName()}).
+     * Retorna o ID do usuário local ({@code care_hub.usuario.id}) a partir do
+     * username ou email extraído do JWT ({@code principal.getName()}).
      *
-     * <p>Todos os services que recebem {@code Principal} usam este mÃ©todo.
+     * Todos os services que recebem {@code Principal} usam este método.
      */
     public Long getUserIdByUsernameOrEmail(String usernameOrEmail) {
         return cuidadorRepository.findByUsername(usernameOrEmail)
@@ -65,7 +69,7 @@ public class AgendamentoService {
 
     private Long getUserIdFromPrincipal(java.security.Principal principal) {
         if (principal == null) {
-            throw new OperacaoNaoPermitidaException("Operacao nao autorizada: usuario nao autenticado");
+            throw new OperacaoNaoPermitidaException("Operação não autorizada: usuário não autenticado");
         }
 
         try {
@@ -116,7 +120,8 @@ public class AgendamentoService {
                 java.lang.reflect.Method getRoleNameMethod = roleObj.getClass().getMethod("getName");
                 String platformRole = (String) getRoleNameMethod.invoke(roleObj);
 
-                Object synced = usuarioSyncService.sincronizarOuCriar(platformUserId, username, email, name, platformRole);
+                Object synced = usuarioSyncService.sincronizarOuCriar(platformUserId, username, email, name,
+                        platformRole);
                 if (synced instanceof Cuidador c && c.getId() != null) {
                     return c.getId();
                 }
@@ -138,30 +143,44 @@ public class AgendamentoService {
         }
     }
 
+    private void gerarMensagemConfirmacaoAutomatica(Agendamento agendamento) {
+        Mensagem mensagem = new Mensagem();
+        mensagem.setRemetenteId(agendamento.getCuidador().getId());
+        mensagem.setRemetenteTipo("CUIDADOR");
+        mensagem.setDestinatarioId(agendamento.getCliente().getId());
+        mensagem.setDestinatarioTipo("CLIENTE");
+        mensagem.setConteudo("O agendamento foi confirmado! O bate-papo agora está disponível.");
+        mensagem.setDataEnvio(OffsetDateTime.now(ZoneOffset.UTC));
+        mensagem.setLida(false);
+        mensagemRepository.save(mensagem);
+    }
+
     private boolean principalMatchesCuidador(java.security.Principal principal, Cuidador cuidador) {
-        if (principal == null || cuidador == null || principal.getName() == null) return false;
+        if (principal == null || cuidador == null || principal.getName() == null)
+            return false;
         String actor = principal.getName().trim();
         return actor.equalsIgnoreCase(String.valueOf(cuidador.getUsername()))
                 || actor.equalsIgnoreCase(String.valueOf(cuidador.getEmail()));
     }
 
     private boolean principalMatchesCliente(java.security.Principal principal, Cliente cliente) {
-        if (principal == null || cliente == null || principal.getName() == null) return false;
+        if (principal == null || cliente == null || principal.getName() == null)
+            return false;
         String actor = principal.getName().trim();
         return actor.equalsIgnoreCase(String.valueOf(cliente.getUsername()))
                 || actor.equalsIgnoreCase(String.valueOf(cliente.getEmail()));
     }
-    // â”€â”€ Criar agendamento â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Criar agendamento
 
     @Transactional
     public AgendamentoResponseDTO criarAgendamento(AgendamentoRequestDTO dto) {
-        Long cuidadorId = Objects.requireNonNull(dto.getCuidadorId(), "Cuidador ID cannot be null");
-        Long clienteId = Objects.requireNonNull(dto.getClienteId(), "Cliente ID cannot be null");
+        Long cuidadorId = Objects.requireNonNull(dto.getCuidadorId(), "Cuidador ID não pode ser nulo");
+        Long clienteId = Objects.requireNonNull(dto.getClienteId(), "Cliente ID não pode ser nulo");
 
         Cuidador cuidador = cuidadorRepository.findById(cuidadorId)
-                .orElseThrow(() -> new RuntimeException("Cuidador nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Cuidador não encontrado"));
         Cliente cliente = clienteRepository.findById(clienteId)
-                .orElseThrow(() -> new RuntimeException("Cliente nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
         Agendamento agendamento = new Agendamento();
         agendamento.setCuidador(cuidador);
@@ -184,16 +203,16 @@ public class AgendamentoService {
         return toResponseDTO(agendamento);
     }
 
-    // â”€â”€ Atualizar status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Atualizar status
 
     @Transactional
     public AgendamentoResponseDTO atualizarStatus(Long id, String status, java.security.Principal principal) {
-        Objects.requireNonNull(id, "Agendamento ID cannot be null");
+        Objects.requireNonNull(id, "Agendamento ID não pode ser nulo");
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Agendamento nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
         if (principal == null) {
-            throw new OperacaoNaoPermitidaException("OperaÃ§Ã£o nÃ£o autorizada: usuÃ¡rio nÃ£o autenticado");
+            throw new OperacaoNaoPermitidaException("Operação não autorizada: usuário não autenticado");
         }
 
         Long callerId = getUserIdFromPrincipalOrNull(principal);
@@ -214,12 +233,14 @@ public class AgendamentoService {
                 break;
 
             case CONFIRMADO:
+                boolean wasNotConfirmed = agendamento.getStatus() != Agendamento.StatusAgendamento.CONFIRMADO;
                 if (agendamento.getStatus() == Agendamento.StatusAgendamento.REAGENDADO) {
                     if (!isClienteCaller) {
                         throw new OperacaoNaoPermitidaException("Apenas o cliente pode aceitar a contraproposta");
                     }
-                    if (agendamento.getProposedDataHoraInicio() == null || agendamento.getProposedDataHoraFim() == null) {
-                        throw new RuntimeException("NÃ£o existe contraproposta pendente para este agendamento");
+                    if (agendamento.getProposedDataHoraInicio() == null
+                            || agendamento.getProposedDataHoraFim() == null) {
+                        throw new RuntimeException("Não existe contraproposta pendente para este agendamento");
                     }
                     agendamento.setDataHoraInicio(agendamento.getProposedDataHoraInicio());
                     agendamento.setDataHoraFim(agendamento.getProposedDataHoraFim());
@@ -232,6 +253,9 @@ public class AgendamentoService {
                     }
                     agendamento.setStatus(Agendamento.StatusAgendamento.CONFIRMADO);
                 }
+                if (wasNotConfirmed) {
+                    gerarMensagemConfirmacaoAutomatica(agendamento);
+                }
                 break;
 
             case REAGENDADO:
@@ -243,18 +267,21 @@ public class AgendamentoService {
                             "Somente o cliente ou o cuidador podem cancelar este agendamento");
                 }
                 agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
+                // Apaga todo o histórico de mensagens ao cancelar
+                mensagemRepository.deleteConversaBetween(
+                        agendamento.getCuidador().getId(), agendamento.getCliente().getId());
                 break;
 
             case CONCLUIDO:
                 if (!isCuidadorCaller) {
-                    throw new OperacaoNaoPermitidaException("Apenas o cuidador pode marcar como concluÃ­do");
+                    throw new OperacaoNaoPermitidaException("Apenas o cuidador pode marcar como concluído");
                 }
                 agendamento.setStatus(Agendamento.StatusAgendamento.CONCLUIDO);
                 break;
 
             case PENDENTE:
             default:
-                throw new OperacaoNaoPermitidaException("TransiÃ§Ã£o de status nÃ£o permitida");
+                throw new OperacaoNaoPermitidaException("Transição de status não permitida");
         }
 
         agendamento = agendamentoRepository.save(agendamento);
@@ -262,8 +289,9 @@ public class AgendamentoService {
     }
 
     @Transactional
-    public AgendamentoResponseDTO atualizarStatusPorPrincipalName(Long id, String status, java.security.Principal principal) {
-        Objects.requireNonNull(id, "Agendamento ID cannot be null");
+    public AgendamentoResponseDTO atualizarStatusPorPrincipalName(Long id, String status,
+            java.security.Principal principal) {
+        Objects.requireNonNull(id, "Agendamento ID não pode ser nulo");
         Agendamento agendamento = agendamentoRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
@@ -285,11 +313,13 @@ public class AgendamentoService {
                 agendamento.setStatus(novoStatus);
                 break;
             case CONFIRMADO:
+                boolean wasNotConfirmed1 = agendamento.getStatus() != Agendamento.StatusAgendamento.CONFIRMADO;
                 if (agendamento.getStatus() == Agendamento.StatusAgendamento.REAGENDADO) {
                     if (!isClienteCaller) {
                         throw new OperacaoNaoPermitidaException("Apenas o cliente pode aceitar a contraproposta");
                     }
-                    if (agendamento.getProposedDataHoraInicio() == null || agendamento.getProposedDataHoraFim() == null) {
+                    if (agendamento.getProposedDataHoraInicio() == null
+                            || agendamento.getProposedDataHoraFim() == null) {
                         throw new RuntimeException("Não existe contraproposta pendente para este agendamento");
                     }
                     agendamento.setDataHoraInicio(agendamento.getProposedDataHoraInicio());
@@ -303,12 +333,19 @@ public class AgendamentoService {
                     }
                     agendamento.setStatus(Agendamento.StatusAgendamento.CONFIRMADO);
                 }
+                if (wasNotConfirmed1) {
+                    gerarMensagemConfirmacaoAutomatica(agendamento);
+                }
                 break;
             case CANCELADO:
                 if (!isClienteCaller && !isCuidadorCaller) {
-                    throw new OperacaoNaoPermitidaException("Somente o cliente ou o cuidador podem cancelar este agendamento");
+                    throw new OperacaoNaoPermitidaException(
+                            "Somente o cliente ou o cuidador podem cancelar este agendamento");
                 }
                 agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
+                // Apaga todo o histórico de mensagens ao cancelar
+                mensagemRepository.deleteConversaBetween(
+                        agendamento.getCuidador().getId(), agendamento.getCliente().getId());
                 break;
             case CONCLUIDO:
                 if (!isCuidadorCaller) {
@@ -327,17 +364,17 @@ public class AgendamentoService {
         return toResponseDTO(agendamento);
     }
 
-    // â”€â”€ Contraproposta â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Contraproposta
 
     @Transactional
     public AgendamentoResponseDTO proporContraproposta(Long id, ContrapropostaRequestDTO dto,
-                                                        java.security.Principal principal) {
-        Objects.requireNonNull(id, "Agendamento ID cannot be null");
+            java.security.Principal principal) {
+        Objects.requireNonNull(id, "Agendamento ID não pode ser nulo");
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Agendamento nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
         if (principal == null) {
-            throw new OperacaoNaoPermitidaException("OperaÃ§Ã£o nÃ£o autorizada: usuÃ¡rio nÃ£o autenticado");
+            throw new OperacaoNaoPermitidaException("Operação não autorizada: usuário não autenticado");
         }
 
         Long callerId = getUserIdFromPrincipalOrNull(principal);
@@ -347,10 +384,10 @@ public class AgendamentoService {
             throw new OperacaoNaoPermitidaException("Apenas o cuidador pode propor uma contraproposta");
         }
         if (dto.getDataHoraFim().isBefore(dto.getDataHoraInicio())) {
-            throw new RuntimeException("Data/hora de fim da contraproposta deve ser posterior ao inÃ­cio");
+            throw new RuntimeException("Data/hora de fim da contraproposta deve ser posterior ao início");
         }
         if (dto.getDataHoraInicio().isBefore(OffsetDateTime.now(ZoneOffset.UTC))) {
-            throw new RuntimeException("A contraproposta nÃ£o pode ter inÃ­cio no passado");
+            throw new RuntimeException("A contraproposta não pode ter início no passado");
         }
 
         agendamento.setProposedDataHoraInicio(dto.getDataHoraInicio());
@@ -363,12 +400,12 @@ public class AgendamentoService {
 
     @Transactional
     public AgendamentoResponseDTO aceitarContraproposta(Long id, java.security.Principal principal) {
-        Objects.requireNonNull(id, "Agendamento ID cannot be null");
+        Objects.requireNonNull(id, "Agendamento ID não pode ser nulo");
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Agendamento nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
         if (principal == null) {
-            throw new OperacaoNaoPermitidaException("OperaÃ§Ã£o nÃ£o autorizada: usuÃ¡rio nÃ£o autenticado");
+            throw new OperacaoNaoPermitidaException("Operação não autorizada: usuário não autenticado");
         }
 
         Long callerId = getUserIdFromPrincipalOrNull(principal);
@@ -378,10 +415,10 @@ public class AgendamentoService {
             throw new OperacaoNaoPermitidaException("Apenas o cliente pode aceitar a contraproposta");
         }
         if (agendamento.getStatus() != Agendamento.StatusAgendamento.REAGENDADO) {
-            throw new RuntimeException("NÃ£o hÃ¡ contraproposta pendente para este agendamento");
+            throw new RuntimeException("Não há contraproposta pendente para este agendamento");
         }
         if (agendamento.getProposedDataHoraInicio() == null || agendamento.getProposedDataHoraFim() == null) {
-            throw new RuntimeException("Dados da contraproposta invÃ¡lidos");
+            throw new RuntimeException("Dados da contraproposta inválidos");
         }
 
         agendamento.setDataHoraInicio(agendamento.getProposedDataHoraInicio());
@@ -389,12 +426,13 @@ public class AgendamentoService {
         agendamento.setProposedDataHoraInicio(null);
         agendamento.setProposedDataHoraFim(null);
         agendamento.setStatus(Agendamento.StatusAgendamento.CONFIRMADO);
+        gerarMensagemConfirmacaoAutomatica(agendamento);
 
         agendamento = agendamentoRepository.save(agendamento);
         return toResponseDTO(agendamento);
     }
 
-    // â”€â”€ Consultas â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Consultas
 
     @Transactional(readOnly = true)
     public List<AgendamentoResponseDTO> listarPorCuidador(Long cuidadorId) {
@@ -410,15 +448,16 @@ public class AgendamentoService {
 
     @Transactional(readOnly = true)
     public AgendamentoResponseDTO buscarPorId(Long id) {
-        if (id == null) throw new IllegalArgumentException("ID do agendamento nÃ£o pode ser nulo");
+        if (id == null)
+            throw new IllegalArgumentException("ID do agendamento não pode ser nulo");
         return toResponseDTO(agendamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Agendamento nÃ£o encontrado")));
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado")));
     }
 
     @Transactional(readOnly = true)
     public List<AgendamentoResponseDTO> listarPorCuidadorEPeriodo(Long cuidadorId,
-                                                                    OffsetDateTime inicio,
-                                                                    OffsetDateTime fim) {
+            OffsetDateTime inicio,
+            OffsetDateTime fim) {
         return agendamentoRepository.findByCuidadorAndPeriodo(cuidadorId, inicio, fim)
                 .stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
@@ -433,28 +472,32 @@ public class AgendamentoService {
 
     @Transactional
     public void cancelarAgendamento(Long id) {
-        Objects.requireNonNull(id, "Agendamento ID cannot be null");
+        Objects.requireNonNull(id, "Agendamento ID n\u00e3o pode ser nulo");
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Agendamento nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Agendamento n\u00e3o encontrado"));
         agendamento.setStatus(Agendamento.StatusAgendamento.CANCELADO);
+        // Apaga todo o hist\u00f3rico de mensagens ao cancelar
+        mensagemRepository.deleteConversaBetween(
+                agendamento.getCuidador().getId(), agendamento.getCliente().getId());
         agendamentoRepository.save(agendamento);
     }
 
     @Transactional(readOnly = true)
     public boolean podeEditarProntuario(Long cuidadorId, Long clienteId) {
-        Objects.requireNonNull(cuidadorId, "Cuidador ID cannot be null");
-        Objects.requireNonNull(clienteId, "Cliente ID cannot be null");
-        OffsetDateTime inicioHoje = OffsetDateTime.now(ZoneOffset.UTC).toLocalDate().atStartOfDay().atOffset(ZoneOffset.UTC);
+        Objects.requireNonNull(cuidadorId, "Cuidador ID não pode ser nulo");
+        Objects.requireNonNull(clienteId, "Cliente ID não pode ser nulo");
+        OffsetDateTime inicioHoje = OffsetDateTime.now(ZoneOffset.UTC).toLocalDate().atStartOfDay()
+                .atOffset(ZoneOffset.UTC);
         OffsetDateTime fimHoje = inicioHoje.plusDays(1);
         return agendamentoRepository.existsAgendamentoAtivoHoje(cuidadorId, clienteId, inicioHoje, fimHoje);
     }
 
     @Transactional(readOnly = true)
     public Map<String, Object> verificarPodeIniciar(Long id) {
-        Objects.requireNonNull(id, "Agendamento ID cannot be null");
+        Objects.requireNonNull(id, "Agendamento ID não pode ser nulo");
         Map<String, Object> resultado = new HashMap<>();
         Agendamento agendamento = agendamentoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Agendamento nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
         OffsetDateTime agora = OffsetDateTime.now(ZoneOffset.UTC);
         OffsetDateTime inicioPermitido = agendamento.getDataHoraInicio().minusMinutes(30);
@@ -467,35 +510,35 @@ public class AgendamentoService {
         resultado.put("fimPermitido", fimPermitido.toString());
         resultado.put("dataHoraInicio", agendamento.getDataHoraInicio().toString());
         resultado.put("motivo", podeIniciar
-                ? "VocÃª pode iniciar o atendimento agora."
+                ? "Você pode iniciar o atendimento agora."
                 : (agora.isBefore(inicioPermitido)
-                        ? "Ainda nÃ£o estÃ¡ no horÃ¡rio. VocÃª poderÃ¡ iniciar 30 minutos antes."
-                        : "O horÃ¡rio agendado jÃ¡ passou."));
+                        ? "Ainda não está no horário. Você poderá iniciar 30 minutos antes."
+                        : "O horário agendado já passou."));
         return resultado;
     }
 
     public List<AgendamentoResponseDTO> listarAvaliacoesPendentes(Long clienteId) {
-        Objects.requireNonNull(clienteId, "Cliente ID nÃ£o pode ser null");
+        Objects.requireNonNull(clienteId, "Cliente ID não pode ser null");
         return agendamentoRepository.findAgendamentosPendentesAvaliacaoByClienteId(clienteId)
                 .stream().map(this::toResponseDTO).collect(Collectors.toList());
     }
 
     public long contarAvaliacoesPendentes(Long clienteId) {
-        Objects.requireNonNull(clienteId, "Cliente ID nÃ£o pode ser null");
+        Objects.requireNonNull(clienteId, "Cliente ID não pode ser null");
         return agendamentoRepository.countAvaliacoesPendentesByClienteId(clienteId);
     }
 
     public long contarPendentesCuidador(Long cuidadorId) {
-        Objects.requireNonNull(cuidadorId, "Cuidador ID nÃ£o pode ser null");
+        Objects.requireNonNull(cuidadorId, "Cuidador ID não pode ser null");
         return agendamentoRepository.countPendentesByCuidadorId(cuidadorId);
     }
 
     public long contarReagendadosCliente(Long clienteId) {
-        Objects.requireNonNull(clienteId, "Cliente ID nÃ£o pode ser null");
+        Objects.requireNonNull(clienteId, "Cliente ID não pode ser null");
         return agendamentoRepository.countReagendadosByClienteId(clienteId);
     }
 
-    // â”€â”€ Helpers privados â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // Helpers privados
 
     private void validarInicioAtendimento(Agendamento agendamento) {
         OffsetDateTime agora = OffsetDateTime.now(ZoneOffset.UTC);
@@ -503,13 +546,13 @@ public class AgendamentoService {
         OffsetDateTime fimPermitido = agendamento.getDataHoraFim();
         if (agora.isBefore(inicioPermitido)) {
             throw new OperacaoNaoPermitidaException(
-                    String.format("NÃ£o Ã© possÃ­vel iniciar o atendimento ainda. Agendado para %s. " +
-                                  "VocÃª poderÃ¡ iniciÃ¡-lo a partir de %s (30 min antes).",
+                    String.format("Não é possível iniciar o atendimento ainda. Agendado para %s. " +
+                            "Você poderá iniciá-lo a partir de %s (30 min antes).",
                             agendamento.getDataHoraInicio(), inicioPermitido));
         }
         if (agora.isAfter(fimPermitido)) {
             throw new OperacaoNaoPermitidaException(
-                    String.format("NÃ£o Ã© possÃ­vel iniciar o atendimento. O horÃ¡rio jÃ¡ passou (tÃ©rmino: %s).",
+                    String.format("Não é possível iniciar o atendimento. O horário já passou (término: %s).",
                             fimPermitido));
         }
     }
@@ -547,10 +590,3 @@ public class AgendamentoService {
         return dto;
     }
 }
-
-
-
-
-
-
-

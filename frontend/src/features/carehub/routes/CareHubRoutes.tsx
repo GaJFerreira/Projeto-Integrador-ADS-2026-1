@@ -1,9 +1,10 @@
-﻿import React from 'react';
+import React from 'react';
 import { Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import {
   CareHubHomePage,
   CuidadoresPage,
   AgendamentosPage,
+  AgendamentosMenuPage,
   ProntuarioPage,
   AvaliacoesPage,
   ChatPage,
@@ -12,8 +13,10 @@ import {
   RegistroAcompanhamentoPage,
   ProximosAtendimentosPage,
   HistoricoAtendimentosPage,
-  CareHubPrimeiroAcessoPage,
-  CareHubAjudaPage
+  CareHubAjudaPage,
+  MeusDispositivosPage,
+  PainelAlertasPage,
+  CareHubPrimeiroAcessoPage
 } from '../index';
 import http from '../libHttp';
 import { initializeAuthToken } from '../components/auth';
@@ -46,6 +49,15 @@ function cuidadorIncompleto(perfil: PerfilResponse): boolean {
   );
 }
 
+function clienteIncompleto(perfil: PerfilResponse): boolean {
+  const role = (perfil?.role || '').toUpperCase();
+  // Se for cuidador, não aplica validação de cliente
+  if (role.includes('CUIDADOR')) return false;
+
+  // Cliente (Idoso/Familiar) precisa ter telefone preenchido
+  return !perfil.phone || perfil.phone.trim().length < 8;
+}
+
 function CareHubPerfilGate() {
   const location = useLocation();
   const [status, setStatus] = React.useState<'checking' | 'ok' | 'need-profile'>('checking');
@@ -59,18 +71,16 @@ function CareHubPerfilGate() {
         const { data } = await http.get<PerfilResponse>('/api/carehub/perfil');
         if (!mounted) return;
 
-        const userStr = localStorage.getItem('user');
-        const localUserId = userStr ? JSON.parse(userStr)?.userId : null;
-        const confirmKey = `carehub_profile_confirmed_${data?.platformUserId ?? localUserId ?? 'unknown'}`;
-        const confirmouPrimeiroAcesso = localStorage.getItem(confirmKey) === 'true';
-
-        const precisaConfirmarPrimeiroAcesso = !confirmouPrimeiroAcesso;
         const precisaCompletarCuidador = cuidadorIncompleto(data);
+        const precisaCompletarCliente = clienteIncompleto(data);
 
-        setStatus((precisaConfirmarPrimeiroAcesso || precisaCompletarCuidador) ? 'need-profile' : 'ok');
+        setStatus((precisaCompletarCuidador || precisaCompletarCliente) ? 'need-profile' : 'ok');
       } catch {
         if (!mounted) return;
-        setStatus('ok');
+        // Se a API falhar (ex: backend offline ou erro 500), NÃO devemos liberar o acesso.
+        // O ideal é mostrar a tela de completar perfil ou bloquear.
+        // Vamos forçar para 'need-profile' para que a tela de erro seja mostrada na página de completar perfil.
+        setStatus('need-profile');
       }
     };
 
@@ -106,13 +116,16 @@ export function CareHubRoutes() {
         <Route path="ajuda" element={<CareHubAjudaPage />} />
 
         <Route path="cuidadores" element={<CuidadoresPage />} />
+        <Route path="agendamentos-menu" element={<AgendamentosMenuPage />} />
         <Route path="agendamentos" element={<AgendamentosPage />} />
         <Route path="prontuario" element={<ProntuarioPage />} />
         <Route path="avaliacoes/:id" element={<AvaliacoesPage />} />
+        <Route path="dispositivos" element={<MeusDispositivosPage />} />
 
         <Route path="cuidador/agendamentos" element={<MeusAgendamentosPage />} />
         <Route path="cuidador/prontuarios" element={<ProntuariosClientesPage />} />
         <Route path="cuidador/registro" element={<RegistroAcompanhamentoPage />} />
+        <Route path="cuidador/alertas" element={<PainelAlertasPage />} />
         <Route path="cuidador/atendimentos" element={<ProximosAtendimentosPage />} />
       </Route>
 

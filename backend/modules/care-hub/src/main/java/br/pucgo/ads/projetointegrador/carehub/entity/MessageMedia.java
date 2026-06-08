@@ -9,7 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.OffsetDateTime;
 
 /**
- * MÃ­dia associada a uma {@link Mensagem} (Ã¡udio, imagem, documento).
+ * Mídia associada a uma {@link Mensagem} (áudio, imagem, documento).
  */
 @Entity
 @Table(name = "message_media", schema = "care_hub")
@@ -45,4 +45,3 @@ public class MessageMedia {
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
 }
-

@@ -10,26 +10,6 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Repositório de Mensagens do CareHub.
- *
- * <p>
- * <strong>Mudança de arquitetura:</strong> as queries foram adaptadas para usar
- * {@code m.remetenteId} e {@code m.destinatarioId} (Long) em vez de
- * {@code m.remetente.id} e {@code m.destinatario.id} (navegação por entidade),
- * pois a entidade {@link Mensagem} agora armazena apenas os IDs.
- *
- * <p>
- * A query nativa {@code findContatoIds} permanece inalterada pois
- * já operava sobre colunas nativas ({@code remetente_id} /
- * {@code destinatario_id}).
- *
- * <p>
- * O método {@code findByDestinatarioAndLidaFalseOrderByDataEnvioDesc} foi
- * removido
- * (recebia {@code User} como parâmetro). Substituído por
- * {@code findByDestinatarioIdAndLidaFalseOrderByDataEnvioDesc}.
- */
 @Repository
 public interface CareHubMensagemRepository extends JpaRepository<Mensagem, Long> {
 
@@ -50,7 +30,7 @@ public interface CareHubMensagemRepository extends JpaRepository<Mensagem, Long>
        List<Mensagem> findByRemetenteIdOrDestinatarioIdOrderByDataEnvioDesc(@Param("usuarioId") Long usuarioId);
 
        /**
-        * Busca mensagens não lidas de um destinatário (substitui o método com User).
+        * Busca mensagens não lidas de um destinatário.
         */
        List<Mensagem> findByDestinatarioIdAndLidaFalseOrderByDataEnvioDesc(Long destinatarioId);
 
@@ -99,4 +79,11 @@ public interface CareHubMensagemRepository extends JpaRepository<Mensagem, Long>
        int marcarComoLidas(@Param("usuarioId") Long usuarioId, @Param("remetenteId") Long remetenteId);
 
        Optional<Mensagem> findByMediaUrl(String mediaUrl);
+
+       /** Apaga TODAS as mensagens trocadas entre dois usu\u00e1rios (usado ao cancelar agendamento). */
+       @Modifying
+       @Query("DELETE FROM Mensagem m WHERE " +
+                     "(m.remetenteId = :user1Id AND m.destinatarioId = :user2Id) OR " +
+                     "(m.remetenteId = :user2Id AND m.destinatarioId = :user1Id)")
+       void deleteConversaBetween(@Param("user1Id") Long user1Id, @Param("user2Id") Long user2Id);
 }

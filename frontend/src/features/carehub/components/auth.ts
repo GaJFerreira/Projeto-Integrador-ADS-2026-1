@@ -1,4 +1,4 @@
-﻿// Lightweight auth helpers for CareHub feature only.
+// Lightweight auth helpers for CareHub feature only.
 // These read from localStorage and provide minimal fallback behavior so CareHub pages work.
 
 function getStoredToken(): string | null {
@@ -27,12 +27,12 @@ export function getUserId(): number | null {
       return user.userId || null;
     }
   } catch {
-    const v = localStorage.getItem('userId') || localStorage.getItem('userID');
-    if (!v) return null;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : null;
+    // ignore
   }
-  return null;
+  const v = localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('carehub_user_id');
+  if (!v) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
 }
 
 export function getUserRole(): string | null {
@@ -43,9 +43,9 @@ export function getUserRole(): string | null {
       return user.roleName || user.roleCode || null;
     }
   } catch {
-    return localStorage.getItem('roles') || localStorage.getItem('userRole') || localStorage.getItem('role') || null;
+    // ignore
   }
-  return null;
+  return localStorage.getItem('roles') || localStorage.getItem('userRole') || localStorage.getItem('role') || localStorage.getItem('carehub_user_role') || null;
 }
 
 export function getUser(): any {
@@ -151,33 +151,62 @@ export async function initializeAuthToken(): Promise<void> {
 }
 
 export async function checkAndCacheUserType() {
-  const userId = getUserId();
-  if (!userId) return;
-
   try {
     await initializeAuthToken();
 
+    let roleName = '';
+    
+    let fetchedUserId: number | null = null;
+    
+    // Tenta buscar o perfil do usuário via API
     try {
       const { default: http } = await import('../libHttp');
-      await http.get('/api/carehub/perfil');
+      const { data } = await http.get('/api/carehub/perfil');
+      if (data && data.platformUserId) {
+        fetchedUserId = data.platformUserId;
+        localStorage.setItem('carehub_user_id', data.platformUserId.toString());
+        if (data.role) {
+          localStorage.setItem('carehub_user_role', data.role);
+          roleName = data.role.toUpperCase();
+        }
+      }
     } catch {
-      // Nao bloqueia fluxo
+      // Falha na API
     }
 
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      const user = JSON.parse(userStr);
-      const roleName = (user.roleName || user.roleCode || '').toUpperCase();
-
-      const isCuid = roleName.includes('CUIDADOR') || roleName.includes('CAREHUB_CUIDADOR');
-      const isCli = roleName.includes('IDOSO') || roleName.includes('CLIENTE') || roleName.includes('FAMILIAR') || roleName.includes('CAREHUB_CLIENTE') || !isCuid;
-
-      localStorage.setItem(cacheKey('cuidador'), isCuid ? 'true' : 'false');
-      localStorage.setItem(cacheKey('cliente'), isCli ? 'true' : 'false');
+    // Se a API não retornou roleName, tenta pegar do localStorage global
+    if (!roleName) {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          roleName = (user.roleName || user.roleCode || '').toUpperCase();
+        } catch {
+          roleName = (localStorage.getItem('roles') || localStorage.getItem('carehub_user_role') || '').toUpperCase();
+        }
+      } else {
+        roleName = (localStorage.getItem('roles') || localStorage.getItem('carehub_user_role') || '').toUpperCase();
+      }
     }
+
+    const isCuid = roleName.includes('CUIDADOR') || roleName.includes('CAREHUB_CUIDADOR');
+    const isCli = roleName.includes('IDOSO') || roleName.includes('CLIENTE') || roleName.includes('FAMILIAR') || roleName.includes('CAREHUB_CLIENTE') || (!isCuid && roleName !== '');
+
+    const uid = fetchedUserId ?? getUserId();
+    const key_cuidador = `carehub_is_cuidador_${uid ?? 'anon'}`;
+    const key_cliente = `carehub_is_cliente_${uid ?? 'anon'}`;
+
+    localStorage.setItem(key_cuidador, isCuid ? 'true' : 'false');
+    localStorage.setItem(key_cliente, isCli ? 'true' : 'false');
   } catch {
-    localStorage.setItem(cacheKey('cuidador'), 'false');
-    localStorage.setItem(cacheKey('cliente'), 'true');
+    const existingId = getUserId();
+    if (existingId) {
+      const existingCuidador = localStorage.getItem(`carehub_is_cuidador_${existingId}`);
+      if (!existingCuidador) {
+        localStorage.setItem(`carehub_is_cuidador_${existingId}`, 'false');
+        localStorage.setItem(`carehub_is_cliente_${existingId}`, 'true');
+      }
+    }
   }
 }
 

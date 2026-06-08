@@ -12,19 +12,18 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class AgendamentoRequestDTO {
 
-    @NotNull(message = "Cuidador Ã© obrigatÃ³rio")
+    @NotNull(message = "Cuidador é obrigatório")
     private Long cuidadorId;
 
-    @NotNull(message = "Cliente Ã© obrigatÃ³rio")
+    @NotNull(message = "Cliente é obrigatório")
     private Long clienteId;
 
-    @NotNull(message = "Data/hora de inÃ­cio Ã© obrigatÃ³ria")
+    @NotNull(message = "Data/hora de início é obrigatória")
     private OffsetDateTime dataHoraInicio;
 
-    @NotNull(message = "Data/hora de fim Ã© obrigatÃ³ria")
+    @NotNull(message = "Data/hora de fim é obrigatória")
     private OffsetDateTime dataHoraFim;
 
     private String observacoes;
     private String tipoAtendimento;
 }
-

@@ -22,45 +22,40 @@ public class AvaliacaoController {
     private AvaliacaoService avaliacaoService;
 
     @Autowired
-    private br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository cuidadorRepository;
-
-    @Autowired
     private br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository clienteRepository;
 
-    private Long obterIdLocalAutenticado(Principal principal) {
+    private Long obterClienteIdAutenticado(Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
             throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuario nao autenticado");
+                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
         }
 
         String usernameOrEmail = principal.getName();
 
-        var cuidador = cuidadorRepository.findByUsername(usernameOrEmail)
-                .or(() -> cuidadorRepository.findByEmail(usernameOrEmail));
-        if (cuidador.isPresent()) return cuidador.get().getId();
-
+        // Para avaliações, quem avalia é sempre o Cliente.
+        // Portanto, devemos buscar o usuário exclusivamente no clienteRepository.
         var cliente = clienteRepository.findByUsername(usernameOrEmail)
                 .or(() -> clienteRepository.findByEmail(usernameOrEmail));
-        if (cliente.isPresent()) return cliente.get().getId();
+        if (cliente.isPresent())
+            return cliente.get().getId();
 
         throw new org.springframework.web.server.ResponseStatusException(
                 org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuario local do CareHub nao encontrado para o principal autenticado: " + usernameOrEmail);
+                "Cliente local do CareHub não encontrado para o principal autenticado: " + usernameOrEmail);
     }
 
     @PostMapping
     public ResponseEntity<AvaliacaoResponseDTO> criarAvaliacao(
             Principal principal,
-            @Valid @RequestBody AvaliacaoRequestDTO dto
-    ) {
-        Long localClienteId = obterIdLocalAutenticado(principal);
-        log.info("Criando avaliacao: clienteId={}, cuidadorId={}, nota={}",
-            localClienteId, dto.getCuidadorId(), dto.getNota());
+            @Valid @RequestBody AvaliacaoRequestDTO dto) {
+        Long localClienteId = obterClienteIdAutenticado(principal);
+        log.info("Criando avaliação: clienteId={}, cuidadorId={}, nota={}",
+                localClienteId, dto.getCuidadorId(), dto.getNota());
 
         AvaliacaoResponseDTO avaliacao = avaliacaoService.criarAvaliacao(localClienteId, dto);
 
-        log.info("Avaliacao criada com sucesso: id={}, cuidadorId={}, nota={}",
-            avaliacao.getId(), avaliacao.getCuidadorId(), avaliacao.getNota());
+        log.info("Avaliação criada com sucesso: id={}, cuidadorId={}, nota={}",
+                avaliacao.getId(), avaliacao.getCuidadorId(), avaliacao.getNota());
 
         return ResponseEntity.ok(avaliacao);
     }
