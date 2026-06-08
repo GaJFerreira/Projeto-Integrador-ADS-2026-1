@@ -26,24 +26,32 @@
 		</dependency>
 
 		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>remember</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
 			<groupId>br.com.puc</groupId>
 			<artifactId>lista-compras</artifactId>
 			<version>${project.version}</version>
 		</dependency>
     
-    <!--
     <dependency>
         <groupId>br.pucgo.ads</groupId>
     		<artifactId>care-hub</artifactId>
     		<version>${project.version}</version>
 		</dependency>
-    -->
-    
-    
 
 		<dependency>
 			<groupId>br.pucgo.ads</groupId>
 			<artifactId>diario-saude</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>br.pucgo.ads</groupId>
+			<artifactId>elden-care</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 

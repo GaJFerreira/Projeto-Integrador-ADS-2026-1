@@ -6,19 +6,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * Mensagem trocada entre dois usuários do CareHub.
  *
- * <p><strong>Mudança de arquitetura:</strong> os campos {@code remetente} e
+ * <p>
+ * <strong>Mudança de arquitetura:</strong> os campos {@code remetente} e
  * {@code destinatario} eram anteriormente {@code User} (import da plataforma).
  * Agora são representados apenas por seus IDs Long ({@code remetenteId} e
  * {@code destinatarioId}), eliminando qualquer dependência de classe externa.
  *
- * <p>O {@link br.pucgo.ads.projetointegrador.carehub.service.MensagemService}
- * resolve os nomes consultando o {@code UsuarioRepository} local quando necessário
- * para montar o DTO de resposta.
+ * <p>
+ * O {@link br.pucgo.ads.projetointegrador.carehub.service.MensagemService}
+ * resolve os nomes consultando repositórios locais (ex: CuidadorRepository,
+ * ClienteRepository)
+ * quando necessário para montar o DTO de resposta.
  */
 @Entity
 @Table(name = "ch_mensagem", schema = "care_hub")
@@ -38,11 +41,17 @@ public class Mensagem {
     @Column(name = "remetente_id", nullable = false)
     private Long remetenteId;
 
+    @Column(name = "remetente_tipo", length = 20)
+    private String remetenteTipo;
+
     /**
      * ID do usuário destinatário (referência a {@code care_hub.usuario.id}).
      */
     @Column(name = "destinatario_id", nullable = false)
     private Long destinatarioId;
+
+    @Column(name = "destinatario_tipo", length = 20)
+    private String destinatarioTipo;
 
     @Column(nullable = true, columnDefinition = "TEXT")
     private String conteudo;
@@ -57,7 +66,7 @@ public class Mensagem {
 
     @CreationTimestamp
     @Column(name = "data_envio", nullable = false, updatable = false)
-    private LocalDateTime dataEnvio;
+    private OffsetDateTime dataEnvio;
 
     @Column(nullable = false)
     private Boolean lida = false;

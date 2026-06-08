@@ -4,61 +4,49 @@ import br.pucgo.ads.projetointegrador.carehub.dto.mensagem.ContatoDTO;
 import br.pucgo.ads.projetointegrador.carehub.dto.mensagem.MensagemRequestDTO;
 import br.pucgo.ads.projetointegrador.carehub.dto.mensagem.MensagemResponseDTO;
 import br.pucgo.ads.projetointegrador.carehub.entity.Mensagem;
-import br.pucgo.ads.projetointegrador.carehub.entity.Usuario;
+import br.pucgo.ads.projetointegrador.carehub.entity.Cuidador;
+import br.pucgo.ads.projetointegrador.carehub.entity.Cliente;
 import br.pucgo.ads.projetointegrador.carehub.exception.OperacaoNaoPermitidaException;
 import br.pucgo.ads.projetointegrador.carehub.repository.AgendamentoRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.CareHubMensagemRepository;
-import br.pucgo.ads.projetointegrador.carehub.repository.UsuarioRepository;
+import br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository;
+import br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Service de Mensagens do CareHub.
- *
- * <p>
- * <strong>Mudança de arquitetura:</strong> a entidade {@link Mensagem} agora
- * armazena
- * {@code remetenteId} e {@code destinatarioId} como Long (sem FK de objeto para
- * plataforma.User).
- * Este service resolve os nomes dos usuários consultando o
- * {@link UsuarioRepository} local
- * ({@code care_hub.usuario}) quando necessário para montar o DTO de resposta —
- * mantendo
- * compatibilidade com o front-end sem importar nenhuma classe da plataforma.
- *
- * <p>
- * O método {@code buscarMensagensNaoLidas} foi refatorado para usar
- * {@code findByDestinatarioIdAndLidaFalseOrderByDataEnvioDesc} em vez de
- * receber um objeto {@code User} como parâmetro.
- */
 @Service
 @RequiredArgsConstructor
 public class MensagemService {
 
     private final CareHubMensagemRepository mensagemRepository;
-    private final UsuarioRepository usuarioRepository;
+    private final CuidadorRepository cuidadorRepository;
+    private final ClienteRepository clienteRepository;
     private final AgendamentoRepository agendamentoRepository;
-
-    // ── Enviar mensagem ───────────────────────────────────────────────────────
 
     @Transactional
     public MensagemResponseDTO enviarMensagem(Long remetenteId, MensagemRequestDTO dto) {
+        return enviarMensagem(remetenteId, dto, null, null);
+    }
+
+    @Transactional
+    public MensagemResponseDTO enviarMensagem(Long remetenteId, MensagemRequestDTO dto, String remetenteTipo,
+            String destinatarioTipo) {
         Objects.requireNonNull(remetenteId, "Remetente ID não pode ser nulo");
         Long destinatarioId = Objects.requireNonNull(dto.getDestinatarioId(), "Destinatário ID não pode ser nulo");
 
-        // Garantir que ambos os usuários existem localmente
-        usuarioRepository.findById(remetenteId)
-                .orElseThrow(() -> new RuntimeException("Remetente não encontrado: " + remetenteId));
-        usuarioRepository.findById(destinatarioId)
-                .orElseThrow(() -> new RuntimeException("Destinatário não encontrado: " + destinatarioId));
+        if (!existeUsuario(remetenteId)) {
+            throw new RuntimeException("Remetente não encontrado: " + remetenteId);
+        }
+        if (!existeUsuario(destinatarioId)) {
+            throw new RuntimeException("Destinatário não encontrado: " + destinatarioId);
+        }
 
-        // Regra de negócio: só pode trocar mensagens se existir atendimento entre as
-        // partes
         boolean podeTrocar = agendamentoRepository.existsBetweenUsers(remetenteId, destinatarioId);
         if (!podeTrocar) {
             throw new OperacaoNaoPermitidaException(
@@ -67,7 +55,9 @@ public class MensagemService {
 
         Mensagem mensagem = new Mensagem();
         mensagem.setRemetenteId(remetenteId);
+        mensagem.setRemetenteTipo(remetenteTipo);
         mensagem.setDestinatarioId(destinatarioId);
+        mensagem.setDestinatarioTipo(destinatarioTipo);
         mensagem.setConteudo(dto.getConteudo());
         mensagem.setMediaUrl(dto.getMediaUrl());
         mensagem.setMediaType(dto.getMediaType());
@@ -75,8 +65,6 @@ public class MensagemService {
         mensagem = mensagemRepository.save(mensagem);
         return toResponseDTO(mensagem);
     }
-
-    // ── Listar mensagens de um usuário ────────────────────────────────────────
 
     @Transactional(readOnly = true)
     public List<MensagemResponseDTO> listarMensagens(Long usuarioId) {
@@ -88,17 +76,16 @@ public class MensagemService {
                 .collect(Collectors.toList());
     }
 
-    // ── Buscar conversa entre dois usuários ───────────────────────────────────
-
     @Transactional(readOnly = true)
     public List<MensagemResponseDTO> buscarConversa(Long usuario1Id, Long usuario2Id) {
-        Objects.requireNonNull(usuario1Id, "Usuario1 ID não pode ser nulo");
-        Objects.requireNonNull(usuario2Id, "Usuario2 ID não pode ser nulo");
+        Objects.requireNonNull(usuario1Id, "Usuario1 ID n\u00e3o pode ser nulo");
+        Objects.requireNonNull(usuario2Id, "Usuario2 ID n\u00e3o pode ser nulo");
 
-        boolean existe = agendamentoRepository.existsBetweenUsers(usuario1Id, usuario2Id);
+        // Usa existsAnyBetweenUsers para permitir visualizar hist\u00f3rico mesmo ap\u00f3s conclus\u00e3o
+        boolean existe = agendamentoRepository.existsAnyBetweenUsers(usuario1Id, usuario2Id);
         if (!existe) {
             throw new OperacaoNaoPermitidaException(
-                    "Acesso à conversa negado: sem atendimento entre as partes");
+                    "Acesso \u00e0 conversa negado: sem atendimento entre as partes");
         }
 
         return mensagemRepository.findConversaBetween(usuario1Id, usuario2Id)
@@ -107,24 +94,19 @@ public class MensagemService {
                 .collect(Collectors.toList());
     }
 
-    // ── Mensagens não lidas ───────────────────────────────────────────────────
-
     @Transactional(readOnly = true)
     public List<MensagemResponseDTO> buscarMensagensNaoLidas(Long usuarioId) {
         Objects.requireNonNull(usuarioId, "Usuario ID não pode ser nulo");
-        // Verificar que o usuário existe localmente
-        usuarioRepository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado: " + usuarioId));
+        if (!existeUsuario(usuarioId)) {
+            throw new RuntimeException("Usuário não encontrado: " + usuarioId);
+        }
 
-        // Refatorado: usa destinatarioId (Long) em vez de objeto User
         return mensagemRepository
                 .findByDestinatarioIdAndLidaFalseOrderByDataEnvioDesc(usuarioId)
                 .stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
-
-    // ── Marcar como lida ──────────────────────────────────────────────────────
 
     @Transactional
     public void marcarComoLida(Long mensagemId) {
@@ -141,10 +123,8 @@ public class MensagemService {
         return mensagemRepository.countMensagensNaoLidas(usuarioId);
     }
 
-    // ── Listar contatos ───────────────────────────────────────────────────────
-
     @Transactional(readOnly = true)
-    public List<ContatoDTO> listarContatos(Long usuarioId) {
+    public List<ContatoDTO> listarContatos(Long usuarioId, boolean usuarioEhCuidador) {
         Objects.requireNonNull(usuarioId, "Usuario ID não pode ser nulo");
 
         List<Long> contatoIds = mensagemRepository.findContatoIds(usuarioId);
@@ -152,19 +132,45 @@ public class MensagemService {
             return List.of();
         }
 
-        return usuarioRepository.findAllById(contatoIds).stream()
-                .map(usuario -> {
-                    ContatoDTO dto = new ContatoDTO();
-                    dto.setId(usuario.getId());
-                    // Resolve o nome a partir da entidade local — sem import de plataforma.User
-                    dto.setNome(usuario.getName());
-                    dto.setPerfil(resolverPerfil(usuario));
-                    dto.setEmail(usuario.getEmail());
+        return contatoIds.stream()
+                .map(id -> {
+                    String name;
+                    String role;
+                    String email;
+                    if (usuarioEhCuidador) {
+                        Optional<Cliente> ocl = clienteRepository.findById(id);
+                        if (ocl.isPresent()) {
+                            name = ocl.get().getName();
+                            role = ocl.get().getRole();
+                            email = ocl.get().getEmail();
+                        } else {
+                            name = "Usuário desconhecido";
+                            role = "CAREHUB_CLIENTE";
+                            email = "";
+                        }
+                    } else {
+                        Optional<Cuidador> oc = cuidadorRepository.findById(id);
+                        if (oc.isPresent()) {
+                            name = oc.get().getName();
+                            role = oc.get().getRole();
+                            email = oc.get().getEmail();
+                        } else {
+                            name = "Usuário desconhecido";
+                            role = "CAREHUB_CUIDADOR";
+                            email = "";
+                        }
+                    }
 
-                    long naoLidas = mensagemRepository.countMensagensNaoLidasDeRemetente(usuarioId, usuario.getId());
+                    ContatoDTO dto = new ContatoDTO();
+                    dto.setId(id);
+                    dto.setNome(name);
+                    dto.setPerfil(role != null ? role : "USUARIO");
+                    dto.setEmail(email);
+
+                    long naoLidas = mensagemRepository.countMensagensNaoLidasDeRemetente(usuarioId, id);
                     dto.setMensagensNaoLidas(naoLidas);
 
-                    Mensagem ultimaMensagem = mensagemRepository.findUltimaMensagemEntre(usuarioId, usuario.getId());
+                    Mensagem ultimaMensagem = mensagemRepository.findUltimaMensagemEntre(usuarioId, id);
                     if (ultimaMensagem != null) {
                         String preview = ultimaMensagem.getConteudo();
                         if (preview != null) {
@@ -173,6 +179,7 @@ public class MensagemService {
                             dto.setUltimaMensagem("🎤 Áudio");
                         }
                         dto.setDataUltimaMensagem(ultimaMensagem.getDataEnvio());
+                        dto.setUltimoRemetenteId(ultimaMensagem.getRemetenteId());
                     }
                     return dto;
                 })
@@ -188,33 +195,22 @@ public class MensagemService {
 
     @Transactional
     public void marcarConversaComoLida(Long usuarioId, Long remetenteId) {
-        Objects.requireNonNull(usuarioId, "Usuario ID não pode ser nulo");
-        Objects.requireNonNull(remetenteId, "Remetente ID não pode ser nulo");
+        Objects.requireNonNull(usuarioId, "Usu\u00e1rio ID n\u00e3o pode ser nulo");
+        Objects.requireNonNull(remetenteId, "Remetente ID n\u00e3o pode ser nulo");
         mensagemRepository.marcarComoLidas(usuarioId, remetenteId);
     }
 
-    // ── Helpers privados ──────────────────────────────────────────────────────
-
     /**
-     * Resolve o perfil (role) do usuário como String descritiva.
-     * Substitui o antigo {@code usuario.getClass().getSimpleName().toUpperCase()}
-     * que dependia da hierarquia de herança legada.
+     * Verifica se o chat entre dois usu\u00e1rios est\u00e1 ativo (permite envio de novas mensagens).
+     * Retorna true apenas quando h\u00e1 agendamento PENDENTE, CONFIRMADO ou EM_ANDAMENTO.
      */
-    private String resolverPerfil(Usuario usuario) {
-        if (usuario.getRole() != null) {
-            return usuario.getRole();
-        }
-        return "USUARIO";
+    @Transactional(readOnly = true)
+    public boolean chatAtivo(Long usuario1Id, Long usuario2Id) {
+        Objects.requireNonNull(usuario1Id, "Usu\u00e1rio1 ID n\u00e3o pode ser nulo");
+        Objects.requireNonNull(usuario2Id, "Usu\u00e1rio2 ID n\u00e3o pode ser nulo");
+        return agendamentoRepository.existsBetweenUsers(usuario1Id, usuario2Id);
     }
 
-    /**
-     * Converte uma {@link Mensagem} para DTO de resposta.
-     *
-     * <p>
-     * Os nomes do remetente e destinatário são resolvidos a partir do
-     * {@code UsuarioRepository} local. Caso o usuário não seja encontrado
-     * (dados inconsistentes), retorna "Usuário desconhecido" sem lançar exceção.
-     */
     private MensagemResponseDTO toResponseDTO(Mensagem mensagem) {
         MensagemResponseDTO dto = new MensagemResponseDTO();
         dto.setId(mensagem.getId());
@@ -225,8 +221,9 @@ public class MensagemService {
         dto.setLida(mensagem.getLida());
         dto.setMediaUrl(mensagem.getMediaUrl());
         dto.setMediaType(mensagem.getMediaType());
+        dto.setRemetenteTipo(mensagem.getRemetenteTipo());
+        dto.setDestinatarioTipo(mensagem.getDestinatarioTipo());
 
-        // Resolve nomes consultando o repositório local
         dto.setRemetenteNome(resolverNome(mensagem.getRemetenteId()));
         dto.setDestinatarioNome(resolverNome(mensagem.getDestinatarioId()));
 
@@ -236,8 +233,17 @@ public class MensagemService {
     private String resolverNome(Long usuarioId) {
         if (usuarioId == null)
             return "Desconhecido";
-        return usuarioRepository.findById(usuarioId)
-                .map(Usuario::getName)
-                .orElse("Usuário desconhecido");
+            
+        Optional<Cuidador> oc = cuidadorRepository.findById(usuarioId);
+        if (oc.isPresent()) return oc.get().getName();
+        
+        Optional<Cliente> ocl = clienteRepository.findById(usuarioId);
+        if (ocl.isPresent()) return ocl.get().getName();
+        
+        return "Usuário desconhecido";
+    }
+    
+    private boolean existeUsuario(Long usuarioId) {
+        return cuidadorRepository.existsById(usuarioId) || clienteRepository.existsById(usuarioId);
     }
 }

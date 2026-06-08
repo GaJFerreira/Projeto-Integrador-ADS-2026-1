@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -13,11 +13,14 @@ public class MensagemResponseDTO {
     private Long id;
     private Long remetenteId;
     private String remetenteNome;
+    private String remetenteTipo;
     private Long destinatarioId;
     private String destinatarioNome;
+    private String destinatarioTipo;
     private String conteudo;
-    private LocalDateTime dataEnvio;
+    private OffsetDateTime dataEnvio;
     private Boolean lida;
     private String mediaUrl;
     private String mediaType;
+    private Boolean enviadaPeloUsuarioLogado;
 }

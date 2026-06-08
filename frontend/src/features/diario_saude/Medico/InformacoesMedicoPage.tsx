@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Box, Button, Stack } from "@mui/material";
+import { Button, Stack } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 // Componentes
@@ -44,13 +44,16 @@ export default function InformacoesMedicoPage() {
     queryKey: ["medico", medicoId],
     queryFn: () => medicoApi.porId(medicoId),
     enabled: !!medicoId,
-    onSuccess: (data) => {
-      setEditData({
-        nome: data.nome ?? editData.nome,
-        local_trabalho: data.local_trabalho ?? editData.local_trabalho,
-      });
-    },
   });
+
+  useEffect(() => {
+    if (medico) {
+      setEditData((prev) => ({
+        nome: (medico as any).nome ?? prev.nome,
+        local_trabalho: (medico as any).local_trabalho ?? prev.local_trabalho,
+      }));
+    }
+  }, [medico]);
 
   // -----------------------------
   // Atualizar dados
@@ -60,7 +63,7 @@ export default function InformacoesMedicoPage() {
     onSuccess: (data) => {
       // Atualiza localStorage e cache do React Query
       localStorage.setItem("usuarioLogado", JSON.stringify({ ...medicoLogado, ...data }));
-      queryClient.invalidateQueries(["medico", medicoId]);
+      queryClient.invalidateQueries({ queryKey: ["medico", medicoId] });
       alert("Informações do médico atualizadas!");
     },
     onError: (err) => {
@@ -101,9 +104,9 @@ export default function InformacoesMedicoPage() {
         fullWidth
         sx={{ mt: 2 }}
         onClick={salvarAlteracoes}
-        disabled={atualizarMedicoMutation.isLoading}
+        disabled={atualizarMedicoMutation.isPending}
       >
-        {atualizarMedicoMutation.isLoading ? "Salvando..." : "Salvar Alterações"}
+        {atualizarMedicoMutation.isPending ? "Salvando..." : "Salvar Alterações"}
       </Button>
     </PageContainer>
   );

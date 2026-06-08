@@ -11,8 +11,7 @@ export function setAuthToken(t: string | null) { token = t; }
 
 http.interceptors.request.use((config) => {
   if (token) {
-    config.headers = config.headers || {};
-    (config.headers as any)['Authorization'] = `Bearer ${token}`;
+    config.headers = { ...config.headers, Authorization: `Bearer ${token}` } as any;
   }
   return config;
 });

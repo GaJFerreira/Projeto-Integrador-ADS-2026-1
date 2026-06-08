@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -17,6 +17,7 @@ public class AvaliacaoResponseDTO {
     private String clienteNome;
     private Integer nota;
     private String comentario;
-    private LocalDateTime dataAvaliacao;
+    private OffsetDateTime dataAvaliacao;
     private Long agendamentoId;
 }
+

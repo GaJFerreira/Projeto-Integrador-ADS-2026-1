@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Data
 @NoArgsConstructor
@@ -19,10 +19,10 @@ public class AgendamentoRequestDTO {
     private Long clienteId;
 
     @NotNull(message = "Data/hora de início é obrigatória")
-    private LocalDateTime dataHoraInicio;
+    private OffsetDateTime dataHoraInicio;
 
     @NotNull(message = "Data/hora de fim é obrigatória")
-    private LocalDateTime dataHoraFim;
+    private OffsetDateTime dataHoraFim;
 
     private String observacoes;
     private String tipoAtendimento;

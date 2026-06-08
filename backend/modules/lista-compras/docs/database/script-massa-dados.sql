@@ -1,20 +1,23 @@
 -- ============================================================================
 -- Compre com Saude (lista_compras) - Script consolidado de massa de dados
 -- ============================================================================
--- Como rodar:
---   1) Suba o backend (plataforma) ao menos uma vez para que o Hibernate
---      crie as tabelas do schema lista_compras (ddl-auto=create-drop).
---   2) Conecte no banco "projeto_integrador" e execute este script inteiro.
--- ----------------------------------------------------------------------------
--- Observacao: o script e idempotente em relacao a producao de dados (usa
--- ON CONFLICT / NOT EXISTS), mas tabelas serao recriadas a cada restart do
--- backend quando o ddl-auto for "create-drop". Rode novamente apos cada
--- restart se quiser repor a massa.
+-- IMPORTANTE: a partir de agora, este script NAO precisa ser executado
+-- manualmente. O ListaComprasDataInitializer carrega automaticamente a massa
+-- (versao adaptada em src/main/resources/db/seed/lista-compras-seed.sql) toda
+-- vez que o backend sobe, de forma idempotente e resiliente a IDs variaveis.
+--
+-- Este arquivo permanece em docs/ como REFERENCIA HISTORICA E DOCUMENTAL da
+-- massa do modulo. Edicoes funcionais devem ser feitas no .sql do classpath.
+--
+-- Caso queira rodar manualmente (debug / ambiente sem DataInitializer):
+--   1) Suba o backend ao menos uma vez para o Hibernate criar as tabelas.
+--   2) Execute este script no banco "projeto_integrador".
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
 -- 0) EXTENSAO unaccent + funcao IMMUTABLE f_unaccent
---    Necessaria para a busca por nome (ProdutoRepository.findByNomeNormalizado)
+--    Usada apenas por este seed para gravar nome_normalizado sem acentos
+--    (a busca por nome roda em JPA puro sobre a coluna ja normalizada).
 -- ----------------------------------------------------------------------------
 
 CREATE EXTENSION IF NOT EXISTS unaccent;
@@ -156,7 +159,7 @@ INSERT INTO lista_compras.produto (
 )
 SELECT
   p.nome,
-  LOWER(p.nome),
+  public.unaccent(LOWER(p.nome)),
   p.preco,
   TRUE,
   FALSE,

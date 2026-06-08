@@ -5,7 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneOffset;
 
 /**
  * Entidade de Agendamento de atendimento entre Cuidador e Cliente.
@@ -30,10 +31,10 @@ public class Agendamento {
     private Cliente cliente;
 
     @Column(name = "data_hora_inicio", nullable = false)
-    private LocalDateTime dataHoraInicio;
+    private OffsetDateTime dataHoraInicio;
 
     @Column(name = "data_hora_fim", nullable = false)
-    private LocalDateTime dataHoraFim;
+    private OffsetDateTime dataHoraFim;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 32)
@@ -47,18 +48,17 @@ public class Agendamento {
     private TipoAtendimento tipoAtendimento;
 
     @Column(name = "data_solicitacao")
-    private LocalDateTime dataSolicitacao;
+    private OffsetDateTime dataSolicitacao;
 
-    /** Data/hora de início proposta pelo cuidador (contraproposta) */
+    /** Data/hora de iní­cio proposta pelo cuidador (contraproposta) */
     @Column(name = "proposed_data_hora_inicio")
-    private LocalDateTime proposedDataHoraInicio;
+    private OffsetDateTime proposedDataHoraInicio;
 
     /** Data/hora de fim proposta pelo cuidador (contraproposta) */
     @Column(name = "proposed_data_hora_fim")
-    private LocalDateTime proposedDataHoraFim;
+    private OffsetDateTime proposedDataHoraFim;
 
-    // ── Enum de status ────────────────────────────────────────────────────────
-
+    // Enum de status
     public enum StatusAgendamento {
         PENDENTE,
         CONFIRMADO,
@@ -68,12 +68,11 @@ public class Agendamento {
         CANCELADO
     }
 
-    // ── Lifecycle callbacks ───────────────────────────────────────────────────
-
+    // Lifecycle callbacks
     @PrePersist
     protected void onCreate() {
         if (dataSolicitacao == null) {
-            dataSolicitacao = LocalDateTime.now();
+            dataSolicitacao = OffsetDateTime.now(ZoneOffset.UTC);
         }
         if (status == null) {
             status = StatusAgendamento.PENDENTE;

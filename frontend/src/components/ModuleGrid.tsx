@@ -7,8 +7,11 @@ import HistoryIcon from '@mui/icons-material/History';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import EscalatorWarningIcon from '@mui/icons-material/EscalatorWarning';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // ✅ Novo ícone
+import FavoriteIcon from '@mui/icons-material/Favorite'; // ✅ CareHub
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import { useNavigate } from 'react-router-dom';
+import NoteAltOutlinedIcon from '@mui/icons-material/NoteAltOutlined';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 
 export function ModuleGrid() {
   const navigate = useNavigate();
@@ -59,12 +62,37 @@ export function ModuleGrid() {
       to: '/atendimento',
     },
 
+    // Elden Care — Plano de Exercícios
+    {
+      icon: <DirectionsRunIcon sx={{ fontSize: 40 }} color="primary" />,
+      title: 'Elden Care',
+      desc: 'Plano de atividades físicas personalizado para idosos.',
+      to: '/elden-care/questionario',
+    },
+
+    // Novo módulo: CareHub
+    {
+      icon: <FavoriteIcon sx={{ fontSize: 40 }} color="error" />,
+      title: 'CareHub',
+      desc: 'Sistema de acompanhamento de idosos.',
+      to: '/carehub',
+    },
+
     {
       icon: <EscalatorWarningIcon sx={{ fontSize: 40 }} />,
       title: 'Cuidador',
       desc: 'Dicas rápidas e ajuda no dia a dia.',
       to: '/grupo5/ajudador',
     },
+
+    {
+      icon: <NoteAltOutlinedIcon sx={{ fontSize: 40 }} />,
+      title: 'Remember',
+      desc: 'Diário Cognitivo e Gamificação',
+      to: '/remember',
+    },
+
+
     {
       icon: <HelpOutlineIcon sx={{ fontSize: 40 }} />,
       title: 'Dúvidas',

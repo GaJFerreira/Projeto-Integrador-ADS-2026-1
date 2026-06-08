@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 /**
  * Prontuário médico/clínico do Cliente.
@@ -50,20 +52,11 @@ public class Prontuario {
     @Column(name = "necessidades_especiais", columnDefinition = "TEXT")
     private String necessidadesEspeciais;
 
+    @CreationTimestamp
     @Column(name = "data_criacao", nullable = false, updatable = false)
-    private LocalDateTime dataCriacao;
+    private OffsetDateTime dataCriacao;
 
+    @UpdateTimestamp
     @Column(name = "data_atualizacao")
-    private LocalDateTime dataAtualizacao;
-
-    @PrePersist
-    protected void onCreate() {
-        dataCriacao = LocalDateTime.now();
-        dataAtualizacao = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void onUpdate() {
-        dataAtualizacao = LocalDateTime.now();
-    }
+    private OffsetDateTime dataAtualizacao;
 }

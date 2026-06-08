@@ -3,20 +3,45 @@ package br.pucgo.ads.projetointegrador.carehub.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@DiscriminatorValue("CUIDADOR")
+@Table(name = "ch_cuidador", schema = "care_hub")
 @Data
-@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Cuidador extends Usuario {
+public class Cuidador {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "platform_user_id", unique = true)
+    private Long platformUserId;
+
+    @Column(nullable = false, unique = true)
+    private String username;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(columnDefinition = "VARCHAR(255)")
+    private String name;
+
+    private String status;
+
+    @Column(name = "role", length = 64)
+    private String role;
+
+    @Column(nullable = false)
+    private Boolean ativo = true;
 
     @Column(name = "telefone")
     private String telefone;
@@ -34,7 +59,7 @@ public class Cuidador extends Usuario {
     @Column(length = 2)
     private String estado;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Boolean disponibilidade = true;
 
     @Column(name = "taxa_hora", precision = 10, scale = 2)
@@ -51,4 +76,25 @@ public class Cuidador extends Usuario {
 
     @Column(length = 255)
     private String fotoPerfil;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private OffsetDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private OffsetDateTime updatedAt;
+
+    @Column(name = "deleted_at")
+    private OffsetDateTime deletedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        if (ativo == null) {
+            ativo = true;
+        }
+        if (status == null) {
+            status = "ACTIVE";
+        }
+    }
 }

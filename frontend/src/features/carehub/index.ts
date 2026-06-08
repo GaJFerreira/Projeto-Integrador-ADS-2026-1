@@ -1,0 +1,39 @@
+// Página Inicial
+export { default as CareHubHomePage } from './pages/CareHubHomePage';
+export { default as CareHubPrimeiroAcessoPage } from './pages/CareHubPrimeiroAcessoPage';
+
+// Páginas do Cliente (Dona Maria - ID 2)
+export { default as CuidadoresPage } from './pages/CuidadoresPage';
+export { default as AgendamentosPage } from './pages/AgendamentosPage';
+export { default as AgendamentosMenuPage } from './pages/AgendamentosMenuPage';
+export { default as ProntuarioPage } from './pages/ProntuarioPage';
+export { default as AvaliacoesPage } from './pages/AvaliacoesPage';
+export { default as ChatPage } from './pages/ChatPage';
+export { default as CareHubAjudaPage } from './pages/CareHubAjudaPage';
+export { default as MeusDispositivosPage } from './pages/MeusDispositivosPage';
+
+// Páginas do Cuidador (João Cuidador - ID 3)
+export { MeusAgendamentosPage } from './pages/MeusAgendamentosPage';
+export { ProntuariosClientesPage } from './pages/ProntuariosClientesPage';
+export { RegistroAcompanhamentoPage } from './pages/RegistroAcompanhamentoPage';
+export { ProximosAtendimentosPage } from './pages/ProximosAtendimentosPage';
+export { HistoricoAtendimentosPage } from './pages/HistoricoAtendimentosPage';
+export { default as PainelAlertasPage } from './pages/PainelAlertasPage';
+export { GlobalAlertListener } from './components/GlobalAlertListener';
+export { GlobalMessageListener } from './components/GlobalMessageListener';
+
+// Utilitários de autenticação
+export { 
+  initializeAuthToken, 
+  saveAuthToken, 
+  setTokenManually, 
+  debugAuthStorage,
+  checkAndCacheUserType,
+  isCuidador,
+  isCliente,
+  getUserId,
+  getUser,
+  getUserRole
+} from './components/auth';
+
+export {};

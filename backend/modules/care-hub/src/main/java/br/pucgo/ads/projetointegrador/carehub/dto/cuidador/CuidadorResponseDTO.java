@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.util.List;
 
 @Data
@@ -27,5 +27,6 @@ public class CuidadorResponseDTO {
     private String biografia;
     private String fotoPerfil;
     private Boolean ativo;
-    private LocalDateTime criadoEm;
+    private OffsetDateTime criadoEm;
 }
+

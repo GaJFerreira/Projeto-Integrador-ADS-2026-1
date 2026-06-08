@@ -154,7 +154,7 @@ export default function AtendimentoMedico() {
         <Box component="form" onSubmit={handleSubmit}>
           <Grid container spacing={3}>
             {/* Paciente */}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 required
@@ -168,7 +168,7 @@ export default function AtendimentoMedico() {
             </Grid>
 
             {/* Data */}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 required
@@ -182,7 +182,7 @@ export default function AtendimentoMedico() {
             </Grid>
 
             {/* Sintomas */}
-            <Grid item xs={12} sm={6}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <TextField
                 fullWidth
                 label="Sintomas"
@@ -235,10 +235,7 @@ export default function AtendimentoMedico() {
             </Grid>
 
             {/* Botão salvar */}
-            <Grid
-              item
-              xs={12}
-              sx={{ display: 'flex', justifyContent: 'flex-end' }}
+            <Grid size={{ xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}
             >
               <Button
                 type="submit"
