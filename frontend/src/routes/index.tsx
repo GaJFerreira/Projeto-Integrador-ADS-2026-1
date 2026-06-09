@@ -121,13 +121,11 @@ export function AppRoutes() {
         <Route path="lista-compras/templates" element={<TemplatesPage />} />
         <Route path="lista-compras/:listaId/editar" element={<EditListaPage />} />
 
-<<<<<<< HEAD
         {/* Elden Care */}
         <Route path="elden-care/questionario" element={<QuestionarioEldenCare />} />
-=======
-        {/* CareHub */}
+
+         {/* CareHub */}
         <Route path="carehub/*" element={<CareHubRoutes />} />
->>>>>>> origin/develop
 
         {/* Rota fallback */}
         <Route path="*" element={<Navigate to="/home" replace />} />
