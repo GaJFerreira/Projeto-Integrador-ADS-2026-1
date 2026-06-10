@@ -1,0 +1,42 @@
+.sf-erro-painel {
+  width: 100%;
+  max-width: var(--feed-w, 680px);
+  margin: 1.5rem auto 2rem;
+  padding: 1.1rem 1.25rem;
+  background: #fff8f0;
+  border: 1px solid #f0d9aa;
+  border-radius: var(--radius, 12px);
+  text-align: left;
+}
+
+.sf-erro-painel__titulo {
+  margin: 0 0 0.35rem;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand-dark, #854f0b);
+}
+
+.sf-erro-painel__mensagem {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text, #1a1a1a);
+}
+
+.sf-erro-painel__btn {
+  margin-top: 0.85rem;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-family: var(--font-sans, sans-serif);
+  font-weight: 500;
+  color: var(--brand-dark, #854f0b);
+  background: var(--surface, #fff);
+  border: 1px solid var(--brand, #ba7517);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.sf-erro-painel__btn:hover {
+  background: var(--brand-light, #f5e6cb);
+}

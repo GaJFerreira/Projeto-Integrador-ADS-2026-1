@@ -1,0 +1,102 @@
+.sf-barra-inferior {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sf-barra-inferior {
+    display: flex;
+    position: relative;
+    flex-shrink: 0;
+    width: 100%;
+    z-index: 120;
+    align-items: stretch;
+    justify-content: space-around;
+    gap: 0;
+    min-height: 64px;
+    padding: 0.35rem 0.25rem calc(0.35rem + env(safe-area-inset-bottom, 0px));
+    background: var(--surface, #fff);
+    border-top: 1px solid var(--border, #e8e0d0);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.06);
+    font-family: var(--font-sans, system-ui, sans-serif);
+  }
+
+  .sf-barra-inferior__item {
+    flex: 1;
+    min-width: 0;
+    max-width: 20%;
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    padding: 0.25rem 0.15rem;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text-muted, #888);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .sf-barra-inferior__item:hover {
+    background: var(--brand-light, #f5e6cb);
+    color: var(--brand-dark, #854f0b);
+  }
+
+  .sf-barra-inferior__item--ativo {
+    color: var(--brand, #ba7517);
+    background: var(--brand-light, #f5e6cb);
+    font-weight: 600;
+  }
+
+  .sf-barra-inferior__icone {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  .sf-barra-inferior__icone svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .sf-barra-inferior__avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--border, #e8e0d0);
+  }
+
+  .sf-barra-inferior__avatar--placeholder {
+    display: block;
+    background: #ebe6de;
+  }
+
+  .sf-barra-inferior__item--ativo .sf-barra-inferior__avatar {
+    border-color: var(--brand, #ba7517);
+  }
+
+  .sf-barra-inferior__titulo {
+    font-size: 10px;
+    line-height: 1.15;
+    text-align: center;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sf-barra-inferior__item--destaque .sf-barra-inferior__icone svg {
+    color: var(--brand, #ba7517);
+  }
+
+  .sf-barra-inferior__item--destaque.sf-barra-inferior__item--ativo,
+  .sf-barra-inferior__item--destaque:hover {
+    color: var(--brand-dark, #854f0b);
+  }
+}

@@ -1,7 +1,7 @@
 package br.com.puc.saborfamilia.annotation.validator;
 
 import br.com.puc.saborfamilia.annotation.ValidTipoRefeicao;
-import br.com.puc.saborfamilia.database.enums.TipoRefeicaoEnum;
+import br.com.puc.saborfamilia.enums.TipoRefeicaoEnum;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import java.util.Arrays;

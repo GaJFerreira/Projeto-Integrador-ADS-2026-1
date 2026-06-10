@@ -58,7 +58,7 @@ public class ComentarioController {
   @DeleteMapping(value = "/{receitaId}/comentarios/{comentarioId}")
   @Operation(
     summary = "Remover comentário",
-    description = "Remove um comentário da receita. Apenas o autor do comentário pode removê-lo."
+    description = "Remove um comentário da receita. O autor do comentário ou o dono da receita podem removê-lo."
   )
   public ResponseEntity<RemoverComentarioResponse> removerComentario(
     @RequestHeader(value = "Authorization") String authorization,

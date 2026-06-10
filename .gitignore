@@ -77,6 +77,9 @@ Desktop.ini
 *.sqlite
 *.sqlite3
 
+### Sabor Família – diretório de upload das imagens em disco
+storage/
+
 ### Postman (opcional - depende se quer versionar) ###
 # Postman_*.json
 

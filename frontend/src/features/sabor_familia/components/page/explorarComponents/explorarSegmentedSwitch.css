@@ -1,0 +1,52 @@
+.explorar-segmented {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto 1.5rem;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--brand);
+  box-sizing: border-box;
+}
+
+.explorar-segmented__thumb {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  height: calc(100% - 8px);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.explorar-segmented--perfis .explorar-segmented__thumb {
+  transform: translateX(100%);
+}
+
+.explorar-segmented__option {
+  position: relative;
+  z-index: 1;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  padding: 0.55rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.explorar-segmented__option--active {
+  color: var(--brand);
+}
+
+.explorar-segmented__option:hover:not(.explorar-segmented__option--active) {
+  color: rgba(255, 255, 255, 0.92);
+}

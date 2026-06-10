@@ -6,6 +6,7 @@ import br.com.puc.saborfamilia.service.mensagem.dto.request.EnviarMensagemReques
 import br.com.puc.saborfamilia.service.mensagem.dto.response.ConversaResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.EnviarMensagemResponse;
 import br.com.puc.saborfamilia.service.mensagem.dto.response.MensagemCursorResponse;
+import br.com.puc.saborfamilia.service.mensagem.dto.response.RemoverMensagemResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -15,7 +16,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -73,6 +76,34 @@ public class ConversaController {
   ) {
     Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     EnviarMensagemResponse response = mensagemService.enviarMensagem(usuarioId, request);
+    return ResponseEntity.ok(response);
+  }
+
+  @PatchMapping(value = "/{conversaId}/marcar-lida")
+  @Operation(
+    summary = "Marcar conversa como lida",
+    description = "Marca como lidas as mensagens recebidas pelo usuário."
+  )
+  public ResponseEntity<Void> marcarConversaComoLida(
+    @RequestHeader(value = "Authorization") String authorization,
+    @PathVariable Long conversaId
+  ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
+    mensagemService.marcarConversaComoLida(usuarioId, conversaId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping(value = "/mensagens/{mensagemId}")
+  @Operation(
+    summary = "Apagar mensagem",
+    description = "Define uma mensagem como apagada. Apenas o remetente pode apagar."
+  )
+  public ResponseEntity<RemoverMensagemResponse> removerMensagem(
+    @RequestHeader(value = "Authorization") String authorization,
+    @PathVariable Long mensagemId
+  ) {
+    Long usuarioId = JwtClaimsUtils.getUserId(authorization);
+    RemoverMensagemResponse response = mensagemService.removerMensagem(usuarioId, mensagemId);
     return ResponseEntity.ok(response);
   }
 

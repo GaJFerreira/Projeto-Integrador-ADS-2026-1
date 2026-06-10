@@ -1,0 +1,291 @@
+@import "../../components/common/sfSectionAccent.css";
+@import "../../components/common/sfPillToggle.css";
+
+.config-main {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  background: linear-gradient(
+    180deg,
+    rgba(186, 117, 23, 0.045) 0%,
+    var(--bg) 140px
+  );
+  padding: 2rem 1.5rem 2.5rem;
+  padding-bottom: max(2.5rem, env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.config-main::-webkit-scrollbar {
+  width: 5px;
+}
+
+.config-main::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.config-main::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #b0a090);
+  border-radius: 4px;
+}
+
+.config-main::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover, #8a7a68);
+}
+
+.config-container {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+}
+
+.config-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(186, 117, 23, 0.12);
+}
+
+.config-eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.config-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0 0 6px;
+  line-height: 1.25;
+}
+
+.config-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.config-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.config-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--border);
+  flex-shrink: 0;
+}
+
+.config-avatar--placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  flex-shrink: 0;
+}
+
+.config-profile-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.config-profile-name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+.config-profile-email {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  margin: 0;
+}
+
+.config-profile-stats {
+  display: flex;
+  gap: 1.25rem;
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+}
+
+.config-profile-stats strong {
+  color: var(--text);
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 1rem;
+}
+
+.config-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.config-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.config-input,
+.config-textarea {
+  padding: 0.6rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #fafafa;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.config-textarea {
+  resize: vertical;
+  min-height: 80px;
+  line-height: 1.45;
+}
+
+.config-input:focus,
+.config-textarea:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(186, 117, 23, 0.1);
+}
+
+.config-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.config-btn {
+  padding: 0.55rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.config-btn--primary {
+  background: var(--brand);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(186, 117, 23, 0.2);
+}
+
+.config-btn--primary:hover:not(:disabled) {
+  background: var(--brand-dark);
+}
+
+.config-btn--primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.config-btn--secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.config-btn--secondary:hover:not(:disabled) {
+  background: var(--bg);
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.config-btn--danger {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.config-btn--danger:hover:not(:disabled) {
+  background: #fff0f0;
+}
+
+.config-feedback {
+  margin: 0 0 1.25rem;
+}
+
+.config-feedback .config-success,
+.config-feedback .config-error-msg {
+  margin: 0;
+}
+
+.config-feedback .config-error-msg + .config-success,
+.config-feedback .config-success + .config-error-msg {
+  margin-top: 0.5rem;
+}
+
+.config-success {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2e7d32;
+  background: #f1f8e9;
+  border: 1px solid #c5e1a5;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-family: var(--font-sans);
+}
+
+.config-error-msg {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c00;
+  background: #fff0f0;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-family: var(--font-sans);
+}
+
+.config-logout-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.25rem 1.5rem;
+  margin-top: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: var(--shadow, 0 1px 3px rgba(0, 0, 0, 0.06));
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.config-logout-text {
+  font-size: 14px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  line-height: 1.45;
+}

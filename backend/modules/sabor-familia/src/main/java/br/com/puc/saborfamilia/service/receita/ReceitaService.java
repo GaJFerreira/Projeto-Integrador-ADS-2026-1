@@ -6,6 +6,7 @@ import br.com.puc.saborfamilia.service.receita.dto.response.ReceitaResumoRespons
 import br.com.puc.saborfamilia.service.receita.dto.response.RemoverReceitaResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface ReceitaService {
 
@@ -19,9 +20,9 @@ public interface ReceitaService {
 
   Page<ReceitaResponse> buscarReceitasFavoritas(Long usuarioId, Pageable pageable);
 
-  ReceitaResponse criarReceita(Long usuarioId, ReceitaRequest request);
+  ReceitaResponse criarReceita(Long usuarioId, ReceitaRequest request, MultipartFile midia);
 
-  ReceitaResponse editarReceita(Long usuarioId, Long receitaId, ReceitaRequest request);
+  ReceitaResponse editarReceita(Long usuarioId, Long receitaId, ReceitaRequest request, MultipartFile midia);
 
   RemoverReceitaResponse removerReceita(Long usuarioId, Long receitaId);
 

@@ -205,7 +205,7 @@ export default function AppLayout() {
 
       <Toolbar />
 
-      <Container sx={{ py: 3 }}>
+      <Container /*maxWidth={false} disableGutters (remover sx={{ py: 3 }})*/ sx={{ py: 3 }}>
         <Outlet />
       </Container>
 

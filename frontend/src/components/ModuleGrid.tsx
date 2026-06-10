@@ -8,6 +8,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import EscalatorWarningIcon from '@mui/icons-material/EscalatorWarning';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // ✅ Novo ícone
 import FavoriteIcon from '@mui/icons-material/Favorite'; // ✅ CareHub
+import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import { useNavigate } from 'react-router-dom';
 import NoteAltOutlinedIcon from '@mui/icons-material/NoteAltOutlined';
 import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
@@ -21,6 +22,12 @@ export function ModuleGrid() {
       title: 'Consultas e Saúde',
       desc: 'Acesse histórico, atendimentos e outras funções.',
       to: '/saude',
+    },
+    {
+      icon: <RestaurantMenuIcon sx={{ fontSize: 40 }} color="warning" />,
+      title: 'Sabor da Família',
+      desc: 'Compartilhe e descubra receitas da sua família.',
+      to: '/sabor-familia/login',
     },
     {
       icon: <MedicationIcon sx={{ fontSize: 40 }} />,

@@ -5,9 +5,8 @@ import java.time.LocalDateTime;
 public record ReceitaResumoResponse(
   Long id,
   String titulo,
-  String fotoCapaUrl,
+  Boolean possuiMidia,
   Boolean restritaParaUsuario,
   LocalDateTime dataCadastro
 ) {
 }
-
