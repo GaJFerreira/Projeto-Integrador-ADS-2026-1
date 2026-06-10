@@ -7,12 +7,11 @@ import lombok.Data;
 @Data
 public class RespostaPerguntaUsuarioRequestDTO {
 
-    @NotNull(message = "O identificador da pergunta é obrigatório.")
+    @NotNull(message = "O identificador da pergunta e obrigatorio.")
     private Long identificadorPergunta;
 
-    @NotNull(message = "O identificador do usuário é obrigatório.")
     private Long identificadorUsuario;
 
-    @NotBlank(message = "O texto da resposta не pode estar em branco.")
+    @NotBlank(message = "O texto da resposta nao pode estar em branco.")
     private String textoResposta;
 }

@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   Box,
@@ -38,7 +38,7 @@ export default function CareHubPrimeiroAcessoPage() {
   const [erro, setErro] = useState<string | null>(null);
   const [novaEspecialidade, setNovaEspecialidade] = useState('');
   const [isCuidador, setIsCuidador] = useState(false);
-  const [confirmKey, setConfirmKey] = useState('');
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -63,9 +63,7 @@ export default function CareHubPrimeiroAcessoPage() {
         const cuidador = role.includes('CUIDADOR');
         setIsCuidador(cuidador);
 
-        const userStr = localStorage.getItem('user');
-        const localUserId = userStr ? JSON.parse(userStr)?.userId : null;
-        setConfirmKey(`carehub_profile_confirmed_${data?.platformUserId ?? localUserId ?? 'unknown'}`);
+
 
         setForm({
           name: data.name || '',
@@ -140,7 +138,6 @@ export default function CareHubPrimeiroAcessoPage() {
         especialidades: form.especialidades
       });
 
-      if (confirmKey) localStorage.setItem(confirmKey, 'true');
       navigate('/carehub', { replace: true });
     } catch {
       setErro('Nao foi possivel salvar seus dados. Revise as informacoes e tente novamente.');

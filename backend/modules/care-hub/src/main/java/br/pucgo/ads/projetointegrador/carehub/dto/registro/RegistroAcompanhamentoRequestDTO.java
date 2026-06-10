@@ -12,7 +12,7 @@ import java.time.OffsetDateTime;
 @AllArgsConstructor
 public class RegistroAcompanhamentoRequestDTO {
 
-    @NotNull(message = "Agendamento e obrigatorio")
+    @NotNull(message = "Agendamento é obrigatório")
     private Long agendamentoId;
 
     private OffsetDateTime dataHoraRegistro;
@@ -22,10 +22,10 @@ public class RegistroAcompanhamentoRequestDTO {
     private String alimentacao;
     private String atividadesRealizadas;
 
-    @NotNull(message = "Observacoes sao obrigatorias")
+    @NotNull(message = "Observações são obrigatórias")
     private String observacoes;
 
     private String intercorrencias;
     private String sinaisVitais;
+    private String humorEstado;
 }
-

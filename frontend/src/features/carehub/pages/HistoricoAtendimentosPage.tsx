@@ -19,6 +19,7 @@ import {
   Tooltip,
   Button,
   Rating,
+  Avatar,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -74,6 +75,46 @@ interface AvaliacaoInfo {
   agendamentoId: number;
 }
 
+const renderInfoBlock = (title: string, content: string, icon: any) => {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        gap: 2,
+        alignItems: 'flex-start',
+        p: 2,
+        borderRadius: 2.5,
+        bgcolor: '#fafafa',
+        border: '1px solid #f1f5f9',
+        transition: 'background-color 0.2s',
+        '&:hover': { bgcolor: '#f8fafc' }
+      }}
+    >
+      <Box
+        sx={{
+          p: 1,
+          borderRadius: 2,
+          bgcolor: '#f1f5f9',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'text.secondary'
+        }}
+      >
+        {icon}
+      </Box>
+      <Box sx={{ flex: 1 }}>
+        <Typography variant="subtitle2" sx={{ fontWeight: '750', color: '#1e293b', lineHeight: 1.2 }}>
+          {title}
+        </Typography>
+        <Typography variant="body2" sx={{ color: '#475569', mt: 0.75, whiteSpace: 'pre-line', lineHeight: 1.5 }}>
+          {content}
+        </Typography>
+      </Box>
+    </Box>
+  );
+};
+
 export function HistoricoAtendimentosPage() {
   const [registros, setRegistros] = useState<RegistroAcompanhamento[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +126,7 @@ export function HistoricoAtendimentosPage() {
   const [avaliacaoModalOpen, setAvaliacaoModalOpen] = useState(false);
   const [selectedCuidador, setSelectedCuidador] = useState<{ id: number; nome: string } | null>(null);
   const [selectedAgendamentoId, setSelectedAgendamentoId] = useState<number | null>(null);
-  
+
   const [userId, setUserId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -109,27 +150,27 @@ export function HistoricoAtendimentosPage() {
   const carregarHistoricoComTipo = async (ehCuidador: boolean) => {
     try {
       setLoading(true);
-      
+
       console.log('🔍 Debug Histórico:');
       console.log('  - userId:', userId);
       console.log('  - isCuidador:', ehCuidador);
-      
-      const endpoint = ehCuidador 
+
+      const endpoint = ehCuidador
         ? `/api/carehub/registros/cuidador/${userId}`
         : `/api/carehub/registros/cliente/${userId}`;
-      
+
       console.log('  - endpoint:', endpoint);
-      
+
       const response = await http.get(endpoint);
       console.log('  - response.data:', response.data);
-      
+
       // Ordenar por data mais recente primeiro
-      const registrosOrdenados = response.data.sort((a: RegistroAcompanhamento, b: RegistroAcompanhamento) => 
+      const registrosOrdenados = response.data.sort((a: RegistroAcompanhamento, b: RegistroAcompanhamento) =>
         (parseDate(b.dataHoraRegistro)?.getTime() ?? 0) - (parseDate(a.dataHoraRegistro)?.getTime() ?? 0)
       );
       setRegistros(registrosOrdenados);
       console.log('  - Total de registros:', registrosOrdenados.length);
-      
+
       // Se for cliente, carregar as avaliações dos agendamentos concluídos
       if (!ehCuidador) {
         // Pegar IDs únicos dos agendamentos concluídos
@@ -138,13 +179,13 @@ export function HistoricoAtendimentosPage() {
             .filter((r: RegistroAcompanhamento) => r.agendamentoStatus === 'CONCLUIDO')
             .map((r: RegistroAcompanhamento) => r.agendamentoId)
         )] as number[];
-        
+
         // Pegar IDs únicos dos cuidadores
         const cuidadorIds = [...new Set(registrosOrdenados.map((r: RegistroAcompanhamento) => r.cuidadorId))] as number[];
-        
+
         await carregarAvaliacoes(cuidadorIds, agendamentosConcluidosIds);
       }
-      
+
       setError(null);
     } catch (err) {
       console.error('Erro ao carregar histórico:', err);
@@ -158,10 +199,10 @@ export function HistoricoAtendimentosPage() {
   const carregarAvaliacoes = async (cuidadorIds: number[], agendamentosIds: number[]) => {
     try {
       const avaliacoesMap: { [agendamentoId: number]: AvaliacaoInfo } = {};
-      
+
       for (const cuidadorId of cuidadorIds) {
         const avs = await avaliacoesApi.porCuidador(cuidadorId);
-        
+
         // Filtrar apenas as avaliações do cliente atual e indexar por agendamentoId
         avs
           .filter((av: any) => Number(av.clienteId) === Number(userId) && av.agendamentoId)
@@ -179,7 +220,7 @@ export function HistoricoAtendimentosPage() {
             }
           });
       }
-      
+
       console.log('📊 Mapa de avaliações por agendamento:', avaliacoesMap);
       setAvaliacoesPorAgendamento(avaliacoesMap);
     } catch (err) {
@@ -235,7 +276,7 @@ export function HistoricoAtendimentosPage() {
   const registrosAgrupados = registrosFiltrados.reduce((acc, registro) => {
     const chave = isCuidador ? registro.clienteId : registro.cuidadorId;
     const nome = isCuidador ? registro.clienteNome : registro.cuidadorNome;
-    
+
     if (!acc[chave]) {
       acc[chave] = {
         nome: nome,
@@ -249,7 +290,7 @@ export function HistoricoAtendimentosPage() {
   if (loading) {
     return (
       <Box>
-        <PageHeader title="Histórico de Atendimentos" backTo="/carehub" />
+        <PageHeader title="Histórico de Atendimentos" backTo="/carehub/agendamentos-menu" />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
           <CircularProgress />
         </Box>
@@ -260,7 +301,7 @@ export function HistoricoAtendimentosPage() {
   if (!userId) {
     return (
       <Box>
-        <PageHeader title="Histórico de Atendimentos" backTo="/carehub" />
+        <PageHeader title="Histórico de Atendimentos" backTo="/carehub/agendamentos-menu" />
         <Alert severity="warning">Faça login para ver seu histórico de atendimentos.</Alert>
       </Box>
     );
@@ -268,10 +309,10 @@ export function HistoricoAtendimentosPage() {
 
   return (
     <Box>
-      <PageHeader 
-        title="Histórico de Atendimentos" 
+      <PageHeader
+        title="Histórico de Atendimentos"
         subtitle={isCuidador ? "Registros de atendimentos com seus clientes" : "Registros de atendimentos com seus cuidadores"}
-        backTo="/carehub" 
+        backTo="/carehub/agendamentos-menu"
       />
 
       {error && (
@@ -320,183 +361,243 @@ export function HistoricoAtendimentosPage() {
           </Alert>
 
           {Object.entries(registrosAgrupados).map(([id, { nome, registros: registrosPessoa }]) => (
-            <Card key={id} sx={{ bgcolor: 'background.default' }}>
-              <CardContent>
-                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
-                  <Person color="primary" />
-                  <Typography variant="h6" fontWeight={600}>
-                    {nome}
-                  </Typography>
-                  <Chip 
-                    label={`${registrosPessoa.length} registro${registrosPessoa.length > 1 ? 's' : ''}`} 
-                    size="small" 
-                    color="primary" 
+            <Card
+              key={id}
+              sx={{
+                borderRadius: 4,
+                border: '1px solid rgba(15, 118, 110, 0.08)',
+                backgroundColor: '#ffffff',
+                boxShadow: '0 6px 24px rgba(15, 23, 42, 0.02)',
+                overflow: 'hidden',
+                mb: 3
+              }}
+            >
+              <CardContent sx={{ p: 3 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+                  <Stack direction="row" alignItems="center" spacing={1.5}>
+                    <Avatar
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        background: '#1565C0',
+                        color: 'white',
+                        fontWeight: 700,
+                        fontSize: '1rem',
+                      }}
+                    >
+                      {nome.charAt(0).toUpperCase()}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" fontWeight="700" sx={{ textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {isCuidador ? 'Cliente' : 'Cuidador'}
+                      </Typography>
+                      <Typography variant="h6" fontWeight="700" sx={{ color: '#1e293b', lineHeight: 1.2 }}>
+                        {nome}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                  <Chip
+                    label={`${registrosPessoa.length} registro${registrosPessoa.length > 1 ? 's' : ''}`}
+                    size="small"
+                    sx={{
+                      fontWeight: 'bold',
+                      bgcolor: '#ecfdf5',
+                      color: '#1565C0',
+                      border: '1px solid #bbf7d0',
+                      fontSize: '0.75rem',
+                    }}
                   />
                 </Stack>
 
                 <Stack spacing={2}>
                   {registrosPessoa.map((registro, index) => (
-                    <Accordion key={registro.id} defaultExpanded={index === 0}>
-                      <AccordionSummary expandIcon={<ExpandMore />}>
-                        <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', flexWrap: 'wrap' }}>
-                          <CalendarToday fontSize="small" color="action" />
-                          <Typography variant="body1" fontWeight={500}>
+                    <Accordion
+                      key={registro.id}
+                      defaultExpanded={index === 0}
+                      elevation={0}
+                      sx={{
+                        border: '1px solid #f1f5f9',
+                        borderRadius: '12px !important',
+                        mb: 2,
+                        overflow: 'hidden',
+                        '&::before': { display: 'none' },
+                        '&.Mui-expanded': {
+                          boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04)',
+                          borderColor: '#e2e8f0',
+                        }
+                      }}
+                    >
+                      <AccordionSummary
+                        expandIcon={<ExpandMore sx={{ color: '#0f766e' }} />}
+                        sx={{
+                          backgroundColor: '#f8fafc',
+                          borderBottom: '1px solid transparent',
+                          transition: 'all 0.2s',
+                          '&.Mui-expanded': {
+                            backgroundColor: '#ffffff',
+                            borderBottom: '1px solid #f1f5f9',
+                          },
+                          px: 2.5
+                        }}
+                      >
+                        <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%', flexWrap: 'wrap', gap: 1.5 }}>
+                          <CalendarToday fontSize="small" sx={{ color: '#1565C0' }} />
+                          <Typography variant="body2" fontWeight="600" sx={{ color: '#334155' }}>
                             {formatarData(registro.dataHoraRegistro)}
                           </Typography>
                           {!isCuidador && (
                             <Tooltip title="Cuidador responsável">
-                              <Chip 
-                                icon={<LocalHospital />} 
-                                label={registro.cuidadorNome} 
-                                size="small" 
+                              <Chip
+                                icon={<LocalHospital sx={{ fontSize: '0.875rem' }} />}
+                                label={registro.cuidadorNome}
+                                size="small"
                                 variant="outlined"
+                                sx={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: '500',
+                                  borderColor: '#cbd5e1',
+                                  color: '#475569',
+                                  '& .MuiChip-icon': { color: '#64748b' }
+                                }}
                               />
                             </Tooltip>
                           )}
                           {isCuidador && (
                             <Tooltip title="Cliente atendido">
-                              <Chip 
-                                icon={<Person />} 
-                                label={registro.clienteNome} 
-                                size="small" 
+                              <Chip
+                                icon={<Person sx={{ fontSize: '0.875rem' }} />}
+                                label={registro.clienteNome}
+                                size="small"
                                 variant="outlined"
+                                sx={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: '500',
+                                  borderColor: '#cbd5e1',
+                                  color: '#475569',
+                                  '& .MuiChip-icon': { color: '#64748b' }
+                                }}
                               />
                             </Tooltip>
                           )}
                           {registro.intercorrencias && (
-                            <Chip 
-                              icon={<Warning />} 
-                              label="Intercorrências" 
-                              size="small" 
-                              color="warning" 
+                            <Chip
+                              icon={<Warning sx={{ fontSize: '0.875rem' }} />}
+                              label="Intercorrências"
+                              size="small"
+                              sx={{
+                                fontSize: '0.72rem',
+                                fontWeight: 'bold',
+                                bgcolor: '#fff7ed',
+                                color: '#c2410c',
+                                border: '1px solid #ffedd5',
+                                '& .MuiChip-icon': { color: '#ea580c' }
+                              }}
                             />
                           )}
-                          <Badge 
-                            badgeContent={`#${registro.agendamentoId}`} 
-                            color="secondary"
-                            sx={{ ml: 'auto' }}
-                          >
-                            <Assignment fontSize="small" />
-                          </Badge>
+                          <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center' }}>
+                            <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 'bold', bgcolor: '#f1f5f9', px: 1, py: 0.25, borderRadius: 1 }}>
+                              REGISTRO #{registro.id}
+                            </Typography>
+                          </Box>
                         </Stack>
                       </AccordionSummary>
 
-                      <AccordionDetails>
+                      <AccordionDetails sx={{ p: 2.5 }}>
                         <Stack spacing={2.5}>
                           {/* Sinais Vitais */}
-                          <Paper elevation={0} sx={{ p: 2, bgcolor: 'grey.50' }}>
-                            <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <MonitorHeart fontSize="small" color="error" />
-                              Sinais Vitais
-                            </Typography>
-                            <Divider sx={{ my: 1 }} />
-                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                              {registro.pressaoArterial && (
-                                <Box sx={{ flex: 1 }}>
-                                  <Typography variant="caption" color="text.secondary">
-                                    Pressão Arterial
-                                  </Typography>
-                                  <Typography variant="body2" fontWeight={600}>
-                                    {registro.pressaoArterial}
-                                  </Typography>
-                                </Box>
-                              )}
-                              {registro.glicemia && (
-                                <Box sx={{ flex: 1 }}>
-                                  <Typography variant="caption" color="text.secondary">
-                                    Glicemia
-                                  </Typography>
-                                  <Typography variant="body2" fontWeight={600}>
-                                    {registro.glicemia}
-                                  </Typography>
-                                </Box>
-                              )}
-                              {registro.sinaisVitais && (
-                                <Box sx={{ flex: 1 }}>
-                                  <Typography variant="caption" color="text.secondary">
-                                    Outros Sinais
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {registro.sinaisVitais}
-                                  </Typography>
-                                </Box>
-                              )}
-                            </Stack>
-                          </Paper>
+                          {(registro.pressaoArterial || registro.glicemia || registro.sinaisVitais) && (
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2,
+                                bgcolor: '#fafafa',
+                                border: '1px solid #f1f5f9',
+                                borderRadius: 2.5,
+                                mb: 1
+                              }}
+                            >
+                              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: '700', color: '#1e293b' }}>
+                                <MonitorHeart fontSize="small" color="error" />
+                                Sinais Vitais
+                              </Typography>
+                              <Divider sx={{ my: 1.25, borderColor: '#f1f5f9' }} />
+                              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                                {registro.pressaoArterial && (
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="600" sx={{ textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                      Pressão Arterial
+                                    </Typography>
+                                    <Typography variant="body2" fontWeight="700" sx={{ color: '#334155', mt: 0.5 }}>
+                                      {registro.pressaoArterial}
+                                    </Typography>
+                                  </Box>
+                                )}
+                                {registro.glicemia && (
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="600" sx={{ textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                      Glicemia
+                                    </Typography>
+                                    <Typography variant="body2" fontWeight="700" sx={{ color: '#334155', mt: 0.5 }}>
+                                      {registro.glicemia}
+                                    </Typography>
+                                  </Box>
+                                )}
+                                {registro.sinaisVitais && (
+                                  <Box sx={{ flex: 1 }}>
+                                    <Typography variant="caption" color="text.secondary" fontWeight="600" sx={{ textTransform: 'uppercase', letterSpacing: '0.02em' }}>
+                                      Outros Sinais
+                                    </Typography>
+                                    <Typography variant="body2" sx={{ color: '#475569', mt: 0.5, fontWeight: 500 }}>
+                                      {registro.sinaisVitais}
+                                    </Typography>
+                                  </Box>
+                                )}
+                              </Stack>
+                            </Paper>
+                          )}
 
                           {/* Medicamentos */}
-                          {registro.medicamentosAdministrados && (
-                            <Box>
-                              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Medication fontSize="small" color="primary" />
-                                Medicamentos Administrados
-                              </Typography>
-                              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', pl: 3 }}>
-                                {registro.medicamentosAdministrados}
-                              </Typography>
-                            </Box>
-                          )}
+                          {registro.medicamentosAdministrados &&
+                            renderInfoBlock("Medicamentos Administrados", registro.medicamentosAdministrados, <Medication fontSize="small" color="primary" />)
+                          }
 
                           {/* Alimentação */}
-                          {registro.alimentacao && (
-                            <Box>
-                              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Restaurant fontSize="small" color="success" />
-                                Alimentação
-                              </Typography>
-                              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', pl: 3 }}>
-                                {registro.alimentacao}
-                              </Typography>
-                            </Box>
-                          )}
+                          {registro.alimentacao &&
+                            renderInfoBlock("Alimentação", registro.alimentacao, <Restaurant fontSize="small" color="success" />)
+                          }
 
                           {/* Atividades */}
-                          {registro.atividadesRealizadas && (
-                            <Box>
-                              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <DirectionsWalk fontSize="small" color="info" />
-                                Atividades Realizadas
-                              </Typography>
-                              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', pl: 3 }}>
-                                {registro.atividadesRealizadas}
-                              </Typography>
-                            </Box>
-                          )}
+                          {registro.atividadesRealizadas &&
+                            renderInfoBlock("Atividades Realizadas", registro.atividadesRealizadas, <DirectionsWalk fontSize="small" color="info" />)
+                          }
 
                           {/* Humor */}
-                          {registro.humorEstado && (
-                            <Box>
-                              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <MoodOutlined fontSize="small" sx={{ color: 'warning.main' }} />
-                                Humor e Estado Emocional
-                              </Typography>
-                              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', pl: 3 }}>
-                                {registro.humorEstado}
-                              </Typography>
-                            </Box>
-                          )}
+                          {registro.humorEstado &&
+                            renderInfoBlock("Humor e Estado Emocional", registro.humorEstado, <MoodOutlined fontSize="small" sx={{ color: '#ea580c' }} />)
+                          }
 
                           {/* Observações Gerais */}
-                          {registro.observacoes && (
-                            <Box>
-                              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <LocalHospital fontSize="small" />
-                                Observações Gerais
-                              </Typography>
-                              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', pl: 3 }}>
-                                {registro.observacoes}
-                              </Typography>
-                            </Box>
-                          )}
+                          {registro.observacoes &&
+                            renderInfoBlock("Observações Gerais", registro.observacoes, <LocalHospital fontSize="small" sx={{ color: '#64748b' }} />)
+                          }
 
                           {/* Intercorrências */}
                           {registro.intercorrencias && (
-                            <Paper elevation={0} sx={{ p: 2, bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.light' }}>
-                              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.dark' }}>
-                                <Warning fontSize="small" />
-                                ⚠️ Intercorrências
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2,
+                                bgcolor: '#fff7ed',
+                                border: '1px solid #ffedd5',
+                                borderRadius: 2.5,
+                                mb: 1
+                              }}
+                            >
+                              <Typography variant="subtitle2" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#c2410c', fontWeight: '700' }}>
+                                <Warning fontSize="small" sx={{ color: '#ea580c' }} />
+                                Intercorrências
                               </Typography>
-                              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: 'warning.dark' }}>
+                              <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: '#9a3412', lineHeight: 1.5, mt: 0.5 }}>
                                 {registro.intercorrencias}
                               </Typography>
                             </Paper>
@@ -504,36 +605,33 @@ export function HistoricoAtendimentosPage() {
 
                           {/* 🌟 Seção de Avaliação - apenas para clientes e atendimentos CONCLUÍDOS */}
                           {!isCuidador && registro.agendamentoStatus === 'CONCLUIDO' && (
-                            <Paper 
-                              elevation={0} 
-                              sx={{ 
-                                p: 2, 
-                                bgcolor: getAvaliacaoDoAgendamento(registro.agendamentoId) 
-                                  ? 'success.50' 
-                                  : 'grey.50',
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                p: 2.5,
+                                bgcolor: getAvaliacaoDoAgendamento(registro.agendamentoId) ? '#f0fdf4' : '#f8fafc',
                                 border: '1px solid',
-                                borderColor: getAvaliacaoDoAgendamento(registro.agendamentoId) 
-                                  ? 'success.light' 
-                                  : 'grey.300',
+                                borderColor: getAvaliacaoDoAgendamento(registro.agendamentoId) ? '#bbf7d0' : '#e2e8f0',
+                                borderRadius: 3,
                               }}
                             >
                               {(() => {
                                 const avaliacao = getAvaliacaoDoAgendamento(registro.agendamentoId);
                                 if (avaliacao) {
                                   return (
-                                    <Stack spacing={1}>
-                                      <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'success.dark' }}>
-                                        <Star fontSize="small" sx={{ color: '#ffc107' }} />
-                                        Sua Avaliação
+                                    <Stack spacing={1.5}>
+                                      <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#15803d', fontWeight: '700' }}>
+                                        <Star fontSize="small" sx={{ color: '#ffb300' }} />
+                                        Sua Avaliação do Atendimento
                                       </Typography>
                                       <Stack direction="row" alignItems="center" spacing={1}>
                                         <Rating value={avaliacao.nota} readOnly size="small" />
-                                        <Typography variant="body2" fontWeight={600}>
-                                          {avaliacao.nota}/5
+                                        <Typography variant="body2" fontWeight="700" sx={{ color: '#16a34a' }}>
+                                          {avaliacao.nota}/5.0
                                         </Typography>
                                       </Stack>
                                       {avaliacao.comentario && (
-                                        <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+                                        <Typography variant="body2" sx={{ color: '#3f6212', fontStyle: 'italic', bgcolor: 'rgba(255, 255, 255, 0.5)', p: 1.5, borderRadius: 1.5, borderLeft: '3px solid #16a34a' }}>
                                           "{avaliacao.comentario}"
                                         </Typography>
                                       )}
@@ -541,26 +639,31 @@ export function HistoricoAtendimentosPage() {
                                   );
                                 } else {
                                   return (
-                                    <Stack spacing={1}>
-                                      <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <StarBorder fontSize="small" sx={{ color: '#ffc107' }} />
-                                        Avalie este atendimento
-                                      </Typography>
-                                      <Typography variant="body2" color="text.secondary">
-                                        Sua opinião é importante e ajuda outros clientes na escolha do cuidador.
-                                      </Typography>
+                                    <Stack spacing={2.5} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
+                                      <Box>
+                                        <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: '700', color: '#1e293b' }}>
+                                          <StarBorder fontSize="small" sx={{ color: '#ffb300' }} />
+                                          Avalie este atendimento
+                                        </Typography>
+                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
+                                          Sua opinião ajuda outros clientes a escolherem cuidadores qualificados.
+                                        </Typography>
+                                      </Box>
                                       <Button
                                         variant="contained"
-                                        size="small"
+                                        size="medium"
                                         startIcon={<RateReview />}
                                         onClick={() => abrirAvaliacaoModal(registro.cuidadorId, registro.cuidadorNome, registro.agendamentoId)}
-                                        sx={{ 
-                                          alignSelf: 'flex-start',
-                                          background: 'linear-gradient(135deg, #ffc107 0%, #ffb300 100%)',
-                                          color: '#000',
-                                          fontWeight: 600,
+                                        sx={{
+                                          borderRadius: 2,
+                                          textTransform: 'none',
+                                          fontWeight: 'bold',
+                                          bgcolor: '#0f766e',
+                                          color: '#ffffff',
+                                          boxShadow: '0 4px 12px rgba(15, 118, 110, 0.15)',
                                           '&:hover': {
-                                            background: 'linear-gradient(135deg, #ffb300 0%, #ffa000 100%)',
+                                            bgcolor: '#0d625b',
+                                            boxShadow: '0 6px 16px rgba(15, 118, 110, 0.25)',
                                           }
                                         }}
                                       >
@@ -575,7 +678,7 @@ export function HistoricoAtendimentosPage() {
 
                           {/* Metadados */}
                           <Divider />
-                          <Typography variant="caption" color="text.secondary">
+                          <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', textAlign: 'right', fontWeight: '500' }}>
                             Agendamento #{registro.agendamentoId} • Registrado em {formatarData(registro.dataCriacao)}
                           </Typography>
                         </Stack>

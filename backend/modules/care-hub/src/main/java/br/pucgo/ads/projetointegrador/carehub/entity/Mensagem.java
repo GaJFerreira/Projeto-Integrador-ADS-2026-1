@@ -9,16 +9,19 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.OffsetDateTime;
 
 /**
- * Mensagem trocada entre dois usuÃ¡rios do CareHub.
+ * Mensagem trocada entre dois usuários do CareHub.
  *
- * <p><strong>MudanÃ§a de arquitetura:</strong> os campos {@code remetente} e
+ * <p>
+ * <strong>Mudança de arquitetura:</strong> os campos {@code remetente} e
  * {@code destinatario} eram anteriormente {@code User} (import da plataforma).
- * Agora sÃ£o representados apenas por seus IDs Long ({@code remetenteId} e
- * {@code destinatarioId}), eliminando qualquer dependÃªncia de classe externa.
+ * Agora são representados apenas por seus IDs Long ({@code remetenteId} e
+ * {@code destinatarioId}), eliminando qualquer dependência de classe externa.
  *
- * <p>O {@link br.pucgo.ads.projetointegrador.carehub.service.MensagemService}
- * resolve os nomes consultando repositÃ³rios locais (ex: CuidadorRepository, ClienteRepository)
- * quando necessÃ¡rio para montar o DTO de resposta.
+ * <p>
+ * O {@link br.pucgo.ads.projetointegrador.carehub.service.MensagemService}
+ * resolve os nomes consultando repositórios locais (ex: CuidadorRepository,
+ * ClienteRepository)
+ * quando necessário para montar o DTO de resposta.
  */
 @Entity
 @Table(name = "ch_mensagem", schema = "care_hub")
@@ -32,26 +35,32 @@ public class Mensagem {
     private Long id;
 
     /**
-     * ID do usuÃ¡rio remetente (referÃªncia a {@code care_hub.usuario.id}).
-     * Sem FK explÃ­cita para permitir independÃªncia de schema.
+     * ID do usuário remetente (referência a {@code care_hub.usuario.id}).
+     * Sem FK explícita para permitir independência de schema.
      */
     @Column(name = "remetente_id", nullable = false)
     private Long remetenteId;
 
+    @Column(name = "remetente_tipo", length = 20)
+    private String remetenteTipo;
+
     /**
-     * ID do usuÃ¡rio destinatÃ¡rio (referÃªncia a {@code care_hub.usuario.id}).
+     * ID do usuário destinatário (referência a {@code care_hub.usuario.id}).
      */
     @Column(name = "destinatario_id", nullable = false)
     private Long destinatarioId;
 
+    @Column(name = "destinatario_tipo", length = 20)
+    private String destinatarioTipo;
+
     @Column(nullable = true, columnDefinition = "TEXT")
     private String conteudo;
 
-    /** URL de mÃ­dia (Ã¡udio, imagem, etc.) */
+    /** URL de mídia (áudio, imagem, etc.) */
     @Column(name = "media_url", length = 1024)
     private String mediaUrl;
 
-    /** Tipo MIME da mÃ­dia (ex: "audio/webm", "image/jpeg") */
+    /** Tipo MIME da mídia (ex: "audio/webm", "image/jpeg") */
     @Column(name = "media_type", length = 128)
     private String mediaType;
 
@@ -62,4 +71,3 @@ public class Mensagem {
     @Column(nullable = false)
     private Boolean lida = false;
 }
-

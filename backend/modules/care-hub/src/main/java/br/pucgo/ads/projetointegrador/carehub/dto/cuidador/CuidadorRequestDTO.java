@@ -6,7 +6,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +16,7 @@ public class CuidadorRequestDTO {
     private String telefone;
     private String experiencia;
     private List<String> especialidades;
-    private String localizacao; // "Cidade-UF" ou apenas cidade
+    private String localizacao;
     private Boolean disponibilidade;
     private String biografia;
     private String fotoPerfil;

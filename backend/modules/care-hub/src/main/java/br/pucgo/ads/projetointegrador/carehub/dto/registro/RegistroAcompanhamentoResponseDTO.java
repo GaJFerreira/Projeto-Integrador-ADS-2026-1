@@ -27,6 +27,7 @@ public class RegistroAcompanhamentoResponseDTO {
     private String observacoes;
     private String intercorrencias;
     private String sinaisVitais;
+    private String humorEstado;
     private OffsetDateTime dataCriacao;
 }
 

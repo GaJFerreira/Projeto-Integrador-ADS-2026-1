@@ -10,6 +10,7 @@ import {
   AccessTime,
   History,
   HelpOutline,
+  Sensors,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
@@ -113,13 +114,19 @@ export function CareHubModuleGrid() {
       desc: reagendadosCliente > 0 
         ? `${reagendadosCliente} proposta(s) de nova data` 
         : 'Gerencie seus agendamentos',
-      to: '/carehub/agendamentos',
+      to: '/carehub/agendamentos-menu',
     },
     {
       icon: <History sx={{ fontSize: 40 }} />,
       title: 'Histórico de Atendimentos',
       desc: 'Veja todos os registros de atendimentos',
       to: '/carehub/historico-atendimentos',
+    },
+    {
+      icon: <Sensors sx={{ fontSize: 40 }} color="primary" />,
+      title: 'Dispositivos de Ajuda',
+      desc: 'Gerencie seus botões de emergência IoT',
+      to: '/carehub/dispositivos',
     },
     {
       icon: (
@@ -159,7 +166,7 @@ export function CareHubModuleGrid() {
       desc: pendentesCuidador > 0 
         ? `${pendentesCuidador} agendamento(s) pendente(s)!` 
         : 'Gerencie atendimentos agendados',
-      to: '/carehub/cuidador/agendamentos',
+      to: '/carehub/agendamentos-menu',
     },
     {
       icon: <LocalHospital sx={{ fontSize: 40 }} />,
@@ -178,6 +185,12 @@ export function CareHubModuleGrid() {
       title: 'Histórico de Atendimentos',
       desc: 'Veja todos os registros por cliente',
       to: '/carehub/historico-atendimentos',
+    },
+    {
+      icon: <Sensors sx={{ fontSize: 40 }} color="error" />,
+      title: 'Painel de Emergência',
+      desc: 'Monitore alertas IoT em tempo real',
+      to: '/carehub/cuidador/alertas',
     },
     {
       icon: (
@@ -200,7 +213,10 @@ export function CareHubModuleGrid() {
   // Seleciona módulos baseado no ROLE (aceita CUIDADOR, CAREHUB_CUIDADOR, etc.)
   // Preferência: usar detecção via API quando disponível (covers ROLE_USER case)
   const isCuidadorFinal = detectedCuidador ?? isRoleCuidador();
-  const modules = isCuidadorFinal ? cuidadorModules : clienteModules;
+  const homeHiddenAppointmentRoutes = new Set(['/carehub/proximos', '/carehub/historico-atendimentos']);
+  const modules = (isCuidadorFinal ? cuidadorModules : clienteModules).filter(
+    (module) => !homeHiddenAppointmentRoutes.has(module.to)
+  );
 
   // Se não tivermos userId, ainda renderizamos os módulos (baseado em role token/claims),
   // mas mostramos uma mensagem discreta para o ambiente de desenvolvimento.

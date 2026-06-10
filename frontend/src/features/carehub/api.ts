@@ -12,6 +12,9 @@ import type {
   MensagemResponseDTO,
   AvaliacaoRequestDTO,
   AvaliacaoResponseDTO,
+  DispositivoIoTCreateRequestDTO,
+  DispositivoIoTResponseDTO,
+  AlertaEmergenciaResponseDTO,
 } from './types';
 
 export const clientesApi = {
@@ -147,3 +150,21 @@ export const avaliacoesApi = {
   },
 };
 
+export const iotApi = {
+  cadastrarDispositivo: async (dto: DispositivoIoTCreateRequestDTO): Promise<DispositivoIoTResponseDTO> => {
+    const { data } = await http.post('/api/carehub/iot/devices', dto);
+    return data;
+  },
+  listarDispositivos: async (): Promise<DispositivoIoTResponseDTO[]> => {
+    const { data } = await http.get('/api/carehub/iot/devices');
+    return data;
+  },
+  listarAlertas: async (status?: string): Promise<AlertaEmergenciaResponseDTO[]> => {
+    const { data } = await http.get('/api/carehub/alertas', { params: { status } });
+    return data;
+  },
+  reconhecerAlerta: async (id: number): Promise<AlertaEmergenciaResponseDTO> => {
+    const { data } = await http.put(`/api/carehub/alertas/${id}/reconhecer`);
+    return data;
+  }
+};

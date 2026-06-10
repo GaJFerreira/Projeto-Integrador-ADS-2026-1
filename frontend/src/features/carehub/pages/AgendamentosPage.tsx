@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { agendamentosApi, cuidadoresApi, clientesApi } from '../api';
 import type { AgendamentoRequestDTO } from '../types';
-import { Box, Button, Card, CardContent, Chip, CircularProgress, MenuItem, Stack, TextField, Typography, Paper, Divider, Alert } from '@mui/material';
+import { Box, Button, Card, CardContent, Chip, CircularProgress, MenuItem, Stack, TextField, Typography, Paper, Divider, Alert, Avatar } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from '../libSnackbar';
 import { PageHeader } from '../components/PageHeader';
@@ -19,13 +19,13 @@ export default function AgendamentosPage() {
   const [isCuidador, setIsCuidador] = useState<boolean>(false);
   const params = new URLSearchParams(window.location.search);
   const initialCuidador = Number(params.get('cuidadorId') || '') || undefined;
-  
+
   const [clienteId, setClienteId] = useState<number | undefined>(undefined);
   const [cuidadorId, setCuidadorId] = useState<number | undefined>(initialCuidador);
-  const [inicio, setInicio] = useState<string>(dayjs().add(1, 'day').hour(9).minute(0).second(0).millisecond(0).format('YYYY-MM-DDTHH:mm'));
-  const [fim, setFim] = useState<string>(dayjs().add(1, 'day').hour(11).minute(0).second(0).millisecond(0).format('YYYY-MM-DDTHH:mm'));
+  const [inicio, setInicio] = useState<string>(dayjs().add(30, 'minute').format('YYYY-MM-DDTHH:mm'));
+  const [fim, setFim] = useState<string>(dayjs().add(1, 'hour').add(30, 'minute').format('YYYY-MM-DDTHH:mm'));
   const [tipo, setTipo] = useState<string>('DOMICILIO'); // ✅ Corrigido de DOMICILIAR para DOMICILIO
-  
+
   // Filtros de visualização
   const [filtroData, setFiltroData] = useState<string>('');
   const [filtroStatus, setFiltroStatus] = useState<string>('TODOS');
@@ -36,7 +36,7 @@ export default function AgendamentosPage() {
     const inicializar = async () => {
       await checkAndCacheUserType();
       setIsCuidador(isRoleCuidador());
-      
+
       const uid = getUserId();
       if (uid) {
         setClienteId(uid);
@@ -75,8 +75,8 @@ export default function AgendamentosPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
       enqueueSnackbar('Agendamento criado com sucesso!', { variant: 'success' });
-      setInicio(dayjs().add(1, 'day').hour(9).minute(0).second(0).millisecond(0).format('YYYY-MM-DDTHH:mm'));
-      setFim(dayjs().add(1, 'day').hour(11).minute(0).second(0).millisecond(0).format('YYYY-MM-DDTHH:mm'));
+      setInicio(dayjs().add(30, 'minute').format('YYYY-MM-DDTHH:mm'));
+      setFim(dayjs().add(1, 'hour').add(30, 'minute').format('YYYY-MM-DDTHH:mm'));
     },
     onError: (error: any) => {
       const msg = error?.message || 'Erro ao criar agendamento';
@@ -86,7 +86,7 @@ export default function AgendamentosPage() {
 
   // Atualizar status
   const atualizarStatusMutation = useMutation({
-    mutationFn: ({ id, status }: { id: number; status: string }) => 
+    mutationFn: ({ id, status }: { id: number; status: string }) =>
       agendamentosApi.atualizarStatus(id, status),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
@@ -103,7 +103,7 @@ export default function AgendamentosPage() {
       enqueueSnackbar('Selecione um cuidador', { variant: 'warning' });
       return;
     }
-    
+
     const dInicio = dayjs(inicio);
     const dFim = dayjs(fim);
 
@@ -122,28 +122,44 @@ export default function AgendamentosPage() {
     const dataInicio = dInicio.toDate().toISOString();
     const dataFim = dFim.toDate().toISOString();
 
-    criarMutation.mutate({ 
-      clienteId, 
-      cuidadorId, 
-      dataHoraInicio: dataInicio, 
-      dataHoraFim: dataFim, 
-      tipoAtendimento: tipo 
+    criarMutation.mutate({
+      clienteId,
+      cuidadorId,
+      dataHoraInicio: dataInicio,
+      dataHoraFim: dataFim,
+      tipoAtendimento: tipo
     });
   };
+
+  // -----------------------------------------------------------------------------------------------------------
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'CONFIRMADO': return 'success';
       case 'CANCELADO': return 'error';
-      case 'CONCLUIDO': return 'info';
+      case 'CONCLUIDO': return 'success';
+      case 'EM_ANDAMENTO': return 'info';
+      case 'REAGENDADO': return 'warning';
       default: return 'warning';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case 'PENDENTE': return 'PENDENTE';
+      case 'CONFIRMADO': return 'CONFIRMADO';
+      case 'EM_ANDAMENTO': return 'EM ANDAMENTO';
+      case 'CONCLUIDO': return 'CONCLUÍDO';
+      case 'CANCELADO': return 'CANCELADO';
+      case 'REAGENDADO': return 'REAGENDADO';
+      default: return status;
     }
   };
 
   return (
     <Stack gap={3} sx={{ p: 2 }}>
       {/* Header com botão VOLTAR */}
-      <PageHeader 
+      <PageHeader
         title="Agendamentos"
         subtitle="Gerencie seus atendimentos e horários"
       />
@@ -154,44 +170,44 @@ export default function AgendamentosPage() {
           <CardContent>
             <Typography variant="h6" gutterBottom>Novo Agendamento</Typography>
             <Stack direction={{ xs: 'column', md: 'row' }} gap={2} flexWrap="wrap">
-              <TextField 
-                select 
-                label="Cuidador" 
-                value={cuidadorId ?? ''} 
-                onChange={(e) => setCuidadorId(Number(e.target.value) || undefined)} 
-                size="small" 
+              <TextField
+                select
+                label="Cuidador"
+                value={cuidadorId ?? ''}
+                onChange={(e) => setCuidadorId(Number(e.target.value) || undefined)}
+                size="small"
                 sx={{ minWidth: 220 }}
                 required
               >
                 <MenuItem value="">Selecione um cuidador</MenuItem>
                 {cuidadores.map(c => <MenuItem key={c.id} value={c.id}>{c.nome}</MenuItem>)}
               </TextField>
-              
-              <TextField 
-                label="Data/Hora Início" 
-                type="datetime-local" 
-                size="small" 
-                value={inicio} 
+
+              <TextField
+                label="Data/Hora Início"
+                type="datetime-local"
+                size="small"
+                value={inicio}
                 onChange={(e) => setInicio(e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 sx={{ minWidth: 200 }}
               />
-              
-              <TextField 
-                label="Data/Hora Fim" 
-                type="datetime-local" 
-                size="small" 
-                value={fim} 
+
+              <TextField
+                label="Data/Hora Fim"
+                type="datetime-local"
+                size="small"
+                value={fim}
                 onChange={(e) => setFim(e.target.value)}
                 InputLabelProps={{ shrink: true }}
                 sx={{ minWidth: 200 }}
               />
-              
-              <TextField 
+
+              <TextField
                 select
-                label="Tipo Atendimento" 
-                size="small" 
-                value={tipo} 
+                label="Tipo Atendimento"
+                size="small"
+                value={tipo}
                 onChange={(e) => setTipo(e.target.value)}
                 sx={{ minWidth: 180 }}
               >
@@ -199,10 +215,10 @@ export default function AgendamentosPage() {
                 <MenuItem value="PRESENCIAL">Presencial</MenuItem>
                 <MenuItem value="ACOMPANHAMENTO">Acompanhamento</MenuItem>
               </TextField>
-              
-              <Button 
-                variant="contained" 
-                onClick={criar} 
+
+              <Button
+                variant="contained"
+                onClick={criar}
                 disabled={criarMutation.isPending || !clienteId || !cuidadorId}
                 sx={{ minWidth: 120 }}
               >
@@ -235,7 +251,7 @@ export default function AgendamentosPage() {
                 sx={{ minWidth: 200 }}
                 helperText="Deixe vazio para ver todos"
               />
-              
+
               <TextField
                 select
                 label="Status"
@@ -252,7 +268,7 @@ export default function AgendamentosPage() {
                 <MenuItem value="CANCELADO">Cancelado</MenuItem>
                 <MenuItem value="REAGENDADO">Reagendado</MenuItem>
               </TextField>
-              
+
               <TextField
                 select
                 label="Tipo de Atendimento"
@@ -294,7 +310,7 @@ export default function AgendamentosPage() {
           </Typography>
         </Stack>
       )}
-      
+
       {isError && (
         <Card sx={{ bgcolor: 'error.light', color: 'error.contrastText' }}>
           <CardContent>
@@ -321,208 +337,319 @@ export default function AgendamentosPage() {
               const dataAgendamento = dataInicio ? dayjs(dataInicio).format('YYYY-MM-DD') : '';
               if (dataAgendamento !== filtroData) return false;
             }
-            
+
             // Filtro por status
             if (filtroStatus !== 'TODOS' && a.status !== filtroStatus) {
               return false;
             }
-            
+
             // Filtro por tipo
             if (filtroTipo !== 'TODOS' && a.tipoAtendimento !== filtroTipo) {
               return false;
             }
-            
+
             return true;
           })
           .map((a) => {
-          const dataInicio = parseDate(a.dataHoraInicio);
-          const dataFim = parseDate(a.dataHoraFim);
-          const isPast = dataFim ? dayjs(dataFim).isBefore(dayjs()) : false;
-          const isNow = dataInicio && dataFim
-            ? dayjs().isAfter(dayjs(dataInicio)) && dayjs().isBefore(dayjs(dataFim))
-            : false;
-          
-          return (
-            <Card 
-              key={a.id} 
-              sx={{ 
-                position: 'relative',
-                overflow: 'visible',
-                border: '2px solid',
-                borderColor: isNow ? 'success.main' : 'transparent',
-                transition: 'all 0.3s',
-                '&:hover': { 
-                  transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 24px rgba(0,0,0,0.12)'
-                }
-              }}
-            >
-              {/* Badge de status visual */}
-              {isNow && (
-                <Box 
-                  sx={{ 
-                    position: 'absolute',
-                    top: -10,
-                    right: 16,
-                    bgcolor: 'success.main',
-                    color: 'white',
-                    px: 2,
-                    py: 0.5,
-                    borderRadius: 2,
-                    fontSize: '0.75rem',
-                    fontWeight: 'bold',
-                    boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)',
-                    animation: 'pulse 2s infinite'
-                  }}
-                >
-                  ● EM ANDAMENTO
-                </Box>
-              )}
-              
-              <CardContent sx={{ p: 3 }}>
-                {/* Header */}
-                <Stack direction="row" justifyContent="space-between" alignItems="start" mb={2}>
-                  <Box>
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium">
-                      AGENDAMENTO #{a.id}
-                    </Typography>
-                    <Typography variant="h6" fontWeight="bold" mt={0.5}>
-                      {a.cuidadorNome || 'Cuidador'}
-                    </Typography>
-                  </Box>
-                  <Chip 
-                    label={a.status} 
-                    color={getStatusColor(a.status)}
-                    size="small"
-                    sx={{ fontWeight: 'bold' }}
-                    icon={
-                      a.status === 'CONFIRMADO' ? <CheckCircle fontSize="small" /> :
-                      a.status === 'CANCELADO' ? <Cancel fontSize="small" /> :
-                      <AccessTime fontSize="small" />
-                    }
-                  />
-                </Stack>
+            const dataInicio = parseDate(a.dataHoraInicio);
+            const dataFim = parseDate(a.dataHoraFim);
+            const isNowByTime = dataInicio && dataFim
+              ? dayjs().isAfter(dayjs(dataInicio)) && dayjs().isBefore(dayjs(dataFim))
+              : false;
+            const isNow = a.status === 'EM_ANDAMENTO' && isNowByTime;
+            const isPast = a.status === 'CONCLUIDO' || (dataFim ? dayjs(dataFim).isBefore(dayjs()) : false);
+            const durationMinutes = dataInicio && dataFim ? Math.max(dayjs(dataFim).diff(dayjs(dataInicio), 'minute'), 0) : 0;
+            const durationLabel = durationMinutes >= 60
+              ? `${Math.floor(durationMinutes / 60)}h${durationMinutes % 60 ? ` ${durationMinutes % 60}min` : ''}`
+              : `${durationMinutes}min`;
+            const statusAccent =
+              a.status === 'CONCLUIDO'
+                ? 'success.main'
+                : a.status === 'CANCELADO'
+                  ? 'error.main'
+                  : a.status === 'EM_ANDAMENTO'
+                    ? 'info.main'
+                    : a.status === 'CONFIRMADO'
+                      ? 'success.light'
+                      : a.status === 'REAGENDADO'
+                        ? '#ea580c'
+                        : '#d97706'; // PENDENTE
 
-                <Divider sx={{ mb: 2 }} />
-                
-                {/* Informações principais */}
-                <Stack spacing={1.5} mb={2}>
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <Person fontSize="small" color="action" />
-                    <Typography variant="body2">
-                      <strong>Cliente:</strong> {a.clienteNome || '-'}
-                    </Typography>
-                  </Stack>
-                  
-                  <Stack direction="row" alignItems="center" gap={1}>
-                    <LocationOn fontSize="small" color="action" />
-                    <Typography variant="body2">
-                      <strong>Tipo:</strong> {a.tipoAtendimento || 'Não especificado'}
-                    </Typography>
-                  </Stack>
-                </Stack>
-                
-                {/* Timeline visual */}
-                <Paper 
-                  elevation={0} 
-                  sx={{ 
-                    bgcolor: isPast ? 'grey.100' : isNow ? 'success.50' : 'primary.50',
-                    p: 2, 
-                    borderRadius: 2,
-                    border: '1px solid',
-                    borderColor: isPast ? 'grey.300' : isNow ? 'success.200' : 'primary.200',
-                    mb: 2
-                  }}
-                >
-                  <Stack direction="row" alignItems="center" gap={1} mb={1}>
-                    <AccessTime fontSize="small" color={isNow ? 'success' : 'action'} />
-                    <Typography variant="caption" fontWeight="medium" color="text.secondary">
-                      {isPast ? 'CONCLUÍDO' : isNow ? 'ACONTECENDO AGORA' : 'AGENDADO PARA'}
-                    </Typography>
-                  </Stack>
-                  <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
-                    <Chip 
-                      icon={<CalendarMonth fontSize="small" />}
-                      label={dataInicio ? dayjs(dataInicio).format('DD/MM/YYYY') : '-'}
-                      size="small"
-                      variant="outlined"
-                      sx={{ fontWeight: 'medium' }}
-                    />
-                    {dataInicio && dataFim ? (
-                      <>
-                        <Typography variant="body2" fontWeight="bold">
-                          {dayjs(dataInicio).format('HH:mm')} → {dayjs(dataFim).format('HH:mm')}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          ({dayjs(dataFim).diff(dayjs(dataInicio), 'hour')}h)
-                        </Typography>
-                      </>
-                    ) : (
-                      <Typography variant="body2" color="text.secondary">
-                        Horário não informado
-                      </Typography>
-                    )}
-                  </Stack>
-                </Paper>
-                
-                {/* Observações */}
-                {a.observacoes && (
-                  <Paper 
-                    elevation={0} 
-                    sx={{ 
-                      bgcolor: 'grey.50', 
-                      p: 1.5, 
-                      borderRadius: 1,
-                      mb: 2,
-                      border: '1px dashed',
-                      borderColor: 'grey.300'
+            const getTimelineStyle = (status: string, now: boolean) => {
+              switch (status) {
+                case 'CONCLUIDO':
+                  return {
+                    bgcolor: '#f0fdf4',
+                    borderColor: '#bbf7d0',
+                    textColor: '#15803d',
+                    labelText: 'CONCLUÍDO',
+                    iconColor: '#16a34a'
+                  };
+                case 'CANCELADO':
+                  return {
+                    bgcolor: '#fef2f2',
+                    borderColor: '#fecaca',
+                    textColor: '#b91c1c',
+                    labelText: 'CANCELADO',
+                    iconColor: '#dc2626'
+                  };
+                case 'EM_ANDAMENTO':
+                  return {
+                    bgcolor: '#eff6ff',
+                    borderColor: '#bfdbfe',
+                    textColor: '#1d4ed8',
+                    labelText: 'ACONTECENDO AGORA',
+                    iconColor: '#2563eb'
+                  };
+                case 'CONFIRMADO':
+                  return {
+                    bgcolor: '#f0fdfa',
+                    borderColor: '#99f6e4',
+                    textColor: '#0f766e',
+                    labelText: 'CONFIRMADO',
+                    iconColor: '#0f766e'
+                  };
+                case 'REAGENDADO':
+                  return {
+                    bgcolor: '#fff7ed',
+                    borderColor: '#ffedd5',
+                    textColor: '#c2410c',
+                    labelText: 'PROPOSTA REAGENDADA',
+                    iconColor: '#ea580c'
+                  };
+                default:
+                  return {
+                    bgcolor: '#fffbeb',
+                    borderColor: '#ffedd5',
+                    textColor: '#b45309',
+                    labelText: 'AGUARDANDO CONFIRMAÇÃO',
+                    iconColor: '#d97706'
+                  };
+              }
+            };
+
+            const timelineStyle = getTimelineStyle(a.status, isNow);
+
+            return (
+              <Card
+                key={a.id}
+                sx={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                  border: '1px solid',
+                  borderColor: isNow ? 'info.light' : 'rgba(0, 0, 0, 0.06)',
+                  borderRadius: 4,
+                  backgroundColor: 'background.paper',
+                  boxShadow: isNow
+                    ? '0 12px 28px rgba(2, 132, 199, 0.12)'
+                    : '0 4px 20px rgba(15, 23, 42, 0.03)',
+                  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: '0 auto 0 0',
+                    width: 5,
+                    backgroundColor: statusAccent,
+                  },
+                  '&:hover': {
+                    transform: 'translateY(-4px)',
+                    boxShadow: '0 20px 40px rgba(15, 23, 42, 0.08)',
+                    borderColor: isNow ? 'info.main' : 'rgba(15, 23, 42, 0.15)',
+                  }
+                }}
+              >
+                {/* Badge de status visual */}
+                {isNow && (
+                  <Box
+                    sx={{
+                      position: 'absolute',
+                      top: -10,
+                      right: 16,
+                      bgcolor: 'success.main',
+                      color: 'white',
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 2,
+                      fontSize: '0.75rem',
+                      fontWeight: 'bold',
+                      boxShadow: '0 4px 12px rgba(46, 125, 50, 0.3)',
+                      animation: 'pulse 2s infinite'
                     }}
                   >
-                    <Typography variant="caption" color="text.secondary" fontWeight="medium" display="block" mb={0.5}>
-                      OBSERVAÇÕES
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                      "{a.observacoes}"
-                    </Typography>
-                  </Paper>
+                    ● EM ANDAMENTO
+                  </Box>
                 )}
-                
-                {/* Botões de ação */}
-                <Stack direction="row" gap={1}>
-                  {a.clienteId === clienteId && (
-                    <Button 
-                      size="small" 
-                      variant="outlined"
-                      color="error"
-                      disabled={atualizarStatusMutation.isPending || a.status === 'CANCELADO'}
-                      onClick={() => atualizarStatusMutation.mutate({ id: a.id, status: 'CANCELADO' })}
-                      fullWidth
-                      startIcon={<Cancel />}
-                      sx={{ borderRadius: 1.5 }}
+
+                <CardContent sx={{ p: 3 }}>
+                  {/* Header */}
+                  <Stack direction="row" justifyContent="space-between" alignItems="start" mb={2}>
+                    <Box>
+                      <Typography variant="caption" color="text.secondary" fontWeight="700" sx={{ letterSpacing: '0.05em' }}>
+                        AGENDAMENTO #{a.id}
+                      </Typography>
+                      <Stack direction="row" spacing={1.5} alignItems="center" mt={0.5}>
+                        <Avatar
+                          sx={{
+                            width: 32,
+                            height: 32,
+                            background: '#1565C0',
+                            color: 'white',
+                            fontSize: '0.875rem',
+                            fontWeight: 700,
+                          }}
+                        >
+                          {(a.cuidadorNome || 'C').charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Typography variant="subtitle1" fontWeight="700" sx={{ color: '#1e293b' }}>
+                          {a.cuidadorNome || 'Cuidador'}
+                        </Typography>
+                      </Stack>
+                    </Box>
+                    <Chip
+                      label={getStatusLabel(a.status)}
+                      color={getStatusColor(a.status)}
+                      size="small"
+                      sx={{
+                        fontWeight: 'bold',
+                        borderRadius: 1.5,
+                        px: 0.5,
+                        textTransform: 'uppercase',
+                        fontSize: '0.72rem'
+                      }}
+                      icon={
+                        a.status === 'CONFIRMADO' || a.status === 'CONCLUIDO' ? <CheckCircle fontSize="small" /> :
+                          a.status === 'CANCELADO' ? <Cancel fontSize="small" /> :
+                            <AccessTime fontSize="small" />
+                      }
+                    />
+                  </Stack>
+
+                  <Divider sx={{ mb: 2 }} />
+
+                  {/* Informações principais */}
+                  <Stack spacing={1.5} mb={2}>
+                    <Stack direction="row" alignItems="center" gap={1.25}>
+                      <Person fontSize="small" color="action" />
+                      <Typography variant="body2" sx={{ color: '#475569' }}>
+                        <strong>Cliente:</strong> {a.clienteNome || '-'}
+                      </Typography>
+                    </Stack>
+
+                    <Stack direction="row" alignItems="center" gap={1.25}>
+                      <LocationOn fontSize="small" color="action" />
+                      <Typography variant="body2" sx={{ color: '#475569' }}>
+                        <strong>Tipo:</strong> {a.tipoAtendimento || 'Não especificado'}
+                      </Typography>
+                    </Stack>
+                  </Stack>
+
+                  {/* Timeline visual */}
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      bgcolor: timelineStyle.bgcolor,
+                      p: 2,
+                      borderRadius: 2,
+                      border: '1px solid',
+                      borderColor: timelineStyle.borderColor,
+                      mb: 2
+                    }}
+                  >
+                    <Stack direction="row" alignItems="center" gap={1} mb={1}>
+                      <AccessTime fontSize="small" sx={{ color: timelineStyle.iconColor }} />
+                      <Typography variant="caption" fontWeight="bold" sx={{ color: timelineStyle.textColor, letterSpacing: '0.05em' }}>
+                        {timelineStyle.labelText}
+                      </Typography>
+                    </Stack>
+                    <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                      <Chip
+                        icon={<CalendarMonth fontSize="small" style={{ color: timelineStyle.textColor }} />}
+                        label={dataInicio ? dayjs(dataInicio).format('DD/MM/YYYY') : '-'}
+                        size="small"
+                        variant="outlined"
+                        sx={{
+                          fontWeight: '600',
+                          borderColor: timelineStyle.borderColor,
+                          color: timelineStyle.textColor,
+                          bgcolor: 'rgba(255, 255, 255, 0.6)',
+                          '& .MuiChip-icon': { color: 'inherit' }
+                        }}
+                      />
+                      {dataInicio && dataFim ? (
+                        <>
+                          <Typography variant="body2" fontWeight="700" sx={{ color: timelineStyle.textColor }}>
+                            {dayjs(dataInicio).format('HH:mm')} → {dayjs(dataFim).format('HH:mm')}
+                          </Typography>
+                          <Typography variant="caption" sx={{ color: timelineStyle.textColor, opacity: 0.8, fontWeight: 500 }}>
+                            ({durationLabel})
+                          </Typography>
+                        </>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">
+                          Horário não informado
+                        </Typography>
+                      )}
+                    </Stack>
+                  </Paper>
+
+                  {/* Observações */}
+                  {a.observacoes && (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        bgcolor: 'grey.50',
+                        p: 1.5,
+                        borderRadius: 1.5,
+                        mb: 2,
+                        border: '1px dashed',
+                        borderColor: 'grey.300'
+                      }}
                     >
-                      Cancelar
-                    </Button>
+                      <Typography variant="caption" color="text.secondary" fontWeight="bold" display="block" mb={0.5} sx={{ letterSpacing: '0.05em' }}>
+                        OBSERVAÇÕES
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontStyle: 'italic', color: '#475569' }}>
+                        "{a.observacoes}"
+                      </Typography>
+                    </Paper>
                   )}
 
-                  {isCuidador && a.cuidadorId === getUserId() && a.status !== 'CONFIRMADO' && a.status !== 'CANCELADO' && (
-                    <Button 
-                      size="small" 
-                      variant="outlined"
-                      color="success"
-                      disabled={atualizarStatusMutation.isPending}
-                      onClick={() => atualizarStatusMutation.mutate({ id: a.id, status: 'CONFIRMADO' })}
-                      fullWidth
-                      startIcon={<CheckCircle />}
-                      sx={{ borderRadius: 1.5 }}
-                    >
-                      Confirmar
-                    </Button>
-                  )}
-                </Stack>
-              </CardContent>
-            </Card>
-          );
-        })}
+                  {/* Botões de ação */}
+                  <Stack direction="row" gap={1}>
+                    {a.clienteId === clienteId && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        disabled={atualizarStatusMutation.isPending || a.status === 'CANCELADO'}
+                        onClick={() => atualizarStatusMutation.mutate({ id: a.id, status: 'CANCELADO' })}
+                        fullWidth
+                        startIcon={<Cancel />}
+                        sx={{ borderRadius: 2, py: 0.75, textTransform: 'none', fontWeight: 'bold' }}
+                      >
+                        Cancelar
+                      </Button>
+                    )}
+
+                    {isCuidador && a.cuidadorId === getUserId() && a.status !== 'CONFIRMADO' && a.status !== 'CANCELADO' && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="success"
+                        disabled={atualizarStatusMutation.isPending}
+                        onClick={() => atualizarStatusMutation.mutate({ id: a.id, status: 'CONFIRMADO' })}
+                        fullWidth
+                        startIcon={<CheckCircle />}
+                        sx={{ borderRadius: 2, py: 0.75, textTransform: 'none', fontWeight: 'bold' }}
+                      >
+                        Confirmar
+                      </Button>
+                    )}
+                  </Stack>
+                </CardContent>
+              </Card>
+            );
+          })}
       </Box>
     </Stack>
   );

@@ -50,7 +50,7 @@ public class Agendamento {
     @Column(name = "data_solicitacao")
     private OffsetDateTime dataSolicitacao;
 
-    /** Data/hora de inÃ­cio proposta pelo cuidador (contraproposta) */
+    /** Data/hora de iní­cio proposta pelo cuidador (contraproposta) */
     @Column(name = "proposed_data_hora_inicio")
     private OffsetDateTime proposedDataHoraInicio;
 
@@ -58,8 +58,7 @@ public class Agendamento {
     @Column(name = "proposed_data_hora_fim")
     private OffsetDateTime proposedDataHoraFim;
 
-    // â”€â”€ Enum de status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+    // Enum de status
     public enum StatusAgendamento {
         PENDENTE,
         CONFIRMADO,
@@ -69,8 +68,7 @@ public class Agendamento {
         CANCELADO
     }
 
-    // â”€â”€ Lifecycle callbacks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
+    // Lifecycle callbacks
     @PrePersist
     protected void onCreate() {
         if (dataSolicitacao == null) {
@@ -81,4 +79,3 @@ public class Agendamento {
         }
     }
 }
-

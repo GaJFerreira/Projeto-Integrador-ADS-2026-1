@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { mensagensApi } from '../api';
 import http from '../libHttp';
-import { listarContatos, marcarConversaComoLida } from '../api/mensagens';
+import { listarContatos, marcarConversaComoLida, verificarChatAtivo } from '../api/mensagens';
 import { 
   Box, 
   Button, 
@@ -28,7 +28,7 @@ import { PageHeader } from '../components/PageHeader';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import 'dayjs/locale/pt-br';
-import { Chat, Send, Person, Search, FilterList, Close, PlayArrow, Pause } from '@mui/icons-material';
+import { Chat, Send, Person, Search, FilterList, Close, PlayArrow, Pause, ArrowBack } from '@mui/icons-material';
 import { Mic } from '@mui/icons-material';
 import { getUserId, isCuidador, checkAndCacheUserType } from '../components/auth';
 import { parseDate } from '../utils/dateUtils';
@@ -36,6 +36,13 @@ import { parseDate } from '../utils/dateUtils';
 // Configurar dayjs para mostrar tempo relativo em português
 dayjs.extend(relativeTime);
 dayjs.locale('pt-br');
+
+const formatarPerfil = (perfil?: string) => {
+  if (!perfil) return '';
+  if (perfil.includes('CUIDADOR')) return 'Cuidador';
+  if (perfil.includes('CLIENTE') || perfil.includes('USER') || perfil.includes('IDOSO')) return 'Cliente';
+  return perfil;
+};
 
 export default function ChatPage() {
   // feature-level accessibility styles
@@ -61,6 +68,13 @@ export default function ChatPage() {
   // Carrega o userId do localStorage e verifica tipo de usuário
   useEffect(() => {
     const inicializar = async () => {
+      // Primeiro: tentar usar o ID já em cache para não bloquear a UI
+      const cachedId = getUserId();
+      if (cachedId) {
+        setUserId(cachedId); // Ativa a query imediatamente com o valor cacheado
+      }
+      
+      // Depois: atualizar o cache via API (pode substituir o userId se mudar)
       await checkAndCacheUserType();
       const id = getUserId();
       if (id) {
@@ -80,25 +94,56 @@ export default function ChatPage() {
     refetchInterval: 10000, // Atualiza a cada 10 segundos
   });
 
+  // Rastreia o último (contato, número de msgs) que foi marcado como lido
+  // para não chamar marcarConversaComoLida a cada poll de 5s
+  const lastMarkedRef = useRef<{ contatoId: number; count: number } | null>(null);
+
   // Fetch conversa com polling a cada 5s
   const { data: msgs = [], isLoading, isError } = useQuery({
     queryKey: ['mensagens', userId, contatoSelecionado],
     queryFn: async () => {
       if (!userId || !contatoSelecionado) return [];
       const mensagens = await mensagensApi.conversa(contatoSelecionado);
-      
-      // Marca mensagens como lidas quando abre a conversa
-      if (mensagens.length > 0) {
-        await marcarConversaComoLida(contatoSelecionado);
-        // Invalida o contador de não lidas para atualizar o badge
-        queryClient.invalidateQueries({ queryKey: ['mensagens-nao-lidas', userId] });
-      }
-      
       return mensagens;
     },
     enabled: !!(userId && contatoSelecionado),
     refetchInterval: 5000, // Auto-refresh a cada 5s
   });
+
+  // Marca mensagens como lidas SOMENTE quando:
+  //   a) O usuário abre um novo chat (contatoSelecionado muda)
+  //   b) Chegam mensagens novas (msgs.length aumentou)
+  // NUNCA nos refetches periódicos de um chat já aberto sem mudanças.
+  // Isso impede que o polling do Idoso zere o contador de não lidas do Cuidador
+  // (e vice-versa), que era o bug de "leitura cruzada" relatado.
+  useEffect(() => {
+    if (!userId || !contatoSelecionado || msgs.length === 0) return;
+
+    const last = lastMarkedRef.current;
+    const contatoMudou = !last || last.contatoId !== contatoSelecionado;
+    const chegouMensagemNova = last && last.contatoId === contatoSelecionado && msgs.length > last.count;
+
+    if (contatoMudou || chegouMensagemNova) {
+      lastMarkedRef.current = { contatoId: contatoSelecionado, count: msgs.length };
+      marcarConversaComoLida(contatoSelecionado).then(() => {
+        queryClient.invalidateQueries({ queryKey: ['contatos', userId] });
+        queryClient.invalidateQueries({ queryKey: ['mensagens-nao-lidas', userId] });
+      }).catch(() => { /* silencia erros de rede */ });
+    }
+  }, [contatoSelecionado, msgs.length, userId]);
+
+
+  // Verifica se o chat está ativo (agendamento em curso) ou encerrado (concluído/cancelado)
+  const { data: chatAtivoData } = useQuery({
+    queryKey: ['chat-ativo', userId, contatoSelecionado],
+    queryFn: () => {
+      if (!contatoSelecionado) return { ativo: false };
+      return verificarChatAtivo(contatoSelecionado);
+    },
+    enabled: !!(userId && contatoSelecionado),
+    refetchInterval: 10000, // Verifica a cada 10s
+  });
+  const chatAtivo = chatAtivoData?.ativo ?? true; // Default true para não bloquear antes de carregar
 
   // Map of messageId -> local object URL for media fetched with auth header
   const [mediaObjectUrls, setMediaObjectUrls] = useState<Record<number, string>>({});
@@ -438,6 +483,7 @@ export default function ChatPage() {
       id: tempId,
       remetenteId: userId,
       destinatarioId: contatoSelecionado,
+      enviadaPeloUsuarioLogado: true,
       mediaUrl: pendingRecording.url,
       conteudo: null,
       dataEnvio: new Date().toISOString()
@@ -485,6 +531,9 @@ export default function ChatPage() {
 
   const contatoAtual = contatos.find(c => c.id === contatoSelecionado);
 
+  const mensagemEnviadaPorMim = (mensagem: any) =>
+    mensagem.enviadaPeloUsuarioLogado ?? mensagem.remetenteId === userId;
+
   // Combine server messages with optimistic local messages and sort by date
   const displayMessages = [...(msgs || []), ...optimisticMessages]
     .slice()
@@ -515,10 +564,15 @@ export default function ChatPage() {
           height: { xs: '100%', md: 'auto' },
           maxHeight: { xs: 'none', md: '100%' }
         }}>
-          <Paper variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <Box sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: 'primary.main', color: 'white', flexShrink: 0 }}>
-              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' } }}>Conversas</Typography>
-              <Typography variant="caption">
+          <Paper variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: 2, boxShadow: 2 }}>
+            <Box sx={{ 
+              p: { xs: 1.5, sm: 2 }, 
+              bgcolor: 'primary.main', 
+              color: 'white', 
+              flexShrink: 0
+            }}>
+              <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' }, fontWeight: 600 }}>Conversas</Typography>
+              <Typography variant="caption" sx={{ opacity: 0.9, display: 'block', mt: 0.5 }}>
                 {contatosFiltrados.length} {contatosFiltrados.length === 1 ? 'contato' : 'contatos'}
                 {filtroNaoLidas && ' não lidas'}
               </Typography>
@@ -546,16 +600,29 @@ export default function ChatPage() {
                     </InputAdornment>
                   )
                 }}
-                sx={{ mb: 1 }}
+                sx={{ 
+                  mb: 1.5,
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 2,
+                    bgcolor: 'background.paper',
+                    transition: 'all 0.2s',
+                  }
+                }}
               />
               
               <Chip
-                icon={<FilterList />}
+                icon={<FilterList sx={{ fontSize: '0.9rem !important' }} />}
                 label={filtroNaoLidas ? 'Mostrar todas' : 'Apenas não lidas'}
                 onClick={() => setFiltroNaoLidas(!filtroNaoLidas)}
                 color={filtroNaoLidas ? 'primary' : 'default'}
                 size="small"
                 variant={filtroNaoLidas ? 'filled' : 'outlined'}
+                sx={{ 
+                  fontWeight: 'medium',
+                  px: 0.5,
+                  transition: 'all 0.2s',
+                  '&:hover': { transform: 'scale(1.02)' }
+                }}
               />
             </Box>
             
@@ -591,7 +658,10 @@ export default function ChatPage() {
                     selected={contatoSelecionado === contato.id}
                     onClick={() => setContatoSelecionado(contato.id)}
                     sx={{
-                      py: 2,
+                      py: 0.75,
+                      px: 2,
+                      height: 60,
+                      transition: 'all 0.15s',
                       '&.Mui-selected': {
                         bgcolor: 'primary.light',
                         borderLeft: '4px solid',
@@ -599,6 +669,9 @@ export default function ChatPage() {
                         '&:hover': {
                           bgcolor: 'primary.light',
                         }
+                      },
+                      '&:hover': {
+                        bgcolor: 'action.hover',
                       }
                     }}
                   >
@@ -607,10 +680,30 @@ export default function ChatPage() {
                       color="error"
                       overlap="circular"
                       invisible={!contato.mensagensNaoLidas || contato.mensagensNaoLidas === 0}
-                      sx={{ mr: 2 }}
+                      sx={{ 
+                        mr: 1.5,
+                        '@keyframes pulse': {
+                          '0%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)' },
+                          '70%': { boxShadow: '0 0 0 6px rgba(211, 47, 47, 0)' },
+                          '100%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0)' }
+                        },
+                        '& .MuiBadge-badge': {
+                          boxShadow: '0 0 0 2px #fff',
+                          animation: contato.mensagensNaoLidas ? 'pulse 2s infinite' : 'none'
+                        }
+                      }}
                     >
-                      <Avatar sx={{ bgcolor: 'primary.main' }}>
-                        <Person />
+                      <Avatar 
+                        sx={{ 
+                          bgcolor: contatoSelecionado === contato.id ? 'primary.main' : 'primary.light',
+                          color: contatoSelecionado === contato.id ? 'primary.contrastText' : 'primary.main',
+                          fontWeight: 'bold',
+                          width: 36,
+                          height: 36,
+                          fontSize: '0.9rem'
+                        }}
+                      >
+                        {contato.nome ? contato.nome.charAt(0).toUpperCase() : <Person />}
                       </Avatar>
                     </Badge>
                     <ListItemText
@@ -618,7 +711,9 @@ export default function ChatPage() {
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <Typography 
                             variant="body1" 
-                            fontWeight={contato.mensagensNaoLidas ? 'bold' : 'medium'}
+                            fontWeight={contato.mensagensNaoLidas ? 700 : 500}
+                            color="text.primary"
+                            sx={{ fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
                           >
                             {contato.nome}
                           </Typography>
@@ -626,7 +721,7 @@ export default function ChatPage() {
                             <Typography 
                               variant="caption" 
                               color="text.secondary"
-                              sx={{ ml: 1, whiteSpace: 'nowrap' }}
+                              sx={{ ml: 1, whiteSpace: 'nowrap', fontSize: '0.7rem' }}
                             >
                               {(() => {
                                 const d = parseDate(contato.dataUltimaMensagem);
@@ -637,29 +732,22 @@ export default function ChatPage() {
                         </Box>
                       }
                       secondary={
-                        <Box>
+                        contato.ultimaMensagem ? (
                           <Typography 
-                            variant="caption" 
-                            color="primary"
-                            sx={{ display: 'block', mb: 0.5 }}
+                            variant="body2" 
+                            color="text.secondary"
+                            fontWeight={contato.mensagensNaoLidas ? 600 : 'normal'}
+                            sx={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              fontSize: '0.775rem',
+                              mt: 0.25
+                            }}
                           >
-                            {contato.perfil}
+                            {contato.ultimaMensagem}
                           </Typography>
-                          {contato.ultimaMensagem && (
-                            <Typography 
-                              variant="body2" 
-                              color="text.secondary"
-                              fontWeight={contato.mensagensNaoLidas ? 'bold' : 'normal'}
-                              sx={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                              }}
-                            >
-                              {contato.ultimaMensagem}
-                            </Typography>
-                          )}
-                        </Box>
+                        ) : null
                       }
                       primaryTypographyProps={{ component: 'div' }}
                       secondaryTypographyProps={{ component: 'div' }}
@@ -708,30 +796,61 @@ export default function ChatPage() {
             {contatoSelecionado && (
               <>
                 {/* Header da Conversa */}
-                <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, flexShrink: 0 }}>
+                <Paper variant="outlined" sx={{ p: { xs: 1.5, sm: 2 }, flexShrink: 0, borderRadius: '12px', boxShadow: '0 2px 12px rgba(0,0,0,0.03)' }}>
                   <Stack direction="row" alignItems="center" gap={{ xs: 1, sm: 2 }}>
-                    <Button
-                      variant="text"
+                    <IconButton
                       onClick={() => setContatoSelecionado(undefined)}
                       sx={{ 
                         display: { xs: 'flex', md: 'none' }, 
-                        minWidth: 'auto',
                         p: 0.5,
-                        fontSize: { xs: '0.8rem', sm: '0.875rem' }
+                        mr: 0.5
+                      }}
+                      color="primary"
+                    >
+                      <ArrowBack fontSize="small" />
+                    </IconButton>
+                    <Avatar 
+                      sx={{ 
+                        bgcolor: 'primary.main', 
+                        fontWeight: 'bold',
+                        width: { xs: 38, sm: 44 }, 
+                        height: { xs: 38, sm: 44 },
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        fontSize: { xs: '0.95rem', sm: '1.1rem' }
                       }}
                     >
-                      ← Voltar
-                    </Button>
-                    <Avatar sx={{ bgcolor: 'primary.main', width: { xs: 36, sm: 40 }, height: { xs: 36, sm: 40 } }}>
-                      <Person sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                      {contatoAtual?.nome ? contatoAtual.nome.charAt(0).toUpperCase() : <Person />}
                     </Avatar>
                     <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' }, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                        {contatoAtual?.nome}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {contatoAtual?.perfil}
-                      </Typography>
+                      <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
+                        <Typography 
+                          variant="h6" 
+                          sx={{ 
+                            fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.2rem' }, 
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap', 
+                            overflow: 'hidden', 
+                            textOverflow: 'ellipsis' 
+                          }}
+                        >
+                          {contatoAtual?.nome}
+                        </Typography>
+                        {contatoAtual?.perfil && (
+                          <Chip 
+                            label={formatarPerfil(contatoAtual.perfil)} 
+                            size="small" 
+                            color={contatoAtual.perfil.includes('CUIDADOR') ? 'primary' : 'secondary'}
+                            variant="outlined"
+                            sx={{ 
+                              height: 20, 
+                              fontSize: '0.65rem', 
+                              fontWeight: 700,
+                              borderRadius: '6px',
+                              textTransform: 'uppercase'
+                            }}
+                          />
+                        )}
+                      </Stack>
                     </Box>
                   </Stack>
                 </Paper>
@@ -799,11 +918,14 @@ export default function ChatPage() {
                       minHeight: 0
                     }}
                   >
-                    {displayMessages.map(m => (
+                    {displayMessages.map(m => {
+                      const enviadaPorMim = mensagemEnviadaPorMim(m);
+
+                      return (
                       <Box 
                         key={m.id} 
                         sx={{ 
-                          alignSelf: m.remetenteId === userId ? 'flex-end' : 'flex-start', 
+                          alignSelf: enviadaPorMim ? 'flex-end' : 'flex-start', 
                           maxWidth: { xs: '85%', sm: '75%', md: '70%' },
                           animation: 'fadeIn 0.3s ease-in'
                         }}
@@ -811,14 +933,14 @@ export default function ChatPage() {
                         <Paper
                           elevation={1}
                           sx={{ 
-                            background: m.remetenteId === userId 
+                            background: enviadaPorMim 
                               ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
                               : 'white', 
-                            color: m.remetenteId === userId ? 'white' : 'text.primary',
+                            color: enviadaPorMim ? 'white' : 'text.primary',
                             p: 1.5, 
                             borderRadius: 2,
-                            borderBottomRightRadius: m.remetenteId === userId ? 4 : 16,
-                            borderBottomLeftRadius: m.remetenteId === userId ? 16 : 4,
+                            borderBottomRightRadius: enviadaPorMim ? 4 : 16,
+                            borderBottomLeftRadius: enviadaPorMim ? 16 : 4,
                             transition: 'all 0.2s',
                             '&:hover': {
                               transform: 'scale(1.02)',
@@ -830,10 +952,10 @@ export default function ChatPage() {
                             (() => {
                               const mediaSrc = m.id < 0 ? m.mediaUrl : mediaObjectUrls[m.id];
                               return mediaSrc ? (
-                                <AudioPlayer src={mediaSrc} inverted={m.remetenteId === userId} />
+                                <AudioPlayer src={mediaSrc} inverted={enviadaPorMim} />
                               ) : (
                                 <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
-                                  <CircularProgress size={16} sx={{ color: m.remetenteId === userId ? 'rgba(255,255,255,0.7)' : 'primary.main' }} />
+                                  <CircularProgress size={16} sx={{ color: enviadaPorMim ? 'rgba(255,255,255,0.7)' : 'primary.main' }} />
                                   <Typography variant="caption" sx={{ fontSize: 11, opacity: 0.8 }}>Carregando áudio...</Typography>
                                 </Stack>
                               );
@@ -862,116 +984,156 @@ export default function ChatPage() {
                           </Box>
                         </Paper>
                       </Box>
-                    ))}
+                    )})}
                   </Paper>
                 )}
 
-                {/* Input */}
-                <Card variant="outlined" sx={{ boxShadow: '0 -4px 12px rgba(0,0,0,0.05)', flexShrink: 0 }}>
-                  <CardContent sx={{ p: { xs: 1, sm: 1.5, md: 2 }, '&:last-child': { pb: { xs: 1, sm: 1.5, md: 2 } } }}>
-                    {/* Pending recording preview - layout responsivo */}
-                    {pendingRecording && (
-                      <Paper 
-                        elevation={0} 
-                        sx={{ 
-                          display: 'flex', 
-                          flexDirection: { xs: 'column', sm: 'row' },
-                          alignItems: { xs: 'stretch', sm: 'center' }, 
-                          gap: { xs: 1, sm: 2 }, 
-                          mb: 1.5,
-                          p: { xs: 1, sm: 1.25 }, 
-                          borderRadius: 2, 
-                          bgcolor: 'grey.100'
-                        }}
-                      >
-                        <Box sx={{ minWidth: 0, flex: 1 }}>
-                          <AudioPlayer src={pendingRecording.url} />
-                          <Typography variant="caption" color="text.secondary">
-                            {pendingRecording.duration ? formatTime(pendingRecording.duration) : `${recordingTime}s`}
-                          </Typography>
-                        </Box>
-                        <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-end', sm: 'flex-start' }}>
-                          <Button size="small" variant="contained" onClick={sendPendingRecording} disabled={sendingMedia}>
-                            {sendingMedia ? 'Enviando...' : 'Enviar'}
-                          </Button>
-                          <Button size="small" variant="text" onClick={cancelPendingRecording}>
-                            Cancelar
-                          </Button>
-                        </Stack>
-                      </Paper>
-                    )}
-                    
-                    <Stack direction="row" gap={{ xs: 0.5, sm: 1 }} alignItems="flex-end" flexWrap="nowrap">
-                      <TextField 
-                        fullWidth 
-                        size="small" 
-                        value={texto} 
-                        onChange={(e) => setTexto(e.target.value)} 
-                        placeholder="Digite sua mensagem..."
-                        onKeyPress={(e) => {
-                          if (e.key === 'Enter' && !e.shiftKey) {
-                            e.preventDefault();
-                            enviar();
-                          }
-                        }}
-                        multiline
-                        maxRows={3}
-                        sx={{
-                          flex: 1,
-                          minWidth: 0,
-                          '& .MuiOutlinedInput-root': {
-                            borderRadius: 2,
-                            fontSize: { xs: '0.875rem', sm: '1rem' }
-                          },
-                          '& .MuiInputBase-input': {
-                            p: { xs: '8px 12px', sm: '8.5px 14px' }
-                          }
-                        }}
-                      />
-                      {/* Botões de ação */}
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.25, sm: 0.5 }, flexShrink: 0 }}>
-                        <IconButton
-                          title={isRecording ? 'Parar gravação' : 'Gravar áudio'}
-                          color={isRecording ? 'error' : 'default'}
-                          onClick={() => {
-                            if (isRecording) stopRecording(); else startRecording();
+                {/* Input — bloqueado quando chat não está ativo */}
+                {!chatAtivo ? (
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      flexShrink: 0,
+                      p: { xs: 1.5, sm: 2 },
+                      borderRadius: 2,
+                      background: 'linear-gradient(135deg, rgba(102,126,234,0.06) 0%, rgba(118,75,162,0.06) 100%)',
+                      border: '1.5px solid',
+                      borderColor: 'divider',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: '50%',
+                        bgcolor: 'action.selected',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}
+                    >
+                      <Chat sx={{ fontSize: 20, color: 'text.disabled' }} />
+                    </Box>
+                    <Box sx={{ minWidth: 0 }}>
+                      <Typography variant="body2" fontWeight={600} color="text.secondary">
+                        Chat encerrado
+                      </Typography>
+                      <Typography variant="caption" color="text.disabled" display="block">
+                        O agendamento foi concluído. Não é mais possível enviar mensagens.
+                      </Typography>
+                    </Box>
+                  </Paper>
+                ) : (
+                  <Card variant="outlined" sx={{ boxShadow: '0 -4px 12px rgba(0,0,0,0.05)', flexShrink: 0 }}>
+                    <CardContent sx={{ p: { xs: 1, sm: 1.5, md: 2 }, '&:last-child': { pb: { xs: 1, sm: 1.5, md: 2 } } }}>
+                      {/* Pending recording preview - layout responsivo */}
+                      {pendingRecording && (
+                        <Paper 
+                          elevation={0} 
+                          sx={{ 
+                            display: 'flex', 
+                            flexDirection: { xs: 'column', sm: 'row' },
+                            alignItems: { xs: 'stretch', sm: 'center' }, 
+                            gap: { xs: 1, sm: 2 }, 
+                            mb: 1.5,
+                            p: { xs: 1, sm: 1.25 }, 
+                            borderRadius: 2, 
+                            bgcolor: 'grey.100'
                           }}
-                          size="small"
-                          sx={{ p: { xs: 0.75, sm: 1 } }}
                         >
-                          <Mic sx={{ fontSize: { xs: 20, sm: 24 } }} />
-                        </IconButton>
-                        {isRecording && (
-                          <Chip 
-                            label={`${recordingTime}s`} 
-                            size="small" 
-                            color="error" 
-                            sx={{ display: { xs: 'none', sm: 'flex' } }} 
-                          />
-                        )}
-                      </Box>
-                      <Button 
-                        variant="contained" 
-                        onClick={enviar} 
-                        disabled={enviarMutation.isPending || !texto.trim()}
-                        endIcon={<Send sx={{ fontSize: { xs: 16, sm: 20 }, display: { xs: 'none', sm: 'block' } }} />}
-                        sx={{ 
-                          minWidth: { xs: 'auto', sm: 100, md: 110 },
-                          borderRadius: 2,
-                          py: { xs: 0.8, sm: 1, md: 1.2 },
-                          px: { xs: 1.5, sm: 2, md: 2.5 },
-                          textTransform: 'none',
-                          fontWeight: 'bold',
-                          fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.9375rem' },
-                          flexShrink: 0
-                        }}
-                      >
-                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Enviar</Box>
-                        <Send sx={{ fontSize: 18, display: { xs: 'block', sm: 'none' } }} />
-                      </Button>
-                    </Stack>
-                  </CardContent>
-                </Card>
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <AudioPlayer src={pendingRecording.url} />
+                            <Typography variant="caption" color="text.secondary">
+                              {pendingRecording.duration ? formatTime(pendingRecording.duration) : `${recordingTime}s`}
+                            </Typography>
+                          </Box>
+                          <Stack direction="row" spacing={1} justifyContent={{ xs: 'flex-end', sm: 'flex-start' }}>
+                            <Button size="small" variant="contained" onClick={sendPendingRecording} disabled={sendingMedia}>
+                              {sendingMedia ? 'Enviando...' : 'Enviar'}
+                            </Button>
+                            <Button size="small" variant="text" onClick={cancelPendingRecording}>
+                              Cancelar
+                            </Button>
+                          </Stack>
+                        </Paper>
+                      )}
+                      
+                      <Stack direction="row" gap={{ xs: 0.5, sm: 1 }} alignItems="flex-end" flexWrap="nowrap">
+                        <TextField 
+                          fullWidth 
+                          size="small" 
+                          value={texto} 
+                          onChange={(e) => setTexto(e.target.value)} 
+                          placeholder="Digite sua mensagem..."
+                          onKeyPress={(e) => {
+                            if (e.key === 'Enter' && !e.shiftKey) {
+                              e.preventDefault();
+                              enviar();
+                            }
+                          }}
+                          multiline
+                          maxRows={3}
+                          sx={{
+                            flex: 1,
+                            minWidth: 0,
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: 2,
+                              fontSize: { xs: '0.875rem', sm: '1rem' }
+                            },
+                            '& .MuiInputBase-input': {
+                              p: { xs: '8px 12px', sm: '8.5px 14px' }
+                            }
+                          }}
+                        />
+                        {/* Botões de ação */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0.25, sm: 0.5 }, flexShrink: 0 }}>
+                          <IconButton
+                            title={isRecording ? 'Parar gravação' : 'Gravar áudio'}
+                            color={isRecording ? 'error' : 'default'}
+                            onClick={() => {
+                              if (isRecording) stopRecording(); else startRecording();
+                            }}
+                            size="small"
+                            sx={{ p: { xs: 0.75, sm: 1 } }}
+                          >
+                            <Mic sx={{ fontSize: { xs: 20, sm: 24 } }} />
+                          </IconButton>
+                          {isRecording && (
+                            <Chip 
+                              label={`${recordingTime}s`} 
+                              size="small" 
+                              color="error" 
+                              sx={{ display: { xs: 'none', sm: 'flex' } }} 
+                            />
+                          )}
+                        </Box>
+                        <Button 
+                          variant="contained" 
+                          onClick={enviar} 
+                          disabled={enviarMutation.isPending || !texto.trim()}
+                          endIcon={<Send sx={{ fontSize: { xs: 16, sm: 20 }, display: { xs: 'none', sm: 'block' } }} />}
+                          sx={{ 
+                            minWidth: { xs: 'auto', sm: 100, md: 110 },
+                            borderRadius: 2,
+                            py: { xs: 0.8, sm: 1, md: 1.2 },
+                            px: { xs: 1.5, sm: 2, md: 2.5 },
+                            textTransform: 'none',
+                            fontWeight: 'bold',
+                            fontSize: { xs: '0.8rem', sm: '0.875rem', md: '0.9375rem' },
+                            flexShrink: 0
+                          }}
+                        >
+                          <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>Enviar</Box>
+                          <Send sx={{ fontSize: 18, display: { xs: 'block', sm: 'none' } }} />
+                        </Button>
+                      </Stack>
+                    </CardContent>
+                  </Card>
+                )}
               </>
             )}
           </Stack>

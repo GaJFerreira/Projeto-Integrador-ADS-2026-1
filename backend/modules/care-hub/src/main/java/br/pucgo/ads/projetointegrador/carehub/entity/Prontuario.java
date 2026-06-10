@@ -11,7 +11,7 @@ import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 /**
- * ProntuÃ¡rio mÃ©dico/clÃ­nico do Cliente.
+ * Prontuário médico/clínico do Cliente.
  */
 @Entity
 @Table(name = "ch_prontuario", schema = "care_hub")
@@ -60,4 +60,3 @@ public class Prontuario {
     @Column(name = "data_atualizacao")
     private OffsetDateTime dataAtualizacao;
 }
-

@@ -10,6 +10,7 @@ import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // ✅ Novo �
 import FavoriteIcon from '@mui/icons-material/Favorite'; // ✅ CareHub
 import { useNavigate } from 'react-router-dom';
 import NoteAltOutlinedIcon from '@mui/icons-material/NoteAltOutlined';
+import DirectionsRunIcon from '@mui/icons-material/DirectionsRun';
 
 export function ModuleGrid() {
   const navigate = useNavigate();
@@ -52,6 +53,14 @@ export function ModuleGrid() {
       title: 'Atendimento Médico',
       desc: 'Registre informações de consultas e diagnósticos.',
       to: '/atendimento',
+    },
+
+    // Elden Care — Plano de Exercícios
+    {
+      icon: <DirectionsRunIcon sx={{ fontSize: 40 }} color="primary" />,
+      title: 'Elden Care',
+      desc: 'Plano de atividades físicas personalizado para idosos.',
+      to: '/elden-care/questionario',
     },
 
     // Novo módulo: CareHub

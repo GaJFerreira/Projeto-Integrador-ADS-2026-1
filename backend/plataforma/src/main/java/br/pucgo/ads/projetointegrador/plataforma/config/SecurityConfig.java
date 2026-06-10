@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/carehub/health").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/carehub/iot/alerts").permitAll()
                 .anyRequest().authenticated()
             )
             .exceptionHandling(ex -> ex

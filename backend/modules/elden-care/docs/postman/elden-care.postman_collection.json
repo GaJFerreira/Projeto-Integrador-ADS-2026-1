@@ -1,0 +1,296 @@
+{
+  "info": {
+    "name": "Elden Care - Módulo de Atividades Físicas",
+    "description": "Coleção de endpoints do módulo Elden Care — Plataforma de Auxílio ao Idoso (PUC GO ADS 2026-1).\n\nFluxo principal:\n1. Login → obtém token JWT\n2. Criar participante → obtém UUID\n3. Carregar perguntas do questionário\n4. Enviar respostas e gerar plano\n5. Visualizar plano gerado",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "participante_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "plano_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.accessToken) {",
+                  "    pm.collectionVariables.set('token', data.accessToken);",
+                  "    console.log('Token salvo com sucesso.');",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usernameOrEmail\": \"pedroteste@teste.com\",\n  \"password\": \"teste123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Realiza login na plataforma e salva o token JWT automaticamente na variável `token`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "1. Health Check",
+      "item": [
+        {
+          "name": "Ping",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/ping",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "ping"]
+            },
+            "description": "Verifica se o módulo Elden Care está no ar.\nRetorna: { ok: true, service: 'elden-care', ts: '...' }"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Participantes",
+      "item": [
+        {
+          "name": "Criar participante",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const data = pm.response.json();",
+                  "if (data.id) {",
+                  "    pm.collectionVariables.set('participante_id', data.id);",
+                  "    console.log('participante_id salvo: ' + data.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Maria Souza\",\n  \"nascimento\": \"1960-03-15\",\n  \"sexo\": \"F\",\n  \"pesoKg\": 65.0,\n  \"alturaCm\": 158.0,\n  \"observacoes\": null\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/participantes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "participantes"]
+            },
+            "description": "Cadastra um novo participante (idoso).\nO UUID retornado é salvo automaticamente na variável `participante_id`."
+          },
+          "response": []
+        },
+        {
+          "name": "Listar participantes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/participantes",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "participantes"]
+            },
+            "description": "Retorna todos os participantes cadastrados."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar participante por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/participantes/{{participante_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "participantes", "{{participante_id}}"]
+            },
+            "description": "Busca um participante pelo UUID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Questionário",
+      "item": [
+        {
+          "name": "Listar perguntas",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/questionario/perguntas",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "questionario", "perguntas"]
+            },
+            "description": "Retorna as 40 perguntas agrupadas em 8 categorias:\n- Condição física\n- Saúde cardiovascular\n- Força e equilíbrio\n- Flexibilidade\n- Hábitos de vida\n- Saúde mental\n- Objetivos\n- Rotina e disponibilidade"
+          },
+          "response": []
+        },
+        {
+          "name": "Gerar plano (respostas completas)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "// O plano é retornado diretamente como PlanoGeradoResponse.",
+                  "// Para buscar pelo ID depois, use o endpoint /planos/participante/{id}.",
+                  "console.log('Plano gerado:', JSON.stringify(pm.response.json(), null, 2));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"participanteId\": \"{{participante_id}}\",\n  \"respostas\": [\n    { \"pergunta\": \"cansaco_ativ_leves\",          \"resposta\": \"nunca\" },\n    { \"pergunta\": \"adl_sem_ajuda\",               \"resposta\": \"sim\" },\n    { \"pergunta\": \"atividade_freq_semana\",        \"resposta\": \"3x\" },\n    { \"pergunta\": \"dores_articulares\",            \"resposta\": \"nao\" },\n    { \"pergunta\": \"mobilidade_nivel\",             \"resposta\": \"alto\" },\n    { \"pergunta\": \"hipertensao\",                  \"resposta\": \"nao\" },\n    { \"pergunta\": \"problema_cardiaco\",            \"resposta\": \"nao\" },\n    { \"pergunta\": \"falta_ar_esforco_leve\",        \"resposta\": \"nunca\" },\n    { \"pergunta\": \"medicacao_coracao_pressao\",    \"resposta\": \"nao\" },\n    { \"pergunta\": \"recomendacao_limitar_esforco\", \"resposta\": \"nao\" },\n    { \"pergunta\": \"inseguranca_caminhar\",         \"resposta\": \"nao\" },\n    { \"pergunta\": \"quedas_ultimo_ano\",            \"resposta\": \"nenhuma\" },\n    { \"pergunta\": \"levantar_sem_apoio\",           \"resposta\": \"sim\" },\n    { \"pergunta\": \"equilibrio_unipodal\",          \"resposta\": \"10oumais\" },\n    { \"pergunta\": \"dores_membros_tronco\",         \"resposta\": \"nao\" },\n    { \"pergunta\": \"tocar_pes_sem_dobrar\",         \"resposta\": \"sim\" },\n    { \"pergunta\": \"rigidez_ao_acordar\",           \"resposta\": \"nao\" },\n    { \"pergunta\": \"alonga_regularmente\",          \"resposta\": \"sim\" },\n    { \"pergunta\": \"dificuldade_coordenacao\",      \"resposta\": \"nao\" },\n    { \"pergunta\": \"quer_melhorar_flexibilidade\",  \"resposta\": \"sim\" },\n    { \"pergunta\": \"fuma\",                         \"resposta\": \"nao\" },\n    { \"pergunta\": \"alcool_frequencia\",            \"resposta\": \"nao\" },\n    { \"pergunta\": \"alimentacao_avaliacao\",        \"resposta\": \"boa\" },\n    { \"pergunta\": \"dorme_bem\",                    \"resposta\": \"sim\" },\n    { \"pergunta\": \"ativ_ao_ar_livre\",             \"resposta\": \"2a3_semana\" },\n    { \"pergunta\": \"solidao_desmotivacao\",         \"resposta\": \"nunca\" },\n    { \"pergunta\": \"participa_grupos_sociais\",     \"resposta\": \"semanal\" },\n    { \"pergunta\": \"estresse_ansiedade\",           \"resposta\": \"nunca\" },\n    { \"pergunta\": \"diag_depressao\",              \"resposta\": \"nao\" },\n    { \"pergunta\": \"prazer_exercicio\",             \"resposta\": \"sim\" },\n    { \"pergunta\": \"objetivo_principal\",           \"resposta\": \"mobilidade\" },\n    { \"pergunta\": \"preferencia_social\",           \"resposta\": \"grupo\" },\n    { \"pergunta\": \"intensidade_preferida\",        \"resposta\": \"moderada\" },\n    { \"pergunta\": \"gosta_musica\",                 \"resposta\": \"sim\" },\n    { \"pergunta\": \"local_preferido\",              \"resposta\": \"parque\" },\n    { \"pergunta\": \"dias_por_semana\",              \"resposta\": \"3\" },\n    { \"pergunta\": \"tempo_por_dia\",               \"resposta\": \"30\" },\n    { \"pergunta\": \"horario_preferido\",            \"resposta\": \"manha\" },\n    { \"pergunta\": \"equipamentos\",                 \"resposta\": \"nenhum\" },\n    { \"pergunta\": \"acomp_medico_ou_fisio\",        \"resposta\": \"nao\" }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/questionario/gerar",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "questionario", "gerar"]
+            },
+            "description": "Envia as 40 respostas do questionário e retorna o plano de atividades gerado.\n\nO backend calcula uma pontuação de risco e determina o nível:\n- Risco baixo  → nível ALTO  (treino mais intenso)\n- Risco médio  → nível MEDIO\n- Risco alto   → nível BAIXO (treino mais leve)\n\nRequer `participanteId` (UUID) previamente criado."
+          },
+          "response": []
+        },
+        {
+          "name": "Testar plano por resposta existente",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/questionario/testar/:respostaId",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "questionario", "testar", ":respostaId"],
+              "variable": [
+                {
+                  "key": "respostaId",
+                  "value": "",
+                  "description": "UUID de uma ex_resposta_questionario existente no banco"
+                }
+              ]
+            },
+            "description": "Gera um plano a partir de uma resposta de questionário já persistida no banco. Útil para testes via Postman sem precisar preencher o questionário novamente."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Planos",
+      "item": [
+        {
+          "name": "Listar planos do participante",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/planos/participante/{{participante_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "planos", "participante", "{{participante_id}}"]
+            },
+            "description": "Lista todos os planos de um participante, do mais recente para o mais antigo."
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar plano por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/planos/{{plano_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "planos", "{{plano_id}}"]
+            },
+            "description": "Retorna os dados brutos de um plano (entidade completa com dias e itens)."
+          },
+          "response": []
+        },
+        {
+          "name": "Visualizar plano formatado",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/elden-care/planos/{{plano_id}}/view",
+              "host": ["{{base_url}}"],
+              "path": ["api", "elden-care", "planos", "{{plano_id}}", "view"]
+            },
+            "description": "Retorna o plano no formato PlanoGeradoResponse — o mesmo formato exibido pelo frontend.\nInclui: nome, idade, sexo, nível, semanas, dias/semana, min/dia, cronograma semanal."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

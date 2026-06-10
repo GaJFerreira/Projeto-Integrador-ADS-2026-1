@@ -27,13 +27,13 @@ public class RegistroAcompanhamentoService {
 
     @Transactional
     public RegistroAcompanhamentoResponseDTO criarRegistro(Long cuidadorId, RegistroAcompanhamentoRequestDTO dto) {
-        Long agendamentoId = Objects.requireNonNull(dto.getAgendamentoId(), "Agendamento ID cannot be null");
-        
+        Long agendamentoId = Objects.requireNonNull(dto.getAgendamentoId(), "Agendamento ID não pode ser null");
+
         Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
-            .orElseThrow(() -> new RuntimeException("Agendamento nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
         if (!agendamento.getCuidador().getId().equals(cuidadorId)) {
-            throw new RuntimeException("Cuidador nÃ£o autorizado para este agendamento");
+            throw new RuntimeException("Cuidador não autorizado para este agendamento");
         }
 
         RegistroAcompanhamento registro = new RegistroAcompanhamento();
@@ -41,8 +41,7 @@ public class RegistroAcompanhamentoService {
         registro.setCuidador(agendamento.getCuidador());
         registro.setCliente(agendamento.getCliente());
         registro.setDataHoraRegistro(
-                dto.getDataHoraRegistro() != null ? dto.getDataHoraRegistro() : OffsetDateTime.now(ZoneOffset.UTC)
-        );
+                dto.getDataHoraRegistro() != null ? dto.getDataHoraRegistro() : OffsetDateTime.now(ZoneOffset.UTC));
         registro.setPressaoArterial(dto.getPressaoArterial());
         registro.setGlicemia(dto.getGlicemia());
         registro.setMedicamentosAdministrados(dto.getMedicamentosAdministrados());
@@ -51,6 +50,7 @@ public class RegistroAcompanhamentoService {
         registro.setObservacoes(dto.getObservacoes());
         registro.setIntercorrencias(dto.getIntercorrencias());
         registro.setSinaisVitais(dto.getSinaisVitais());
+        registro.setHumorEstado(dto.getHumorEstado());
 
         registro = registroRepository.save(registro);
 
@@ -83,10 +83,10 @@ public class RegistroAcompanhamentoService {
 
     @Transactional(readOnly = true)
     public RegistroAcompanhamentoResponseDTO buscarPorId(Long id) {
-        Objects.requireNonNull(id, "Registro ID cannot be null");
-        
+        Objects.requireNonNull(id, "Registro ID não pode ser null");
+
         RegistroAcompanhamento registro = registroRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Registro nÃ£o encontrado"));
+                .orElseThrow(() -> new RuntimeException("Registro não encontrado"));
         return toResponseDTO(registro);
     }
 
@@ -108,8 +108,8 @@ public class RegistroAcompanhamentoService {
         dto.setObservacoes(registro.getObservacoes());
         dto.setIntercorrencias(registro.getIntercorrencias());
         dto.setSinaisVitais(registro.getSinaisVitais());
+        dto.setHumorEstado(registro.getHumorEstado());
         dto.setDataCriacao(registro.getDataCriacao());
         return dto;
     }
 }
-
