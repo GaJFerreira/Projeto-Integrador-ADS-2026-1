@@ -143,7 +143,7 @@ export function AppRoutes() {
         {/* Elden Care */}
         <Route path="elden-care/questionario" element={<QuestionarioEldenCare />} />
 
-        {/* CareHub */}
+         {/* CareHub */}
         <Route path="carehub/*" element={<CareHubRoutes />} />
 
         {/* Rota fallback */}
