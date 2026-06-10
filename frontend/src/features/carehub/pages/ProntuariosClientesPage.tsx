@@ -11,6 +11,8 @@ import {
   Stack,
   Divider,
   TextField,
+  Button,
+  Avatar,
 } from '@mui/material';
 import {
   ExpandMore,
@@ -21,11 +23,16 @@ import {
   Warning,
   Bloodtype,
   Phone,
+  Add,
+  FolderOpen,
+  AccessibilityNew,
+  Note,
 } from '@mui/icons-material';
 import { PageHeader } from '../components/PageHeader';
 import http from '../libHttp';
-import { getUserId, isCuidador as isRoleCuidador, checkAndCacheUserType } from '../components/auth';
+import { isCuidador as isRoleCuidador, checkAndCacheUserType } from '../components/auth';
 import { parseDate, formatDate } from '../utils/dateUtils';
+import { useNavigate } from 'react-router-dom';
 
 interface Prontuario {
   id: number;
@@ -41,6 +48,14 @@ interface Prontuario {
   necessidadesEspeciais?: string;
 }
 
+interface ClienteComProntuario {
+  clienteId: number;
+  clienteNome: string;
+  agendamentoId: number;
+  prontuario: Prontuario | null;
+  temProntuario: boolean;
+}
+
 interface Agendamento {
   id: number;
   clienteId: number;
@@ -48,77 +63,131 @@ interface Agendamento {
 }
 
 export function ProntuariosClientesPage() {
-  const [prontuarios, setProntuarios] = useState<Prontuario[]>([]);
+  const navigate = useNavigate();
+  const [clientes, setClientes] = useState<ClienteComProntuario[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [isCuidador, setIsCuidador] = useState(false);
   const [cuidadorId, setCuidadorId] = useState<number | null>(null);
+  const [debugInfo, setDebugInfo] = useState<string[]>([]);
 
   useEffect(() => {
     const verificarECarregar = async () => {
-      // Verificar tipo de usuário via API
       await checkAndCacheUserType();
-      
       const ehCuidador = isRoleCuidador();
       setIsCuidador(ehCuidador);
-      const currentUserId = getUserId();
-      setCuidadorId(currentUserId);
+
+      try {
+        const perfilResp = await http.get('/api/carehub/perfil');
+        const perfil = perfilResp.data;
+        const logs: string[] = [];
+        logs.push(`Perfil obtido: id=${perfil?.id}, platformUserId=${perfil?.platformUserId}, role=${perfil?.role}`);
+
+        if (perfil?.platformUserId) {
+          setCuidadorId(perfil.platformUserId);
+          logs.push(`CuidadorId definido como platformUserId=${perfil.platformUserId}`);
+        } else if (perfil?.id) {
+          setCuidadorId(perfil.id);
+          logs.push(`CuidadorId definido como localId=${perfil.id} (platformUserId ausente!)`);
+        }
+        setDebugInfo(logs);
+      } catch (err: any) {
+        setDebugInfo([`Erro ao obter perfil: ${err?.message}`]);
+      }
+
       setAuthChecked(true);
     };
-    
+
     verificarECarregar();
   }, []);
 
-  // Carregar prontuários quando cuidadorId estiver disponível
   useEffect(() => {
     if (cuidadorId && isCuidador) {
-      carregarProntuarios();
+      carregarClientes();
     } else if (authChecked) {
       setLoading(false);
     }
   }, [cuidadorId, isCuidador, authChecked]);
 
-  const carregarProntuarios = async () => {
+  const carregarClientes = async () => {
     if (!cuidadorId) return;
 
     try {
       setLoading(true);
-      
+      const logs = [...debugInfo];
+      logs.push(`Buscando agendamentos do cuidador=${cuidadorId}...`);
+
       // 1. Buscar agendamentos do cuidador logado
       const agendamentosResponse = await http.get(`/api/carehub/agendamentos/cuidador/${cuidadorId}`);
-      const agendamentos: Agendamento[] = agendamentosResponse.data;
+      const agendamentos: Agendamento[] = agendamentosResponse.data || [];
+      logs.push(`Agendamentos encontrados: ${agendamentos.length}`);
+      agendamentos.forEach(ag => {
+        logs.push(`  -> agendamento.id=${ag.id}, clienteId=${ag.clienteId}, clienteNome=${ag.clienteNome}`);
+      });
 
-      // 2. Extrair IDs únicos dos clientes
-      const clienteIds = [...new Set(agendamentos.map(ag => ag.clienteId))];
-
-      if (clienteIds.length === 0) {
-        setProntuarios([]);
-        setError('Você ainda não tem agendamentos com clientes');
+      if (agendamentos.length === 0) {
+        setClientes([]);
+        setError('Você ainda não possui agendamentos com clientes.');
+        setDebugInfo(logs);
         setLoading(false);
         return;
       }
 
-      // 3. Buscar prontuário de cada cliente
-      const prontuariosPromises = clienteIds.map(async (clienteId) => {
-        try {
-          const prontuarioResponse = await http.get(
-            `/api/carehub/prontuarios/cliente/${clienteId}`
-          );
-          return prontuarioResponse.data;
-        } catch {
-          return null; // Cliente sem prontuário
+      // 2. Deduplificar clientes por clienteId
+      const clientesMap = new Map<number, { clienteId: number; clienteNome: string; agendamentoId: number }>();
+      for (const ag of agendamentos) {
+        if (!clientesMap.has(ag.clienteId)) {
+          clientesMap.set(ag.clienteId, {
+            clienteId: ag.clienteId,
+            clienteNome: ag.clienteNome,
+            agendamentoId: ag.id,
+          });
         }
-      });
+      }
 
-      const prontuariosData = await Promise.all(prontuariosPromises);
-  const prontuariosValidos = (Array.isArray(prontuariosData) ? prontuariosData : (prontuariosData as any)?.content ?? []).filter((p: Prontuario | null): p is Prontuario => p !== null);
-      
-      setProntuarios(prontuariosValidos);
+      logs.push(`Clientes únicos: ${clientesMap.size}`);
+
+      // 3. Buscar prontuário de cada cliente individualmente
+      const clientesComProntuario: ClienteComProntuario[] = [];
+
+      for (const [clienteId, clienteInfo] of clientesMap) {
+        logs.push(`Buscando prontuário para clienteId=${clienteId} (${clienteInfo.clienteNome})...`);
+        try {
+          const prontuarioResponse = await http.get(`/api/carehub/prontuarios/cliente/${clienteId}`);
+
+          if (prontuarioResponse.status === 204 || !prontuarioResponse.data) {
+            logs.push(`  -> 204/sem dados para clienteId=${clienteId}. Cliente sem prontuário.`);
+            clientesComProntuario.push({
+              ...clienteInfo,
+              prontuario: null,
+              temProntuario: false,
+            });
+          } else {
+            logs.push(`  -> Prontuário encontrado: id=${prontuarioResponse.data?.id}`);
+            clientesComProntuario.push({
+              ...clienteInfo,
+              prontuario: prontuarioResponse.data,
+              temProntuario: true,
+            });
+          }
+        } catch (err: any) {
+          const status = err?.response?.status || err?.status;
+          logs.push(`  -> Erro HTTP ${status} para clienteId=${clienteId}: ${err?.message}`);
+          clientesComProntuario.push({
+            ...clienteInfo,
+            prontuario: null,
+            temProntuario: false,
+          });
+        }
+      }
+
+      setClientes(clientesComProntuario);
+      setDebugInfo(logs);
       setError(null);
-    } catch {
-      setError('Erro ao carregar prontuários dos clientes');
+    } catch (err: any) {
+      setError(`Erro ao carregar dados: ${err?.message || 'Erro desconhecido'}`);
     } finally {
       setLoading(false);
     }
@@ -131,23 +200,18 @@ export function ProntuariosClientesPage() {
     let idade = hoje.getFullYear() - nascimento.getFullYear();
     const mesAtual = hoje.getMonth();
     const mesNascimento = nascimento.getMonth();
-    
     if (mesAtual < mesNascimento || (mesAtual === mesNascimento && hoje.getDate() < nascimento.getDate())) {
       idade--;
     }
-    
     return idade;
   };
 
-  const formatarData = (dataISO: string) => {
-    return formatDate(dataISO);
-  };
+  const formatarData = (dataISO: string) => formatDate(dataISO);
 
-  // Verificar autorização após checagem inicial
   if (authChecked && !isCuidador) {
     return (
       <Box>
-        <PageHeader title="Prontuários dos Clientes" />
+        <PageHeader title="Prontuários dos Idosos" />
         <Alert severity="warning">
           Esta página é acessível apenas para cuidadores. Faça login com uma conta de cuidador para visualizar os prontuários dos seus clientes.
         </Alert>
@@ -166,16 +230,16 @@ export function ProntuariosClientesPage() {
     );
   }
 
-  // Filtrar prontuários pela pesquisa
-  const prontuariosFiltrados = prontuarios.filter(prontuario => {
+  // Filtrar pela pesquisa (exibe tanto os com prontuário quanto os sem)
+  const clientesFiltrados = clientes.filter(c => {
     if (!searchTerm) return true;
     const termo = searchTerm.toLowerCase();
     return (
-      prontuario.clienteNome.toLowerCase().includes(termo) ||
-      prontuario.tipoSanguineo?.toLowerCase().includes(termo) ||
-      prontuario.historicoMedico?.toLowerCase().includes(termo) ||
-      prontuario.medicamentosUso?.toLowerCase().includes(termo) ||
-      prontuario.alergias?.toLowerCase().includes(termo)
+      c.clienteNome.toLowerCase().includes(termo) ||
+      c.prontuario?.tipoSanguineo?.toLowerCase().includes(termo) ||
+      c.prontuario?.historicoMedico?.toLowerCase().includes(termo) ||
+      c.prontuario?.medicamentosUso?.toLowerCase().includes(termo) ||
+      c.prontuario?.alergias?.toLowerCase().includes(termo)
     );
   });
 
@@ -194,7 +258,7 @@ export function ProntuariosClientesPage() {
       )}
 
       {/* Campo de Pesquisa */}
-      {prontuarios.length > 0 && (
+      {clientes.length > 0 && (
         <TextField
           fullWidth
           placeholder="Pesquisar por nome do cliente, tipo sanguíneo, histórico, medicamentos ou alergias..."
@@ -207,138 +271,179 @@ export function ProntuariosClientesPage() {
         />
       )}
 
-      {prontuariosFiltrados.length === 0 ? (
-        <Alert severity="info">
-          {searchTerm ? 'Nenhum prontuário encontrado com o termo de busca.' : 'Nenhum prontuário disponível.'}
+      {clientesFiltrados.length === 0 ? (
+        <Alert severity="info" icon={<FolderOpen />}>
+          {searchTerm
+            ? 'Nenhum cliente encontrado com o termo de busca.'
+            : 'Nenhum cliente encontrado nos seus agendamentos. Confirme um agendamento para visualizar prontuários.'}
         </Alert>
       ) : (
         <Stack spacing={2}>
-          {prontuariosFiltrados.map((prontuario) => (
-            <Accordion key={prontuario.id} elevation={2}>
-              <AccordionSummary expandIcon={<ExpandMore />}>
+          {clientesFiltrados.map((c) => (
+            <Accordion key={c.clienteId} elevation={3} sx={{ borderRadius: 2, '&:before': { display: 'none' }, overflow: 'hidden' }}>
+              <AccordionSummary expandIcon={<ExpandMore />} sx={{ bgcolor: 'background.default', borderBottom: '1px solid', borderColor: 'divider' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
-                  <Person color="primary" />
+                  <Avatar sx={{ bgcolor: 'primary.main', width: 48, height: 48 }}>
+                    <Person />
+                  </Avatar>
                   <Box sx={{ flexGrow: 1 }}>
                     <Typography variant="h6" fontWeight={600}>
-                      {prontuario.clienteNome}
+                      {c.clienteNome}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {calcularIdade(prontuario.dataNascimento)} anos • {prontuario.tipoSanguineo || 'Tipo sanguíneo não informado'}
+                      {c.temProntuario
+                        ? `${calcularIdade(c.prontuario!.dataNascimento)} anos • ${c.prontuario!.tipoSanguineo || 'Sangue N/I'}`
+                        : 'Prontuário ainda não cadastrado'}
                     </Typography>
                   </Box>
-                  <Chip label="Prontuário" color="primary" size="small" />
+                  <Chip
+                    label={c.temProntuario ? 'Prontuário Ativo' : 'Sem Prontuário'}
+                    color={c.temProntuario ? 'primary' : 'default'}
+                    variant={c.temProntuario ? 'filled' : 'outlined'}
+                    size="small"
+                    sx={{ fontWeight: 'bold' }}
+                  />
                 </Box>
               </AccordionSummary>
-              
-              <AccordionDetails>
-                <Stack spacing={3}>
-                  {/* Dados Básicos */}
-                  <Box>
-                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CalendarToday fontSize="small" />
-                      Dados Básicos
+
+              <AccordionDetails sx={{ bgcolor: '#fafafa', p: 3 }}>
+                {!c.temProntuario ? (
+                  <Box textAlign="center" py={4} sx={{ bgcolor: 'background.paper', borderRadius: 2, border: '1px dashed', borderColor: 'divider' }}>
+                    <FolderOpen sx={{ fontSize: 48, color: 'text.secondary', mb: 1, opacity: 0.5 }} />
+                    <Typography variant="body1" color="text.secondary" mb={2}>
+                      Este cliente ainda não possui informações médicas registradas.
                     </Typography>
-                    <Divider sx={{ mb: 2 }} />
-                    <Stack spacing={1}>
-                      <Typography variant="body2">
-                        <strong>Data de Nascimento:</strong> {formatarData(prontuario.dataNascimento)}
+                    <Button
+                      variant="contained"
+                      startIcon={<Add />}
+                      onClick={() => navigate(`/carehub/prontuario/${c.clienteId}`)}
+                      sx={{ borderRadius: 2 }}
+                    >
+                      Criar Prontuário Médico
+                    </Button>
+                  </Box>
+                ) : (
+                  <Stack spacing={3}>
+                    {/* Dados Básicos */}
+                    <Box sx={{ bgcolor: 'background.paper', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                      <Typography variant="subtitle1" color="primary" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <CalendarToday fontSize="small" />
+                        Dados Básicos
                       </Typography>
-                      <Typography variant="body2">
-                        <strong>Idade:</strong> {calcularIdade(prontuario.dataNascimento)} anos
-                      </Typography>
-                      {prontuario.tipoSanguineo && (
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Bloodtype fontSize="small" color="error" />
-                          <Typography variant="body2">
-                            <strong>Tipo Sanguíneo:</strong> {prontuario.tipoSanguineo}
+                      <Divider sx={{ mb: 2 }} />
+                      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4}>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" display="block">Data de Nascimento</Typography>
+                          <Typography variant="body2" fontWeight="medium">{formatarData(c.prontuario!.dataNascimento)}</Typography>
+                        </Box>
+                        <Box>
+                          <Typography variant="caption" color="text.secondary" display="block">Idade</Typography>
+                          <Typography variant="body2" fontWeight="medium">{calcularIdade(c.prontuario!.dataNascimento)} anos</Typography>
+                        </Box>
+                        {c.prontuario!.tipoSanguineo && (
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Bloodtype fontSize="small" color="error" />
+                            <Box>
+                              <Typography variant="caption" color="text.secondary" display="block">Tipo Sanguíneo</Typography>
+                              <Typography variant="body2" fontWeight="medium">{c.prontuario!.tipoSanguineo}</Typography>
+                            </Box>
+                          </Box>
+                        )}
+                      </Stack>
+                    </Box>
+
+                    {/* Histórico Médico e Medicamentos */}
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                      {c.prontuario!.historicoMedico && (
+                        <Box sx={{ flex: 1, bgcolor: 'background.paper', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                          <Typography variant="subtitle1" color="primary" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <LocalHospital fontSize="small" />
+                            Histórico Médico
+                          </Typography>
+                          <Divider sx={{ mb: 2 }} />
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: 'text.secondary' }}>
+                            {c.prontuario!.historicoMedico}
+                          </Typography>
+                        </Box>
+                      )}
+
+                      {c.prontuario!.medicamentosUso && (
+                        <Box sx={{ flex: 1, bgcolor: 'background.paper', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                          <Typography variant="subtitle1" color="primary" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Medication fontSize="small" />
+                            Medicamentos em Uso
+                          </Typography>
+                          <Divider sx={{ mb: 2 }} />
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: 'text.secondary' }}>
+                            {c.prontuario!.medicamentosUso}
                           </Typography>
                         </Box>
                       )}
                     </Stack>
-                  </Box>
 
-                  {/* Histórico Médico */}
-                  {prontuario.historicoMedico && (
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <LocalHospital fontSize="small" />
-                        Histórico Médico
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-                        {prontuario.historicoMedico}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {/* Medicamentos */}
-                  {prontuario.medicamentosUso && (
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Medication fontSize="small" />
-                        Medicamentos em Uso
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-                        {prontuario.medicamentosUso}
-                      </Typography>
-                    </Box>
-                  )}
-
-                  {/* Alergias */}
-                  {prontuario.alergias && (
-                    <Box>
-                      <Alert severity="warning" icon={<Warning />}>
-                        <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 0.5 }}>
-                          Alergias
+                    {/* Alergias */}
+                    {c.prontuario!.alergias && (
+                      <Alert severity="error" icon={<Warning />} sx={{ borderRadius: 2 }}>
+                        <Typography variant="subtitle2" fontWeight={800} sx={{ mb: 0.5 }}>
+                          Alergias Severas
                         </Typography>
-                        <Typography variant="body2">
-                          {prontuario.alergias}
-                        </Typography>
+                        <Typography variant="body2">{c.prontuario!.alergias}</Typography>
                       </Alert>
-                    </Box>
-                  )}
+                    )}
 
-                  {/* Contato de Emergência */}
-                  {prontuario.contatoEmergencia && (
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Phone fontSize="small" />
-                        Contato de Emergência
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-                      <Typography variant="body2">
-                        {prontuario.contatoEmergencia}
-                      </Typography>
-                    </Box>
-                  )}
+                    {/* Contato, Necessidades e Observações */}
+                    <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                      {c.prontuario!.contatoEmergencia && (
+                        <Box sx={{ flex: 1, bgcolor: 'background.paper', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                          <Typography variant="subtitle1" color="primary" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Phone fontSize="small" />
+                            Contato de Emergência
+                          </Typography>
+                          <Divider sx={{ mb: 2 }} />
+                          <Typography variant="body2" fontWeight="medium">{c.prontuario!.contatoEmergencia}</Typography>
+                        </Box>
+                      )}
 
-                  {/* Necessidades Especiais */}
-                  {prontuario.necessidadesEspeciais && (
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-                        Necessidades Especiais
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-                        {prontuario.necessidadesEspeciais}
-                      </Typography>
-                    </Box>
-                  )}
+                      {c.prontuario!.necessidadesEspeciais && (
+                        <Box sx={{ flex: 1, bgcolor: 'background.paper', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                          <Typography variant="subtitle1" color="primary" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <AccessibilityNew fontSize="small" />
+                            Necessidades Especiais
+                          </Typography>
+                          <Divider sx={{ mb: 2 }} />
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: 'text.secondary' }}>
+                            {c.prontuario!.necessidadesEspeciais}
+                          </Typography>
+                        </Box>
+                      )}
 
-                  {/* Observações Gerais */}
-                  {prontuario.observacoesGerais && (
-                    <Box>
-                      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
-                        Observações Gerais
-                      </Typography>
-                      <Divider sx={{ mb: 2 }} />
-                      <Typography variant="body2" sx={{ whiteSpace: 'pre-line' }}>
-                        {prontuario.observacoesGerais}
-                      </Typography>
+                      {c.prontuario!.observacoesGerais && (
+                        <Box sx={{ flex: 1, bgcolor: 'background.paper', p: 2, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+                          <Typography variant="subtitle1" color="primary" fontWeight={600} sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Note fontSize="small" />
+                            Observações Gerais
+                          </Typography>
+                          <Divider sx={{ mb: 2 }} />
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-line', color: 'text.secondary' }}>
+                            {c.prontuario!.observacoesGerais}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Stack>
+
+                    {/* Botão de Editar */}
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                      <Button
+                        variant="outlined"
+                        size="medium"
+                        onClick={() => navigate(`/carehub/prontuario/${c.clienteId}`)}
+                        sx={{ borderRadius: 2, fontWeight: 600 }}
+                      >
+                        Editar Prontuário
+                      </Button>
                     </Box>
-                  )}
-                </Stack>
+                  </Stack>
+                )}
               </AccordionDetails>
             </Accordion>
           ))}

@@ -16,6 +16,7 @@ import br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.CuidadorRepository;
 import br.pucgo.ads.projetointegrador.carehub.repository.RegistroAcompanhamentoRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ import java.util.stream.Collectors;
  * O método {@code getUserIdByUsernameOrEmail} agora consulta o
  * {@link UsuarioRepository} local ({@code care_hub.usuario}).
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AgendamentoService {
@@ -174,13 +176,27 @@ public class AgendamentoService {
 
     @Transactional
     public AgendamentoResponseDTO criarAgendamento(AgendamentoRequestDTO dto) {
+        log.info("[Agendamento] Iniciando criação de agendamento. DTO: {}", dto);
         Long cuidadorId = Objects.requireNonNull(dto.getCuidadorId(), "Cuidador ID não pode ser nulo");
         Long clienteId = Objects.requireNonNull(dto.getClienteId(), "Cliente ID não pode ser nulo");
 
-        Cuidador cuidador = cuidadorRepository.findById(cuidadorId)
-                .orElseThrow(() -> new RuntimeException("Cuidador não encontrado"));
-        Cliente cliente = clienteRepository.findById(clienteId)
-                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
+        log.info("[Agendamento] Buscando cuidador com ID={} (pode ser platformUserId ou localId)", cuidadorId);
+        Cuidador cuidador = cuidadorRepository.findByPlatformUserId(cuidadorId)
+                .orElseGet(() -> {
+                    log.warn("[Agendamento] Cuidador NÃO encontrado por platformUserId={}. Tentando por localId...", cuidadorId);
+                    return cuidadorRepository.findById(cuidadorId)
+                            .orElseThrow(() -> new RuntimeException("Cuidador não encontrado com ID: " + cuidadorId));
+                });
+        log.info("[Agendamento] Cuidador encontrado: idLocal={}, platformUserId={}", cuidador.getId(), cuidador.getPlatformUserId());
+        
+        log.info("[Agendamento] Buscando cliente com ID={} (pode ser platformUserId ou localId)", clienteId);
+        Cliente cliente = clienteRepository.findByPlatformUserId(clienteId)
+                .orElseGet(() -> {
+                    log.warn("[Agendamento] Cliente NÃO encontrado por platformUserId={}. Tentando por localId...", clienteId);
+                    return clienteRepository.findById(clienteId)
+                            .orElseThrow(() -> new RuntimeException("Cliente não encontrado com ID: " + clienteId));
+                });
+        log.info("[Agendamento] Cliente encontrado: idLocal={}, platformUserId={}", cliente.getId(), cliente.getPlatformUserId());
 
         Agendamento agendamento = new Agendamento();
         agendamento.setCuidador(cuidador);
@@ -573,9 +589,9 @@ public class AgendamentoService {
     private AgendamentoResponseDTO toResponseDTO(Agendamento agendamento) {
         AgendamentoResponseDTO dto = new AgendamentoResponseDTO();
         dto.setId(agendamento.getId());
-        dto.setCuidadorId(agendamento.getCuidador().getId());
+        dto.setCuidadorId(agendamento.getCuidador().getPlatformUserId());
         dto.setCuidadorNome(agendamento.getCuidador().getName());
-        dto.setClienteId(agendamento.getCliente().getId());
+        dto.setClienteId(agendamento.getCliente().getPlatformUserId());
         dto.setClienteNome(agendamento.getCliente().getName());
         dto.setDataHoraInicio(agendamento.getDataHoraInicio());
         dto.setDataHoraFim(agendamento.getDataHoraFim());

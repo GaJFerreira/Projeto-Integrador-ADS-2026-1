@@ -9,9 +9,9 @@ import java.util.List;
 @Repository
 public interface RegistroAcompanhamentoRepository extends JpaRepository<RegistroAcompanhamento, Long> {
 
-    List<RegistroAcompanhamento> findByClienteIdOrderByDataHoraRegistroDesc(Long clienteId);
+    List<RegistroAcompanhamento> findByCliente_PlatformUserIdOrderByDataHoraRegistroDesc(Long clientePlatformId);
 
-    List<RegistroAcompanhamento> findByCuidadorIdOrderByDataHoraRegistroDesc(Long cuidadorId);
+    List<RegistroAcompanhamento> findByCuidador_PlatformUserIdOrderByDataHoraRegistroDesc(Long cuidadorPlatformId);
 
     List<RegistroAcompanhamento> findByAgendamentoIdOrderByDataHoraRegistroDesc(Long agendamentoId);
 

@@ -12,6 +12,7 @@ export interface ClienteResponseDTO {
 
 export interface CuidadorResponseDTO {
   id: number;
+  platformUserId?: number;
   nome: string;
   email: string;
   telefone: string;

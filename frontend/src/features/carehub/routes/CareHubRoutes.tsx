@@ -119,6 +119,7 @@ export function CareHubRoutes() {
         <Route path="agendamentos-menu" element={<AgendamentosMenuPage />} />
         <Route path="agendamentos" element={<AgendamentosPage />} />
         <Route path="prontuario" element={<ProntuarioPage />} />
+        <Route path="prontuario/:clienteId" element={<ProntuarioPage />} />
         <Route path="avaliacoes/:id" element={<AvaliacoesPage />} />
         <Route path="dispositivos" element={<MeusDispositivosPage />} />
 

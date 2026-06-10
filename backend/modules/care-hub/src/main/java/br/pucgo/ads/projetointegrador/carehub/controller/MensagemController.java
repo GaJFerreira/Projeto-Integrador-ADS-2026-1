@@ -52,8 +52,7 @@ public class MensagemController {
 
     private UsuarioLocal obterUsuarioLocalAutenticado(Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
+            return null;
         }
 
         String usernameOrEmail = principal.getName();
@@ -70,9 +69,7 @@ public class MensagemController {
             return new UsuarioLocal(cliente.get().getPlatformUserId(), TipoUsuario.CLIENTE);
         }
 
-        throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuário platformUserId não encontrado para o principal autenticado: " + usernameOrEmail);
+        return null;
     }
 
     private TipoUsuario tipoOposto(TipoUsuario tipo) {
@@ -115,6 +112,7 @@ public class MensagemController {
             Principal principal,
             @RequestBody Map<String, Object> dtoMap) {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.badRequest().build();
         Long localRemetenteId = usuarioAutenticado.id;
         Long platformDestinatarioId = dtoMap.get("destinatarioId") == null ? null
                 : Long.valueOf(dtoMap.get("destinatarioId").toString());
@@ -131,6 +129,7 @@ public class MensagemController {
     @GetMapping
     public ResponseEntity<List<MensagemResponseDTO>> listarMensagens(Principal principal) {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.ok(List.of());
         Long localUsuarioId = usuarioAutenticado.id;
         List<MensagemResponseDTO> mensagens = mensagemService.listarMensagens(localUsuarioId);
         return ResponseEntity.ok(converterListaParaPlataforma(mensagens, usuarioAutenticado));
@@ -141,6 +140,7 @@ public class MensagemController {
             Principal principal,
             @PathVariable Long usuarioId) {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.ok(List.of());
         Long localUsuarioAutenticadoId = usuarioAutenticado.id;
         List<MensagemResponseDTO> mensagens = mensagemService.buscarConversa(localUsuarioAutenticadoId, usuarioId);
         return ResponseEntity.ok(converterListaParaPlataforma(mensagens, usuarioAutenticado));
@@ -152,6 +152,7 @@ public class MensagemController {
             @RequestParam("destinatarioId") Long destinatarioId,
             @RequestParam("file") MultipartFile file) throws Exception {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.badRequest().build();
         Long localRemetenteId = usuarioAutenticado.id;
         byte[] data = file.getBytes();
         String storageKey = java.util.UUID.randomUUID().toString();
@@ -183,7 +184,9 @@ public class MensagemController {
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public ResponseEntity<Resource> serveMedia(Principal principal,
             @PathVariable String filename) throws Exception {
-        Long localUsuarioId = obterUsuarioLocalAutenticado(principal).id;
+        UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.notFound().build();
+        Long localUsuarioId = usuarioAutenticado.id;
         br.pucgo.ads.projetointegrador.carehub.entity.MessageMedia mm = messageMediaRepository
                 .findByStorageKey(filename);
         if (mm == null) {
@@ -219,6 +222,7 @@ public class MensagemController {
     @GetMapping("/nao-lidas")
     public ResponseEntity<List<MensagemResponseDTO>> buscarNaoLidas(Principal principal) {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.ok(List.of());
         Long localDestinatarioId = usuarioAutenticado.id;
         List<MensagemResponseDTO> mensagens = mensagemService.buscarMensagensNaoLidas(localDestinatarioId);
         return ResponseEntity.ok(converterListaParaPlataforma(mensagens, usuarioAutenticado));
@@ -232,7 +236,9 @@ public class MensagemController {
 
     @GetMapping("/contador-nao-lidas")
     public ResponseEntity<Long> contarNaoLidas(Principal principal) {
-        Long localUsuarioId = obterUsuarioLocalAutenticado(principal).id;
+        UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.ok(0L);
+        Long localUsuarioId = usuarioAutenticado.id;
         long count = mensagemService.contarMensagensNaoLidas(localUsuarioId);
         return ResponseEntity.ok(count);
     }
@@ -240,6 +246,7 @@ public class MensagemController {
     @GetMapping("/contatos")
     public ResponseEntity<List<ContatoDTO>> listarContatos(Principal principal) {
         UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.ok(List.of());
         boolean usuarioEhCuidador = usuarioAutenticado.tipo == TipoUsuario.CUIDADOR;
 
         List<ContatoDTO> contatos = mensagemService.listarContatos(usuarioAutenticado.id, usuarioEhCuidador);
@@ -258,7 +265,9 @@ public class MensagemController {
     public ResponseEntity<Void> marcarConversaComoLida(
             @PathVariable Long remetenteId,
             Principal principal) {
-        Long localUsuarioId = obterUsuarioLocalAutenticado(principal).id;
+        UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.noContent().build();
+        Long localUsuarioId = usuarioAutenticado.id;
         mensagemService.marcarConversaComoLida(localUsuarioId, remetenteId);
         return ResponseEntity.noContent().build();
     }
@@ -271,7 +280,9 @@ public class MensagemController {
     public ResponseEntity<java.util.Map<String, Boolean>> verificarChatAtivo(
             Principal principal,
             @PathVariable Long usuarioId) {
-        Long localUsuarioAutenticadoId = obterUsuarioLocalAutenticado(principal).id;
+        UsuarioLocal usuarioAutenticado = obterUsuarioLocalAutenticado(principal);
+        if (usuarioAutenticado == null) return ResponseEntity.ok(java.util.Map.of("ativo", false));
+        Long localUsuarioAutenticadoId = usuarioAutenticado.id;
         boolean ativo = mensagemService.chatAtivo(localUsuarioAutenticadoId, usuarioId);
         return ResponseEntity.ok(java.util.Map.of("ativo", ativo));
     }

@@ -15,6 +15,8 @@ public interface AvaliacaoRepository extends JpaRepository<Avaliacao, Long> {
     List<Avaliacao> findByCuidadorOrderByDataAvaliacaoDesc(Cuidador cuidador);
 
     List<Avaliacao> findByCuidadorIdOrderByDataAvaliacaoDesc(Long cuidadorId);
+    
+    List<Avaliacao> findByCuidadorPlatformUserIdOrderByDataAvaliacaoDesc(Long platformUserId);
 
     long countByCuidadorId(Long cuidadorId);
 

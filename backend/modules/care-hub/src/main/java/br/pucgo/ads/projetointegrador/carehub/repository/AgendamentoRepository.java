@@ -39,8 +39,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     List<Agendamento> findProximosAgendamentos(Long userId, OffsetDateTime inicio, OffsetDateTime fim);
 
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END " +
-           "FROM Agendamento a WHERE a.cuidador.id = :cuidadorId " +
-           "AND a.cliente.id = :clienteId " +
+           "FROM Agendamento a WHERE a.cuidador.platformUserId = :cuidadorId " +
+           "AND a.cliente.platformUserId = :clienteId " +
            "AND a.dataHoraInicio >= :inicio " +
            "AND a.dataHoraInicio < :fim " +
            "AND a.status IN ('CONFIRMADO', 'EM_ANDAMENTO')")

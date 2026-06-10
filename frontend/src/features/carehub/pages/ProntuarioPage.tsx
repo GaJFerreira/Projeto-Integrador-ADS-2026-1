@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { prontuariosApi, clientesApi } from '../api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { prontuariosApi } from '../api';
 import { verificarPodeEditar } from '../api/prontuarios';
 import type { ProntuarioResponseDTO } from '../types';
 import { 
@@ -18,14 +18,15 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { PageHeader } from '../components/PageHeader';
-import { Save, Lock } from '@mui/icons-material';
+import { Save, Lock, CalendarToday, LocalHospital, Phone } from '@mui/icons-material';
 import { getUserId, isCliente, checkAndCacheUserType } from '../components/auth';
 
 export default function ProntuarioPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
-  const [clienteId, setClienteId] = useState<number | undefined>(undefined);
+  const { clienteId: clienteIdParam } = useParams<{ clienteId: string }>();
+  const [clienteId, setClienteId] = useState<number | undefined>(clienteIdParam ? Number(clienteIdParam) : undefined);
   const [podeEditar, setPodeEditar] = useState(false);
   const [verificandoPermissao, setVerificandoPermissao] = useState(true);
   const [_ehCliente, setEhCliente] = useState<boolean | null>(null);
@@ -45,9 +46,15 @@ export default function ProntuarioPage() {
     verificarTipo();
   }, [navigate, enqueueSnackbar]);
 
+  // Buscar platformUserId do cliente se não veio via URL params
   useEffect(() => {
-    clientesApi.listarTodos().then(arr => setClienteId(arr[0]?.id));
-  }, []);
+    if (clienteIdParam) {
+      setClienteId(Number(clienteIdParam));
+      return;
+    }
+    // Se nao veio clienteId na URL, nao carregamos prontuario automaticamente
+    setClienteId(undefined);
+  }, [clienteIdParam]);
 
   const { data: model, isLoading } = useQuery({
     queryKey: ['prontuario', clienteId],
@@ -90,6 +97,7 @@ export default function ProntuarioPage() {
       
       const dto = {
         clienteId,
+        dataNascimento: form.dataNascimento || null,
         historicoMedico: form.historicoMedico || '',
         medicamentosUso: form.medicamentosUso || '',
         alergias: form.alergias || '',
@@ -108,6 +116,7 @@ export default function ProntuarioPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prontuario', clienteId] });
       enqueueSnackbar('Prontuário salvo com sucesso!', { variant: 'success' });
+      navigate('/carehub/cuidador/prontuarios');
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao salvar prontuário';
@@ -157,12 +166,43 @@ export default function ProntuarioPage() {
       {!isLoading && (
         <Card variant="outlined">
           <CardContent>
-            <Stack gap={2.5}>
+            <Stack gap={3}>
+              {/* Seção 1: Dados Básicos */}
               <Box>
-                <Typography variant="h6" gutterBottom color="primary">
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CalendarToday />
+                  Dados Básicos
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+                
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                  <TextField 
+                    label="Data de Nascimento" 
+                    type="date"
+                    value={form?.dataNascimento || ''} 
+                    onChange={(e) => updateField('dataNascimento', e.target.value)}
+                    disabled={camposDesabilitados}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                  <TextField 
+                    label="Tipo Sanguíneo" 
+                    value={form?.tipoSanguineo || ''} 
+                    onChange={(e) => updateField('tipoSanguineo', e.target.value)}
+                    disabled={camposDesabilitados}
+                    placeholder="Ex: O+, A-, AB+"
+                    fullWidth
+                  />
+                </Box>
+              </Box>
+
+              {/* Seção 2: Informações Médicas */}
+              <Box>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <LocalHospital />
                   Informações Médicas
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
+                <Divider sx={{ mb: 3 }} />
                 
                 <Stack gap={2}>
                   <TextField 
@@ -194,24 +234,18 @@ export default function ProntuarioPage() {
                     disabled={camposDesabilitados}
                     placeholder="Alergias a medicamentos, alimentos, etc."
                     fullWidth
-                  />
-                  
-                  <TextField 
-                    label="Tipo Sanguíneo" 
-                    value={form?.tipoSanguineo || ''} 
-                    onChange={(e) => updateField('tipoSanguineo', e.target.value)}
-                    disabled={camposDesabilitados}
-                    placeholder="Ex: O+, A-, AB+"
-                    sx={{ maxWidth: 200 }}
+                    color="warning"
                   />
                 </Stack>
               </Box>
 
+              {/* Seção 3: Informações de Contato e Cuidados */}
               <Box>
-                <Typography variant="h6" gutterBottom color="primary">
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Phone />
                   Informações de Contato e Cuidados
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
+                <Divider sx={{ mb: 3 }} />
                 
                 <Stack gap={2}>
                   <TextField 
@@ -254,7 +288,7 @@ export default function ProntuarioPage() {
                 onClick={() => salvarMutation.mutate()} 
                 disabled={!podeEditar || salvarMutation.isPending || !clienteId}
                 fullWidth
-                sx={{ mt: 2 }}
+                sx={{ mt: 2, py: 1.5, fontSize: '1.1rem', borderRadius: 2 }}
               >
                 {salvarMutation.isPending 
                   ? 'Salvando...' 
