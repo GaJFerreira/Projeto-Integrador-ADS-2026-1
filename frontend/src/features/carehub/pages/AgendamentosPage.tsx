@@ -616,20 +616,6 @@ export default function AgendamentosPage() {
 
                   {/* Botões de ação */}
                   <Stack direction="row" gap={1}>
-                    {a.clienteId === clienteId && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        disabled={atualizarStatusMutation.isPending || a.status === 'CANCELADO'}
-                        onClick={() => atualizarStatusMutation.mutate({ id: a.id, status: 'CANCELADO' })}
-                        fullWidth
-                        startIcon={<Cancel />}
-                        sx={{ borderRadius: 2, py: 0.75, textTransform: 'none', fontWeight: 'bold' }}
-                      >
-                        Cancelar
-                      </Button>
-                    )}
 
                     {isCuidador && a.cuidadorId === getUserId() && a.status !== 'CONFIRMADO' && a.status !== 'CANCELADO' && (
                       <Button
