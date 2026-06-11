@@ -1,6 +1,6 @@
 # Módulo: [Dose-Certa]
 
-Este submódulo é dedicado exclusivamente às regras de negócio do grupo **[Nome do Grupo]**.
+Este submódulo é dedicado exclusivamente às regras de negócio do grupo **[Dose-Certa]**.
 
 
 ## 📦 O que deve conter aqui?
@@ -8,11 +8,14 @@ Para manter a organização e evitar o "vazamento" de código entre grupos, todo
 `br.pucgo.ads.projetointegrador.[nomedomodulo]`
 
 ### Estrutura de Pastas Interna:
+- `config/`: Configurações de segurança.
 - `controller/`: Endpoints da API (ex: `/api/[modulo]/...`).
 - `service/`: Lógica de negócio e validações.
 - `repository/`: Interfaces de consulta ao banco de dados (Spring Data JPA).
 - `entity/`: Tabelas específicas deste domínio.
 - `dto/`: Objetos de transferência de dados para o Frontend.
+- `sms/`: Configuração do sms
+- `scheduler/`: Agendar o sms
 
 ## 🔑 Integração com a Plataforma
 Este módulo herda as dependências da Plataforma. Para proteger uma rota ou recuperar o usuário logado:
