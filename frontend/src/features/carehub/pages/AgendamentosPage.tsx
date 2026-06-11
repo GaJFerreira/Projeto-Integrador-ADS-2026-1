@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { agendamentosApi, cuidadoresApi, clientesApi } from '../api';
+import { agendamentosApi, cuidadoresApi } from '../api';
 import type { AgendamentoRequestDTO } from '../types';
 import { Box, Button, Card, CardContent, Chip, CircularProgress, MenuItem, Stack, TextField, Typography, Paper, Divider, Alert, Avatar } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,6 +10,7 @@ import { parseDate } from '../utils/dateUtils';
 import { CalendarMonth, Schedule, CheckCircle, Cancel, AccessTime, Person, LocationOn } from '@mui/icons-material';
 
 import { getUserId, isCuidador as isRoleCuidador, checkAndCacheUserType } from '../components/auth';
+import http from '../libHttp';
 
 export default function AgendamentosPage() {
   // feature-level accessibility styles
@@ -35,15 +36,27 @@ export default function AgendamentosPage() {
   useEffect(() => {
     const inicializar = async () => {
       await checkAndCacheUserType();
-      setIsCuidador(isRoleCuidador());
+      let perfilRole = '';
+      let perfilUserId: number | undefined;
 
-      const uid = getUserId();
-      if (uid) {
-        setClienteId(uid);
-        return;
+      try {
+        const { data } = await http.get('/api/carehub/perfil');
+        perfilRole = String(data?.role || '').toUpperCase();
+        perfilUserId = Number(data?.platformUserId || data?.id) || undefined;
+      } catch {
+        // Mantem fallback local quando o perfil nao puder ser carregado.
       }
 
-      clientesApi.listarTodos().then((arr) => setClienteId(arr[0]?.id));
+      const ehCuidador = perfilRole
+        ? perfilRole.includes('CUIDADOR')
+        : isRoleCuidador();
+
+      setIsCuidador(ehCuidador);
+
+      const uid = perfilUserId || getUserId();
+      if (uid) {
+        setClienteId(uid);
+      }
     };
     inicializar();
   }, []);
@@ -59,13 +72,13 @@ export default function AgendamentosPage() {
 
   // Fetch agendamentos - APENAS quando tiver clienteId ou cuidadorId
   const { data: lista = [], isLoading, isError } = useQuery({
-    queryKey: ['agendamentos', cuidadorId, clienteId],
+    queryKey: ['agendamentos', isCuidador, cuidadorId, clienteId],
     queryFn: async () => {
-      if (cuidadorId) return agendamentosApi.porCuidador(cuidadorId);
+      if (isCuidador && cuidadorId) return agendamentosApi.porCuidador(cuidadorId);
       if (clienteId) return agendamentosApi.porCliente(clienteId);
       return [];
     },
-    enabled: !!(cuidadorId || clienteId), // CRUCIAL: só busca quando tem ID
+    enabled: !!(isCuidador ? cuidadorId : clienteId), // CRUCIAL: só busca quando tem ID
     staleTime: 5000, // Cache por 5 segundos
   });
 

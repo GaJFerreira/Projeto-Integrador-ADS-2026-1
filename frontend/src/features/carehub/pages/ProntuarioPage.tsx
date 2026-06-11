@@ -3,23 +3,24 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { prontuariosApi } from '../api';
 import { verificarPodeEditar } from '../api/prontuarios';
 import type { ProntuarioResponseDTO } from '../types';
-import { 
-  Box, 
-  Button, 
-  Card, 
-  CardContent, 
-  CircularProgress, 
-  Divider, 
-  Stack, 
-  TextField, 
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Divider,
+  Stack,
+  TextField,
   Typography,
-  Alert 
+  Alert
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { PageHeader } from '../components/PageHeader';
 import { Save, Lock, CalendarToday, LocalHospital, Phone } from '@mui/icons-material';
 import { getUserId, isCliente, checkAndCacheUserType } from '../components/auth';
+import Autocomplete from '@mui/material/Autocomplete';
 
 export default function ProntuarioPage() {
   const navigate = useNavigate();
@@ -76,7 +77,7 @@ export default function ProntuarioPage() {
         setVerificandoPermissao(false);
         return;
       }
-      
+
       const pode = await verificarPodeEditar(clienteId);
       setPodeEditar(pode);
       setVerificandoPermissao(false);
@@ -94,10 +95,10 @@ export default function ProntuarioPage() {
   const salvarMutation = useMutation({
     mutationFn: async () => {
       if (!clienteId) throw new Error('Cliente não identificado');
-      
+
       const dto = {
         clienteId,
-        dataNascimento: form.dataNascimento || null,
+        dataNascimento: formatarDataParaOInput(form.dataNascimento) || null,
         historicoMedico: form.historicoMedico || '',
         medicamentosUso: form.medicamentosUso || '',
         alergias: form.alergias || '',
@@ -130,16 +131,31 @@ export default function ProntuarioPage() {
 
   const camposDesabilitados = !podeEditar || verificandoPermissao;
 
+  const formatarDataParaOInput = (dataString?: string | null) => {
+    if (!dataString) return '';
+
+    if (dataString.includes('-')) {
+      return dataString.substring(0, 10);
+    }
+
+    if (dataString.includes('/')) {
+      const [dia, mes, ano] = dataString.split('/');
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    return dataString;
+  };
+
   return (
     <Stack gap={3} sx={{ p: 2 }}>
-      <PageHeader 
+      <PageHeader
         title="Prontuário Médico"
         subtitle="Mantenha as informações de saúde dos clientes atualizadas"
         backTo="/carehub"
       />
 
       {!podeEditar && !verificandoPermissao && (
-        <Alert severity="warning" icon={<Lock />}> 
+        <Alert severity="warning" icon={<Lock />}>
           <Typography variant="body2" fontWeight="medium">
             Modo Somente Leitura
           </Typography>
@@ -174,24 +190,45 @@ export default function ProntuarioPage() {
                   Dados Básicos
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
-                
+
                 <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
-                  <TextField 
+                  <TextField
                     label="Data de Nascimento" 
                     type="date"
-                    value={form?.dataNascimento || ''} 
+                    value={formatarDataParaOInput(form?.dataNascimento)}
                     onChange={(e) => updateField('dataNascimento', e.target.value)}
                     disabled={camposDesabilitados}
                     InputLabelProps={{ shrink: true }}
                     fullWidth
                   />
-                  <TextField 
-                    label="Tipo Sanguíneo" 
-                    value={form?.tipoSanguineo || ''} 
-                    onChange={(e) => updateField('tipoSanguineo', e.target.value)}
+                  <Autocomplete
+                    options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']}
                     disabled={camposDesabilitados}
-                    placeholder="Ex: O+, A-, AB+"
-                    fullWidth
+                    value={form?.tipoSanguineo || null} // O Autocomplete espera 'null' em vez de '' quando está vazio
+                    onChange={(event, newValue) => {
+                      // newValue entrega direto a string selecionada (ex: 'A+') ou null se limpar
+                      updateField('tipoSanguineo', newValue || '');
+                    }}
+                    // Define o comportamento de filtro enquanto o usuário digita
+                    onInputChange={(event, newInputValue) => {
+                      // Caso o usuário apenas digite sem clicar na opção, você também pode atualizar o estado
+                      updateField('tipoSanguineo', newInputValue.toUpperCase());
+                    }}
+                    // Renderiza o input visual usando o estilo do seu TextField original
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Tipo Sanguíneo"
+                        placeholder="Ex: O+, A-, AB+"
+                        fullWidth
+                      />
+                    )}
+                    // Garante que a busca ignore maiúsculas/minúsculas (se digitar 'a', acha 'A+')
+                    filterOptions={(options, state) =>
+                      options.filter((item) =>
+                        item.toLowerCase().includes(state.inputValue.toLowerCase())
+                      )
+                    }
                   />
                 </Box>
               </Box>
@@ -203,11 +240,11 @@ export default function ProntuarioPage() {
                   Informações Médicas
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
-                
+
                 <Stack gap={2}>
-                  <TextField 
-                    label="Histórico Médico" 
-                    value={form?.historicoMedico || ''} 
+                  <TextField
+                    label="Histórico Médico"
+                    value={form?.historicoMedico || ''}
                     onChange={(e) => updateField('historicoMedico', e.target.value)}
                     disabled={camposDesabilitados}
                     multiline
@@ -215,10 +252,10 @@ export default function ProntuarioPage() {
                     placeholder="Descreva histórico de doenças, cirurgias, tratamentos..."
                     fullWidth
                   />
-                  
-                  <TextField 
-                    label="Medicamentos em uso" 
-                    value={form?.medicamentosUso || ''} 
+
+                  <TextField
+                    label="Medicamentos em uso"
+                    value={form?.medicamentosUso || ''}
                     onChange={(e) => updateField('medicamentosUso', e.target.value)}
                     disabled={camposDesabilitados}
                     multiline
@@ -226,10 +263,10 @@ export default function ProntuarioPage() {
                     placeholder="Liste os medicamentos, dosagens e frequência"
                     fullWidth
                   />
-                  
-                  <TextField 
-                    label="Alergias" 
-                    value={form?.alergias || ''} 
+
+                  <TextField
+                    label="Alergias"
+                    value={form?.alergias || ''}
                     onChange={(e) => updateField('alergias', e.target.value)}
                     disabled={camposDesabilitados}
                     placeholder="Alergias a medicamentos, alimentos, etc."
@@ -246,20 +283,20 @@ export default function ProntuarioPage() {
                   Informações de Contato e Cuidados
                 </Typography>
                 <Divider sx={{ mb: 3 }} />
-                
+
                 <Stack gap={2}>
-                  <TextField 
-                    label="Contato de Emergência" 
-                    value={form?.contatoEmergencia || ''} 
+                  <TextField
+                    label="Contato de Emergência"
+                    value={form?.contatoEmergencia || ''}
                     onChange={(e) => updateField('contatoEmergencia', e.target.value)}
                     disabled={camposDesabilitados}
                     placeholder="Nome: (XX) XXXXX-XXXX"
                     fullWidth
                   />
-                  
-                  <TextField 
-                    label="Necessidades Especiais" 
-                    value={form?.necessidadesEspeciais || ''} 
+
+                  <TextField
+                    label="Necessidades Especiais"
+                    value={form?.necessidadesEspeciais || ''}
                     onChange={(e) => updateField('necessidadesEspeciais', e.target.value)}
                     disabled={camposDesabilitados}
                     multiline
@@ -267,12 +304,12 @@ export default function ProntuarioPage() {
                     placeholder="Descreva necessidades especiais de cuidado"
                     fullWidth
                   />
-                  
-                  <TextField 
-                    label="Observações Gerais" 
-                    multiline 
-                    minRows={3} 
-                    value={form?.observacoesGerais || ''} 
+
+                  <TextField
+                    label="Observações Gerais"
+                    multiline
+                    minRows={3}
+                    value={form?.observacoesGerais || ''}
                     onChange={(e) => updateField('observacoesGerais', e.target.value)}
                     disabled={camposDesabilitados}
                     placeholder="Outras informações relevantes"
@@ -281,21 +318,21 @@ export default function ProntuarioPage() {
                 </Stack>
               </Box>
 
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 size="large"
                 startIcon={podeEditar ? <Save /> : <Lock />}
-                onClick={() => salvarMutation.mutate()} 
+                onClick={() => salvarMutation.mutate()}
                 disabled={!podeEditar || salvarMutation.isPending || !clienteId}
                 fullWidth
                 sx={{ mt: 2, py: 1.5, fontSize: '1.1rem', borderRadius: 2 }}
               >
-                {salvarMutation.isPending 
-                  ? 'Salvando...' 
-                  : !podeEditar 
-                    ? 'Edição Bloqueada (Sem Agendamento Ativo)' 
-                    : model?.id 
-                      ? 'Atualizar Prontuário' 
+                {salvarMutation.isPending
+                  ? 'Salvando...'
+                  : !podeEditar
+                    ? 'Edição Bloqueada (Sem Agendamento Ativo)'
+                    : model?.id
+                      ? 'Atualizar Prontuário'
                       : 'Criar Prontuário'
                 }
               </Button>

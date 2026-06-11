@@ -49,21 +49,17 @@ public class ProntuarioService {
         // Verificar se já existe prontuário para esse cliente (evitar duplicata)
         Optional<Prontuario> existente = prontuarioRepository.findByClienteId(cliente.getId());
         if (existente.isPresent()) {
-            log.warn("[Prontuario] Já existe prontuário (id={}) para cliente localId={}. Retornando existente.",
+            log.warn("[Prontuario] Já existe prontuário (id={}) para cliente localId={}. Atualizando dados recebidos.",
                     existente.get().getId(), cliente.getId());
-            return toResponseDTO(existente.get());
+            Prontuario prontuario = existente.get();
+            aplicarDados(dto, prontuario);
+            prontuario = prontuarioRepository.save(prontuario);
+            return toResponseDTO(prontuario);
         }
 
         Prontuario prontuario = new Prontuario();
         prontuario.setCliente(cliente);
-        prontuario.setDataNascimento(dto.getDataNascimento());
-        prontuario.setHistoricoMedico(dto.getHistoricoMedico());
-        prontuario.setMedicamentosUso(dto.getMedicamentosUso());
-        prontuario.setAlergias(dto.getAlergias());
-        prontuario.setContatoEmergencia(dto.getContatoEmergencia());
-        prontuario.setObservacoesGerais(dto.getObservacoesGerais());
-        prontuario.setTipoSanguineo(dto.getTipoSanguineo());
-        prontuario.setNecessidadesEspeciais(dto.getNecessidadesEspeciais());
+        aplicarDados(dto, prontuario);
 
         prontuario = prontuarioRepository.save(prontuario);
 
@@ -78,14 +74,7 @@ public class ProntuarioService {
         Prontuario prontuario = prontuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Prontuário não encontrado"));
 
-        prontuario.setDataNascimento(dto.getDataNascimento());
-        prontuario.setHistoricoMedico(dto.getHistoricoMedico());
-        prontuario.setMedicamentosUso(dto.getMedicamentosUso());
-        prontuario.setAlergias(dto.getAlergias());
-        prontuario.setContatoEmergencia(dto.getContatoEmergencia());
-        prontuario.setObservacoesGerais(dto.getObservacoesGerais());
-        prontuario.setTipoSanguineo(dto.getTipoSanguineo());
-        prontuario.setNecessidadesEspeciais(dto.getNecessidadesEspeciais());
+        aplicarDados(dto, prontuario);
 
         prontuario = prontuarioRepository.save(prontuario);
 
@@ -152,6 +141,17 @@ public class ProntuarioService {
 
         log.warn("[Prontuario] NENHUM prontuário encontrado para clienteId={} (todas as estratégias falharam)", clienteId);
         return null;
+    }
+
+    private void aplicarDados(ProntuarioRequestDTO dto, Prontuario prontuario) {
+        prontuario.setDataNascimento(dto.getDataNascimento());
+        prontuario.setHistoricoMedico(dto.getHistoricoMedico());
+        prontuario.setMedicamentosUso(dto.getMedicamentosUso());
+        prontuario.setAlergias(dto.getAlergias());
+        prontuario.setContatoEmergencia(dto.getContatoEmergencia());
+        prontuario.setObservacoesGerais(dto.getObservacoesGerais());
+        prontuario.setTipoSanguineo(dto.getTipoSanguineo());
+        prontuario.setNecessidadesEspeciais(dto.getNecessidadesEspeciais());
     }
 
     private ProntuarioResponseDTO toResponseDTO(Prontuario prontuario) {

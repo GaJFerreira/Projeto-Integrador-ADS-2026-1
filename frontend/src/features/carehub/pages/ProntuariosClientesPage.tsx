@@ -38,7 +38,7 @@ interface Prontuario {
   id: number;
   clienteId: number;
   clienteNome: string;
-  dataNascimento: string;
+  dataNascimento?: string | null;
   historicoMedico?: string;
   medicamentosUso?: string;
   alergias?: string;
@@ -193,9 +193,9 @@ export function ProntuariosClientesPage() {
     }
   };
 
-  const calcularIdade = (dataNascimento: string) => {
+  const calcularIdade = (dataNascimento?: string | null) => {
     const nascimento = parseDate(dataNascimento);
-    if (!nascimento) return 0;
+    if (!nascimento) return null;
     const hoje = new Date();
     let idade = hoje.getFullYear() - nascimento.getFullYear();
     const mesAtual = hoje.getMonth();
@@ -206,7 +206,12 @@ export function ProntuariosClientesPage() {
     return idade;
   };
 
-  const formatarData = (dataISO: string) => formatDate(dataISO);
+  const formatarIdade = (dataNascimento?: string | null) => {
+    const idade = calcularIdade(dataNascimento);
+    return idade === null ? 'Idade N/I' : `${idade} anos`;
+  };
+
+  const formatarData = (dataISO?: string | null) => formatDate(dataISO, 'Data N/I');
 
   if (authChecked && !isCuidador) {
     return (
@@ -292,7 +297,7 @@ export function ProntuariosClientesPage() {
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       {c.temProntuario
-                        ? `${calcularIdade(c.prontuario!.dataNascimento)} anos • ${c.prontuario!.tipoSanguineo || 'Sangue N/I'}`
+                        ? `${formatarIdade(c.prontuario!.dataNascimento)} • ${c.prontuario!.tipoSanguineo || 'Sangue N/I'}`
                         : 'Prontuário ainda não cadastrado'}
                     </Typography>
                   </Box>
@@ -338,7 +343,7 @@ export function ProntuariosClientesPage() {
                         </Box>
                         <Box>
                           <Typography variant="caption" color="text.secondary" display="block">Idade</Typography>
-                          <Typography variant="body2" fontWeight="medium">{calcularIdade(c.prontuario!.dataNascimento)} anos</Typography>
+                          <Typography variant="body2" fontWeight="medium">{formatarIdade(c.prontuario!.dataNascimento)}</Typography>
                         </Box>
                         {c.prontuario!.tipoSanguineo && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
