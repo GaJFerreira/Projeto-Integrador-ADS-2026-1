@@ -5,6 +5,7 @@ import {
     DialogActions,
     DialogContent,
     DialogTitle,
+    Alert,
     Stack,
     TextField,
     Typography
@@ -16,6 +17,7 @@ interface RespostaPerguntaModalProps {
     open: boolean;
     pergunta: PerguntaCognitiva | null;
     loading?: boolean;
+    erro?: string;
     onClose: () => void;
     onSubmit: (textoResposta: string) => void;
 }
@@ -24,21 +26,28 @@ export default function RespostaPerguntaModal({
     open,
     pergunta,
     loading = false,
+    erro = '',
     onClose,
     onSubmit
 }: RespostaPerguntaModalProps) {
     const [textoResposta, setTextoResposta] = useState('');
+    const [erroLocal, setErroLocal] = useState('');
 
     useEffect(() => {
         if (open) {
             setTextoResposta('');
+            setErroLocal('');
         }
     }, [open, pergunta?.identificadorPerguntaCognitiva]);
 
     const handleSubmit = () => {
-        if (textoResposta.trim()) {
-            onSubmit(textoResposta.trim());
+        const respostaTratada = textoResposta.trim();
+        if (!respostaTratada) {
+            setErroLocal('Digite uma resposta antes de salvar.');
+            return;
         }
+        setErroLocal('');
+        onSubmit(respostaTratada);
     };
 
     return (
@@ -54,6 +63,12 @@ export default function RespostaPerguntaModal({
 
             <DialogContent>
                 <Stack spacing={2.5} sx={{ pt: 1 }}>
+                    {(erro || erroLocal) && (
+                        <Alert severity="error" onClose={() => setErroLocal('')}>
+                            {erro || erroLocal}
+                        </Alert>
+                    )}
+
                     <Typography variant="body1" color="text.primary" sx={{ fontWeight: 600 }}>
                         {pergunta?.textoPergunta}
                     </Typography>

@@ -3,6 +3,7 @@ import type React from 'react';
 import {
     Box,
     CircularProgress,
+    Alert,
     Paper,
     Stack,
     ToggleButton,
@@ -22,6 +23,7 @@ import {
 } from '../api/perguntas';
 import { formatarDataRemember } from '../utils/date';
 import type { ConquistaDetalhes } from '../api/conquistasUsuario';
+import { getMensagemErroRemember } from '../utils/errors';
 
 type Visualizacao = StatusPerguntaFiltro | 'RESPOSTAS';
 
@@ -36,10 +38,12 @@ export default function PerguntasCognitivasPage({ onConquistaGanhas }: Perguntas
     const [perguntas, setPerguntas] = useState<PerguntaCognitiva[]>([]);
     const [respostas, setRespostas] = useState<RespostaPergunta[]>([]);
     const [loading, setLoading] = useState(true);
+    const [erroPagina, setErroPagina] = useState('');
 
     const [perguntaSelecionada, setPerguntaSelecionada] = useState<PerguntaCognitiva | null>(null);
     const [modalRespostaAberto, setModalRespostaAberto] = useState(false);
     const [salvandoResposta, setSalvandoResposta] = useState(false);
+    const [erroResposta, setErroResposta] = useState('');
 
     useEffect(() => {
         carregarDados();
@@ -47,6 +51,7 @@ export default function PerguntasCognitivasPage({ onConquistaGanhas }: Perguntas
 
     async function carregarDados() {
         setLoading(true);
+        setErroPagina('');
         try {
             if (visualizacao === 'RESPOSTAS') {
                 const dados = await perguntasApi.listarRespostas();
@@ -59,13 +64,16 @@ export default function PerguntasCognitivasPage({ onConquistaGanhas }: Perguntas
                 setPerguntas(dados);
             }
         } catch (error) {
-            enqueueSnackbar('Erro ao carregar perguntas cognitivas.', { variant: 'error' });
+            const mensagem = getMensagemErroRemember(error, 'Erro ao carregar perguntas cognitivas.');
+            setErroPagina(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'error' });
         } finally {
             setLoading(false);
         }
     }
 
     const handleResponder = (pergunta: PerguntaCognitiva) => {
+        setErroResposta('');
         setPerguntaSelecionada(pergunta);
         setModalRespostaAberto(true);
     };
@@ -74,6 +82,7 @@ export default function PerguntasCognitivasPage({ onConquistaGanhas }: Perguntas
         if (!perguntaSelecionada) return;
 
         setSalvandoResposta(true);
+        setErroResposta('');
         try {
             const response = await perguntasApi.responder({
                 identificadorPergunta: perguntaSelecionada.identificadorPerguntaCognitiva,
@@ -90,7 +99,9 @@ export default function PerguntasCognitivasPage({ onConquistaGanhas }: Perguntas
             const dados = await perguntasApi.listar('PENDENTES');
             setPerguntas(dados);
         } catch (error) {
-            enqueueSnackbar('Erro ao salvar resposta.', { variant: 'error' });
+            const mensagem = getMensagemErroRemember(error, 'Erro ao salvar resposta.');
+            setErroResposta(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'error' });
         } finally {
             setSalvandoResposta(false);
         }
@@ -104,6 +115,12 @@ export default function PerguntasCognitivasPage({ onConquistaGanhas }: Perguntas
 
     return (
         <Box>
+            {erroPagina && (
+                <Alert severity="error" onClose={() => setErroPagina('')} sx={{ mb: 3 }}>
+                    {erroPagina}
+                </Alert>
+            )}
+
             <Paper
                 elevation={0}
                 sx={{
@@ -159,7 +176,11 @@ export default function PerguntasCognitivasPage({ onConquistaGanhas }: Perguntas
                 open={modalRespostaAberto}
                 pergunta={perguntaSelecionada}
                 loading={salvandoResposta}
-                onClose={() => setModalRespostaAberto(false)}
+                erro={erroResposta}
+                onClose={() => {
+                    setModalRespostaAberto(false);
+                    setErroResposta('');
+                }}
                 onSubmit={handleSalvarResposta}
             />
 
@@ -242,8 +263,12 @@ function RespostasList({ respostas }: { respostas: RespostaPergunta[] }) {
             }}
         >
             {respostas.map((resposta) => {
+                const respostaComAliases = resposta as RespostaPergunta & {
+                    data_resposta?: string;
+                    data?: string;
+                };
                 const dataFormatada = formatarDataRemember(
-                    resposta.dataResposta ?? (resposta as any).data_resposta ?? (resposta as any).data
+                    resposta.dataResposta ?? respostaComAliases.data_resposta ?? respostaComAliases.data
                 );
 
                 return (
