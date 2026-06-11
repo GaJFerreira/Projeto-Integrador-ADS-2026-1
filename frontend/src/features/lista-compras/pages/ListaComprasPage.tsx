@@ -4,12 +4,13 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import { useNavigate } from 'react-router-dom';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import { isIdoso } from '../utils/userRole';
 
 
 export default function ListaComprasPage() {
     const navigate = useNavigate();
 
-    const items = [
+    const allItems = [
         {
             icon: <AddCircleOutlineIcon sx={{ fontSize: 40 }} />,
             title: 'Criar nova lista',
@@ -22,7 +23,6 @@ export default function ListaComprasPage() {
             desc: 'Veja, edite e compartilhe suas listas.',
             to: '/lista-compras/listas',
         },
-
         {
             icon: <FileCopyIcon sx={{ fontSize: 40 }} />,
             title: 'Templates',
@@ -30,6 +30,8 @@ export default function ListaComprasPage() {
             to: '/lista-compras/templates',
         },
     ];
+
+    const items = isIdoso() ? allItems.slice(0, 2) : allItems;
 
     return (
         <Box sx={{ p: 3 }}>

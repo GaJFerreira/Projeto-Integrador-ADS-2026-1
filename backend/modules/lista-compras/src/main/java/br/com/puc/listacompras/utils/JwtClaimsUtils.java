@@ -15,6 +15,11 @@ public class JwtClaimsUtils {
     return jsonNode.longValue();
   }
 
+  public static String getRole(String authorization) {
+    JsonNode jsonNode = getClaim(authorization, "role");
+    return jsonNode.asText();
+  }
+
   private static JsonNode getClaim(String authorization, String claim) {
     if (authorization == null || !authorization.startsWith("Bearer ")) {
       log.error("Authorization nao identificado ou sem prefixo Bearer.");
