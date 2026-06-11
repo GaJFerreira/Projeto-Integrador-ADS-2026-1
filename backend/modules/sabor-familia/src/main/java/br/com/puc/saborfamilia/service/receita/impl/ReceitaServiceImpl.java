@@ -6,7 +6,11 @@ import br.com.puc.saborfamilia.database.entity.PerfilEntity;
 import br.com.puc.saborfamilia.database.entity.PersonalizacaoEntity;
 import br.com.puc.saborfamilia.database.entity.ReceitaEntity;
 import br.com.puc.saborfamilia.database.entity.RestricaoAlimentarEntity;
-import br.com.puc.saborfamilia.database.enums.TipoRefeicaoEnum;
+import br.com.puc.saborfamilia.enums.TipoEntidadeEnum;
+import br.com.puc.saborfamilia.enums.TipoRefeicaoEnum;
+import br.com.puc.saborfamilia.service.midia.GerenciadorMidiaService;
+import br.com.puc.saborfamilia.service.perfil.dto.response.PerfilResumoResponse;
+import br.com.puc.saborfamilia.database.repository.ComentarioReceitaRepository;
 import br.com.puc.saborfamilia.database.repository.CurtidaReceitaRepository;
 import br.com.puc.saborfamilia.database.repository.FavoritoReceitaRepository;
 import br.com.puc.saborfamilia.database.repository.FeedPerfilReceitaRepository;
@@ -39,6 +43,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -55,12 +60,14 @@ public class ReceitaServiceImpl implements ReceitaService {
   private final FavoritoReceitaRepository favoritoReceitaRepository;
   private final FeedPerfilReceitaRepository feedPerfilReceitaRepository;
   private final CurtidaReceitaRepository curtidaReceitaRepository;
+  private final ComentarioReceitaRepository comentarioReceitaRepository;
   private final FeedService feedService;
   private final RestricaoAlimentarService restricaoAlimentarService;
   private final RestricaoAlimentarReceitaService restricaoAlimentarReceitaService;
   private final PersonalizacaoService personalizacaoService;
   private final PersonalizacaoReceitaService personalizacaoReceitaService;
   private final PersonalizacaoPerfilRepository personalizacaoPerfilRepository;
+  private final GerenciadorMidiaService gerenciadorMidiaService;
 
   @Override
   @Transactional(readOnly = true)
@@ -75,13 +82,21 @@ public class ReceitaServiceImpl implements ReceitaService {
       .map(FeedPerfilReceitaEntity::getReceita)
       .toList();
 
+    List<Long> receitaIds = receitas.stream().map(ReceitaEntity::getId).toList();
+
     Set<Long> receitasCurtidas = receitas.isEmpty()
       ? Set.of()
       : Set.copyOf(curtidaReceitaRepository.findReceitaIdsByPerfilIdAndReceitaIdIn(
           perfilUsuarioAutenticado.getId(),
-          receitas.stream().map(ReceitaEntity::getId
-        ).toList())
-      );
+          receitaIds
+        ));
+
+    Set<Long> receitasFavoritas = receitas.isEmpty()
+      ? Set.of()
+      : Set.copyOf(favoritoReceitaRepository.findReceitaIdsByPerfilIdAndReceitaIdIn(
+          perfilUsuarioAutenticado.getId(),
+          receitaIds
+        ));
 
     Page<ReceitaEntity> receitasPage = new PageImpl<>(
       receitas,
@@ -98,12 +113,16 @@ public class ReceitaServiceImpl implements ReceitaService {
     Map<Long, List<PersonalizacaoResumoResponse>> personalizacaoPorReceita = personalizacaoReceitaService
       .buscarPersonalizacoesReceitaEmLote(receitas.stream().map(ReceitaEntity::getId).toList());
 
+    MidiaLote midiaLote = carregarMidiaLote(receitas);
+
     return receitasPage.map(receita -> toResponse(
       receita,
       receitasCurtidas.contains(receita.getId()),
+      receitasFavoritas.contains(receita.getId()),
       restricoesAlimentaresPorReceita.getOrDefault(receita.getId(), List.of()),
       restricoesUsuarioPorReceita.getOrDefault(receita.getId(), null),
-      Objects.requireNonNullElse(personalizacaoPorReceita.get(receita.getId()), List.of())
+      Objects.requireNonNullElse(personalizacaoPorReceita.get(receita.getId()), List.of()),
+      midiaLote
     ));
   }
 
@@ -133,10 +152,15 @@ public class ReceitaServiceImpl implements ReceitaService {
     Map<Long, Boolean> restritaPorReceita = restricaoAlimentarReceitaService
       .buscarRestricoesUsuario(page.getContent(), usuarioId);
 
+    Set<Long> receitasComMidia = gerenciadorMidiaService.buscarEntidadeIdsComMidia(
+      TipoEntidadeEnum.RECEITA,
+      page.getContent().stream().map(ReceitaEntity::getId).toList()
+    );
+
     return page.map(receita -> new ReceitaResumoResponse(
         receita.getId(),
         receita.getTitulo(),
-        null,
+        receitasComMidia.contains(receita.getId()),
         restritaPorReceita.getOrDefault(receita.getId(), null),
         receita.getDataCadastro()
       )
@@ -148,12 +172,18 @@ public class ReceitaServiceImpl implements ReceitaService {
   public Page<ReceitaResumoResponse> buscarReceitasPerfil(Long usuarioId, Long perfilId, Pageable pageable) {
     Page<ReceitaEntity> page = receitaRepository.findByPerfilId(perfilId, pageable);
 
-    Map<Long, Boolean> restritaPorReceita = restricaoAlimentarReceitaService.buscarRestricoesUsuario(page.getContent(), usuarioId);
+    Map<Long, Boolean> restritaPorReceita = restricaoAlimentarReceitaService
+      .buscarRestricoesUsuario(page.getContent(), usuarioId);
+
+    Set<Long> receitasComMidia = gerenciadorMidiaService.buscarEntidadeIdsComMidia(
+      TipoEntidadeEnum.RECEITA,
+      page.getContent().stream().map(ReceitaEntity::getId).toList()
+    );
 
     return page.map(receita -> new ReceitaResumoResponse(
       receita.getId(),
       receita.getTitulo(),
-      null,
+      receitasComMidia.contains(receita.getId()),
       restritaPorReceita.getOrDefault(receita.getId(), null),
       receita.getDataCadastro()
     ));
@@ -165,8 +195,14 @@ public class ReceitaServiceImpl implements ReceitaService {
     ReceitaEntity receita = receitaRepository.findById(receitaId)
       .orElseThrow(() -> new ResourceNotFoundException(RECEITA_NAO_ENCONTRADA));
 
-    Boolean curtidoPeloUsuario = perfilRepository.findByUsuarioId(usuarioId)
+    var perfilOpt = perfilRepository.findByUsuarioId(usuarioId);
+
+    Boolean curtidoPeloUsuario = perfilOpt
       .map(perfil -> curtidaReceitaRepository.findByReceitaIdAndPerfilId(receitaId, perfil.getId()).isPresent())
+      .orElse(false);
+
+    Boolean favoritadoPeloUsuario = perfilOpt
+      .map(perfil -> favoritoReceitaRepository.findByReceitaIdAndPerfilId(receitaId, perfil.getId()).isPresent())
       .orElse(false);
 
     List<RestricaoAlimentarResumoResponse> restricoes = restricaoAlimentarReceitaService
@@ -175,19 +211,23 @@ public class ReceitaServiceImpl implements ReceitaService {
 
     Boolean restritaParaUsuario = restricaoAlimentarReceitaService.buscarRestricoesUsuario(List.of(receita), usuarioId).get(receitaId);
 
-    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService.buscarPersonalizacoesReceita(receitaId);
+    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService
+      .buscarPersonalizacoesReceita(receitaId);
 
     return toResponse(
       receita,
       curtidoPeloUsuario,
+      favoritadoPeloUsuario,
       restricoes,
       restritaParaUsuario,
-      personalizacao);
+      personalizacao,
+      carregarMidiaLote(List.of(receita))
+    );
   }
 
   @Override
   @Transactional
-  public ReceitaResponse criarReceita(Long usuarioId, ReceitaRequest request) {
+  public ReceitaResponse criarReceita(Long usuarioId, ReceitaRequest request, MultipartFile midia) {
     log.info("Iniciando processo de criação da receita. usuarioId={}", usuarioId);
 
     PerfilEntity perfilUsuarioAutenticado = perfilRepository.findByUsuarioId(usuarioId)
@@ -219,9 +259,12 @@ public class ReceitaServiceImpl implements ReceitaService {
 
     personalizacaoReceitaService.sincronizarPersonalizacoesReceita(receitaSalva, personalizacoesValidadas);
 
-    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService.buscarPersonalizacoesReceita(receitaSalva.getId());
+    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService
+      .buscarPersonalizacoesReceita(receitaSalva.getId());
 
     feedService.publicarReceitaFeed(perfilUsuarioAutenticado, receitaSalva);
+
+    salvarMidiaReceita(usuarioId, receitaSalva.getId(), midia);
 
     log.info(
       "Receita criada com sucesso. usuarioId={}, receitaId={}, restricoes={}, personalizacoes={}",
@@ -233,16 +276,18 @@ public class ReceitaServiceImpl implements ReceitaService {
 
     return toResponse(
       receitaSalva,
-      null,
+      false,
+      false,
       restricoesAlimentares,
       null,
-      personalizacao
+      personalizacao,
+      carregarMidiaLote(List.of(receitaSalva))
     );
   }
 
   @Override
   @Transactional
-  public ReceitaResponse editarReceita(Long usuarioId, Long receitaId, ReceitaRequest request) {
+  public ReceitaResponse editarReceita(Long usuarioId, Long receitaId, ReceitaRequest request, MultipartFile midia) {
     log.info("Atualizando receita. usuarioId={}, receitaId={}", usuarioId, receitaId);
 
     ReceitaEntity receita = receitaRepository.findByIdWithRestricoes(receitaId)
@@ -279,7 +324,10 @@ public class ReceitaServiceImpl implements ReceitaService {
 
     personalizacaoReceitaService.sincronizarPersonalizacoesReceita(receitaAtualizada, personalizacoesValidadas);
 
-    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService.buscarPersonalizacoesReceita(receitaAtualizada.getId());
+    List<PersonalizacaoResumoResponse> personalizacao = personalizacaoReceitaService
+      .buscarPersonalizacoesReceita(receitaAtualizada.getId());
+
+    salvarMidiaReceita(usuarioId, receitaAtualizada.getId(), midia);
 
     log.info(
       "Receita atualizada com sucesso. usuarioId={}, receitaId={}, restricoes={}, personalizacoes={}",
@@ -289,12 +337,25 @@ public class ReceitaServiceImpl implements ReceitaService {
       personalizacoesValidadas.size()
     );
 
+    PerfilEntity perfilAutenticado = perfilRepository.findByUsuarioId(usuarioId)
+      .orElseThrow(() -> new ResourceNotFoundException(PERFIL_NAO_ENCONTRADO));
+
+    Boolean curtidoPeloUsuario = curtidaReceitaRepository
+      .findByReceitaIdAndPerfilId(receitaId, perfilAutenticado.getId())
+      .isPresent();
+
+    Boolean favoritadoPeloUsuario = favoritoReceitaRepository
+      .findByReceitaIdAndPerfilId(receitaId, perfilAutenticado.getId())
+      .isPresent();
+
     return toResponse(
       receitaAtualizada,
-      null,
+      curtidoPeloUsuario,
+      favoritadoPeloUsuario,
       restricoesAlimentares,
       null,
-      personalizacao
+      personalizacao,
+      carregarMidiaLote(List.of(receitaAtualizada))
     );
   }
 
@@ -312,8 +373,12 @@ public class ReceitaServiceImpl implements ReceitaService {
     }
 
     feedService.removerReceitaDoFeed(receita.getId());
+    curtidaReceitaRepository.deleteByReceitaId(receitaId);
+    comentarioReceitaRepository.deleteByReceitaId(receitaId);
+    favoritoReceitaRepository.deleteByReceitaId(receitaId);
     restricaoAlimentarReceitaService.removerRestricoesReceita(receitaId);
     personalizacaoReceitaService.removerVinculosReceita(receitaId);
+    gerenciadorMidiaService.removerMidia(TipoEntidadeEnum.RECEITA, receitaId);
     receitaRepository.delete(receita);
 
     return new RemoverReceitaResponse(receitaId, true, "Receita removida com sucesso.");
@@ -351,21 +416,37 @@ public class ReceitaServiceImpl implements ReceitaService {
     Map<Long, List<PersonalizacaoResumoResponse>> personalizacaoPorReceita =
       personalizacaoReceitaService.buscarPersonalizacoesReceitaEmLote(receitas.stream().map(ReceitaEntity::getId).toList());
 
+    Map<Long, Boolean> restritaPorReceita = restricaoAlimentarReceitaService
+      .buscarRestricoesUsuario(receitas, usuarioId);
+
+    MidiaLote midiaLote = carregarMidiaLote(receitas);
+
     return receitasPage.map(receita -> toResponse(
       receita,
       receitasCurtidas.contains(receita.getId()),
+      true,
       restricoesPorReceita.getOrDefault(receita.getId(), List.of()),
-      null,
-      Objects.requireNonNullElse(personalizacaoPorReceita.get(receita.getId()), List.of())
+      restritaPorReceita.getOrDefault(receita.getId(), null),
+      Objects.requireNonNullElse(personalizacaoPorReceita.get(receita.getId()), List.of()),
+      midiaLote
     ));
+  }
+
+  private void salvarMidiaReceita(Long usuarioId, Long receitaId, MultipartFile fotoMidia) {
+    if (fotoMidia != null && !fotoMidia.isEmpty()) {
+      gerenciadorMidiaService.salvarMidia(usuarioId, TipoEntidadeEnum.RECEITA, receitaId, fotoMidia);
+    }
   }
 
   private ReceitaResponse toResponse(
     ReceitaEntity receita,
     Boolean curtidoPeloUsuario,
+    Boolean favoritadoPeloUsuario,
     List<RestricaoAlimentarResumoResponse> restricoesAlimentares,
     Boolean restritaParaUsuario,
-    List<PersonalizacaoResumoResponse> personalizacao) {
+    List<PersonalizacaoResumoResponse> personalizacao,
+    MidiaLote midiaLote
+  ) {
 
     Integer curtidas = receita.getCountCurtidas() != null ? receita.getCountCurtidas() : 0;
     Integer comentarios = receita.getCountComentarios() != null ? receita.getCountComentarios() : 0;
@@ -375,10 +456,42 @@ public class ReceitaServiceImpl implements ReceitaService {
       curtidas,
       comentarios,
       curtidoPeloUsuario,
-      restricoesAlimentares,
+      favoritadoPeloUsuario,
       restritaParaUsuario,
+      midiaLote.receitasComMidia().contains(receita.getId()),
+      PerfilResumoResponse.fromEntity(
+        receita.getPerfil(),
+        midiaLote.perfisComFoto().contains(receita.getPerfil().getId()),
+        null
+      ),
+      restricoesAlimentares,
       personalizacao
     );
+  }
+
+  private MidiaLote carregarMidiaLote(List<ReceitaEntity> receitas) {
+    if (receitas.isEmpty()) {
+      return MidiaLote.vazio();
+    }
+
+    List<Long> receitaIds = receitas.stream().map(ReceitaEntity::getId).toList();
+    List<Long> perfilIds = receitas.stream()
+      .map(receita -> receita.getPerfil().getId())
+      .distinct()
+      .toList();
+
+    return new MidiaLote(
+      gerenciadorMidiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.RECEITA, receitaIds),
+      gerenciadorMidiaService.buscarEntidadeIdsComMidia(TipoEntidadeEnum.PERFIL, perfilIds)
+    );
+  }
+
+  private record MidiaLote(Set<Long> receitasComMidia, Set<Long> perfisComFoto) {
+
+    private static MidiaLote vazio() {
+      return new MidiaLote(Set.of(), Set.of());
+    }
+
   }
 
 }

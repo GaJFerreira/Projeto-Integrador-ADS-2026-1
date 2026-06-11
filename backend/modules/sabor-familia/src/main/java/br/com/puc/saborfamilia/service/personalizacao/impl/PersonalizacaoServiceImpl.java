@@ -1,8 +1,8 @@
 package br.com.puc.saborfamilia.service.personalizacao.impl;
 
 import br.com.puc.saborfamilia.database.entity.PersonalizacaoEntity;
-import br.com.puc.saborfamilia.database.enums.CategoriaPersonalizacaoEnum;
-import br.com.puc.saborfamilia.database.enums.StatusEnum;
+import br.com.puc.saborfamilia.enums.CategoriaPersonalizacaoEnum;
+import br.com.puc.saborfamilia.enums.StatusEnum;
 import br.com.puc.saborfamilia.database.repository.PersonalizacaoRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;

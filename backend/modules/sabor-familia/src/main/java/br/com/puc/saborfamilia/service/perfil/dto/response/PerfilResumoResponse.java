@@ -6,15 +6,17 @@ public record PerfilResumoResponse(
   Long perfilId,
   Long usuarioId,
   String nome,
-  String fotoPerfilUrl
+  Boolean possuiMidia,
+  Boolean seguindoPeloUsuario
 ) {
 
-  public static PerfilResumoResponse fromEntity(PerfilEntity perfil) {
+  public static PerfilResumoResponse fromEntity(PerfilEntity perfil, boolean possuiMidia, Boolean seguindoPeloUsuario) {
     return new PerfilResumoResponse(
       perfil.getId(),
       perfil.getUsuarioId(),
       perfil.getNome(),
-      perfil.getFotoPerfilUrl()
+      possuiMidia,
+      seguindoPeloUsuario
     );
   }
 

@@ -17,7 +17,7 @@ public interface PersonalizacaoReceitaRepository extends JpaRepository<Personali
       SELECT DISTINCT pr FROM PersonalizacaoReceitaEntity pr
       JOIN FETCH pr.personalizacao
       WHERE pr.receita.id = :receitaId
-      """
+    """
   )
   List<PersonalizacaoReceitaEntity> findByReceitaId(@Param("receitaId") Long receitaId);
 
@@ -26,7 +26,7 @@ public interface PersonalizacaoReceitaRepository extends JpaRepository<Personali
       SELECT DISTINCT pr FROM PersonalizacaoReceitaEntity pr
       JOIN FETCH pr.personalizacao
       WHERE pr.receita.id IN :receitaIds
-      """
+    """
   )
   List<PersonalizacaoReceitaEntity> findByReceitaIdIn(@Param("receitaIds") Collection<Long> receitaIds);
 

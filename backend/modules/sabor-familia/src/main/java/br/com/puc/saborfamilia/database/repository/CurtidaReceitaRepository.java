@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -30,6 +31,10 @@ public interface CurtidaReceitaRepository extends JpaRepository<CurtidaReceitaEn
     """
   )
   List<CurtidaReceitaEntity> findByReceitaIdWithPerfil(@Param("receitaId") Long receitaId);
+
+  @Modifying
+  @Query("DELETE FROM CurtidaReceitaEntity curtida WHERE curtida.receita.id = :receitaId")
+  void deleteByReceitaId(@Param("receitaId") Long receitaId);
 
 }
 

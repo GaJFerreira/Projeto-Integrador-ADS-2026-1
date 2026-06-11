@@ -1,6 +1,6 @@
 package br.com.puc.saborfamilia.database.entity;
 
-import br.com.puc.saborfamilia.database.enums.TipoRefeicaoEnum;
+import br.com.puc.saborfamilia.enums.TipoRefeicaoEnum;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

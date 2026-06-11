@@ -1,0 +1,15 @@
+.perfil-avatar-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  background-color: #ebe6de;
+  color: #b0a090;
+  isolation: isolate;
+}
+
+.perfil-avatar-placeholder__icon {
+  width: 100%;
+  height: 100%;
+}

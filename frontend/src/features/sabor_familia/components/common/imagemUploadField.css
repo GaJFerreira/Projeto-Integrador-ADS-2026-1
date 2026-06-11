@@ -1,0 +1,67 @@
+.imagem-upload-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.imagem-upload-field__label {
+  font-weight: 600;
+  font-size: 0.9375rem;
+}
+
+.imagem-upload-field__hint {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--text-muted, #888);
+}
+
+.imagem-upload-field__preview-wrap {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.imagem-upload-field__preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.imagem-upload-field__actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.imagem-upload-field__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  background: #ba7517;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+}
+
+.imagem-upload-field__btn--ghost {
+  background: transparent;
+  color: #ba7517;
+  border: 1px solid #ba7517;
+}
+
+.imagem-upload-field__input {
+  display: none;
+}
+
+.imagem-upload-field__error {
+  margin: 0;
+  color: #c0392b;
+  font-size: 0.8125rem;
+}

@@ -26,6 +26,7 @@ public record PerfilResponse(
     Boolean seguindoPerfil,
     long seguidores,
     long seguindo,
+    boolean possuiMidia,
     List<RestricaoAlimentarResumoResponse> restricoes,
     List<PersonalizacaoResumoResponse> personalizacao
   ) {
@@ -39,7 +40,7 @@ public record PerfilResponse(
         perfil.getNome(),
         perfil.getEmail(),
         perfil.getBio(),
-        perfil.getFotoPerfilUrl()
+        possuiMidia
       ),
       new EstatisticasPerfil(
         seguidores,

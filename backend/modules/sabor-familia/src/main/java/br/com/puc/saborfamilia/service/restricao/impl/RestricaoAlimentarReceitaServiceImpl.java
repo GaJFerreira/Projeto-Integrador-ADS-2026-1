@@ -4,7 +4,7 @@ import br.com.puc.saborfamilia.database.entity.PerfilEntity;
 import br.com.puc.saborfamilia.database.entity.ReceitaEntity;
 import br.com.puc.saborfamilia.database.entity.ReceitaRestricaoAlimentarEntity;
 import br.com.puc.saborfamilia.database.entity.RestricaoAlimentarEntity;
-import br.com.puc.saborfamilia.database.enums.StatusEnum;
+import br.com.puc.saborfamilia.enums.StatusEnum;
 import br.com.puc.saborfamilia.database.repository.PerfilRepository;
 import br.com.puc.saborfamilia.database.repository.RestricaoAlimentarReceitaRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;

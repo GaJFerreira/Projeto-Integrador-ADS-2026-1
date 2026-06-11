@@ -21,7 +21,8 @@ public interface FeedPerfilReceitaRepository extends JpaRepository<FeedPerfilRec
       WHERE feed.perfil.id = :perfilId
       ORDER BY feed.dataCadastro DESC
     """,
-    countQuery = """
+    countQuery =
+    """
       SELECT COUNT(feed)
       FROM FeedPerfilReceitaEntity feed
       WHERE feed.perfil.id = :perfilId

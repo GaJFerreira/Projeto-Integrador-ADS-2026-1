@@ -4,7 +4,6 @@ public record DetalhesPerfil(
   String nome,
   String email,
   String bio,
-  String fotoPerfilUrl
+  Boolean possuiMidia
 ) {
-
 }

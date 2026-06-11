@@ -1,10 +1,13 @@
 package br.com.puc.saborfamilia.database.repository;
 
 import br.com.puc.saborfamilia.database.entity.FavoritoReceitaEntity;
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -13,6 +16,18 @@ import org.springframework.stereotype.Repository;
 public interface FavoritoReceitaRepository extends JpaRepository<FavoritoReceitaEntity, Long> {
 
   Optional<FavoritoReceitaEntity> findByReceitaIdAndPerfilId(Long receitaId, Long perfilId);
+
+  @Query(
+    """
+      SELECT favorito.receita.id FROM FavoritoReceitaEntity favorito
+      WHERE favorito.perfil.id = :perfilId
+      AND favorito.receita.id IN :receitaIds
+    """
+  )
+  List<Long> findReceitaIdsByPerfilIdAndReceitaIdIn(
+    @Param("perfilId") Long perfilId,
+    @Param("receitaIds") Collection<Long> receitaIds
+  );
 
   @Query(
     value =
@@ -30,5 +45,9 @@ public interface FavoritoReceitaRepository extends JpaRepository<FavoritoReceita
     """
   )
   Page<FavoritoReceitaEntity> findByPerfilId(@Param("perfilId") Long perfilId, Pageable pageable);
+
+  @Modifying
+  @Query("DELETE FROM FavoritoReceitaEntity favorito WHERE favorito.receita.id = :receitaId")
+  void deleteByReceitaId(@Param("receitaId") Long receitaId);
 
 }

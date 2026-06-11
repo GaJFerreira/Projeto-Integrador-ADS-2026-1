@@ -16,7 +16,7 @@ public interface PersonalizacaoPerfilRepository extends JpaRepository<Personaliz
       SELECT DISTINCT pp FROM PersonalizacaoPerfilEntity pp
       JOIN FETCH pp.personalizacao
       WHERE pp.perfil.id = :perfilId
-      """
+    """
   )
   List<PersonalizacaoPerfilEntity> findByPerfilId(@Param("perfilId") Long perfilId);
 

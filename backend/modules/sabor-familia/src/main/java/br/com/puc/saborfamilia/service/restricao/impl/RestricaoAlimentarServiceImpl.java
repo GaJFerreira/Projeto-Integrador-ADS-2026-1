@@ -1,7 +1,7 @@
 package br.com.puc.saborfamilia.service.restricao.impl;
 
 import br.com.puc.saborfamilia.database.entity.RestricaoAlimentarEntity;
-import br.com.puc.saborfamilia.database.enums.StatusEnum;
+import br.com.puc.saborfamilia.enums.StatusEnum;
 import br.com.puc.saborfamilia.database.repository.RestricaoAlimentarRepository;
 import br.com.puc.saborfamilia.exception.model.ResourceNotFoundException;
 import br.com.puc.saborfamilia.exception.model.ServiceException;
