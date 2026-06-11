@@ -17,6 +17,8 @@ Para manter a organização e evitar o "vazamento" de código entre grupos, todo
 - `sms/`: Configuração do sms
 - `scheduler/`: Agendar o sms
 
+### Para que o módulo funcione é precisso fazer o insert do docs\medicamentos_anvisa.sql no banco de dados e colocar seu id, número de celular e token do Twilio no application.properties da plataforma.
+
 ## 🔑 Integração com a Plataforma
 Este módulo herda as dependências da Plataforma. Para proteger uma rota ou recuperar o usuário logado:
 

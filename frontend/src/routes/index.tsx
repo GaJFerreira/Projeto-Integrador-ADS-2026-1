@@ -156,6 +156,16 @@ export function AppRoutes() {
          {/* Jogos */}
          <Route path="jogos" element={<JogosPage/>}/>
 
+         {/* Rotas de Medicamentos */}
+         <Route path="medicamentos">
+         <Route path="" element={<IncialPage />} />
+         <Route path="cadastro" element={<CadastroMedicamento />} />
+         <Route path="editar/:id" element={<EditarMedicamentoPage />} />
+         <Route path="historico" element={<HistoricoMedicamentosPage />} />
+         <Route path="listagem" element={<ListaMedicamentosPage />} />
+         <Route path="lista" element={<ListaMedicamentosPage />} />
+         </Route>
+
       </Route>
     </Routes>
   );

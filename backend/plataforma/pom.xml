@@ -49,12 +49,6 @@
 			<version>${project.version}</version>
 		</dependency>
 
-		<dependency>
-			<groupId>br.pucgo.ads</groupId>
-			<artifactId>elden-care</artifactId>
-			<version>${project.version}</version>
-		</dependency>
-
 	</dependencies>
 
 	<build>
