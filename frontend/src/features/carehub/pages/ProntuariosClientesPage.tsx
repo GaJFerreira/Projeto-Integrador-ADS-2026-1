@@ -216,7 +216,7 @@ export function ProntuariosClientesPage() {
   if (authChecked && !isCuidador) {
     return (
       <Box>
-        <PageHeader title="Prontuários dos Idosos" />
+        <PageHeader title="Prontuários dos Idosos" backTo="/carehub" />
         <Alert severity="warning">
           Esta página é acessível apenas para cuidadores. Faça login com uma conta de cuidador para visualizar os prontuários dos seus clientes.
         </Alert>
@@ -227,7 +227,7 @@ export function ProntuariosClientesPage() {
   if (loading) {
     return (
       <Box>
-        <PageHeader title="Prontuários dos Clientes" />
+        <PageHeader title="Prontuários dos Clientes" backTo="/carehub" />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
           <CircularProgress />
         </Box>
@@ -250,7 +250,7 @@ export function ProntuariosClientesPage() {
 
   return (
     <Box>
-      <PageHeader title="Prontuários dos Clientes" />
+      <PageHeader title="Prontuários dos Clientes" backTo="/carehub" />
 
       <Alert severity="info" sx={{ mb: 3 }}>
         <strong>Atenção:</strong> Informações sensíveis. Mantenha a confidencialidade dos dados médicos.

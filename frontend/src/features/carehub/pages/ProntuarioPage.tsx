@@ -108,6 +108,8 @@ export default function ProntuarioPage() {
         necessidadesEspeciais: form.necessidadesEspeciais || '',
       };
 
+      console.log('Enviando DTO:', dto);
+
       if (model?.id) {
         return prontuariosApi.atualizar(model.id, dto);
       } else {
@@ -131,19 +133,29 @@ export default function ProntuarioPage() {
 
   const camposDesabilitados = !podeEditar || verificandoPermissao;
 
-  const formatarDataParaOInput = (dataString?: string | null) => {
-    if (!dataString) return '';
+  const formatarDataParaOInput = (dataInput?: any) => {
+    if (!dataInput) return '';
 
-    if (dataString.includes('-')) {
-      return dataString.substring(0, 10);
-    }
-
-    if (dataString.includes('/')) {
-      const [dia, mes, ano] = dataString.split('/');
+    // Handle array format [2024, 5, 23] if Jackson sends it that way
+    if (Array.isArray(dataInput)) {
+      const ano = dataInput[0];
+      const mes = String(dataInput[1]).padStart(2, '0');
+      const dia = String(dataInput[2]).padStart(2, '0');
       return `${ano}-${mes}-${dia}`;
     }
 
-    return dataString;
+    if (typeof dataInput !== 'string') return String(dataInput);
+
+    if (dataInput.includes('-')) {
+      return dataInput.substring(0, 10);
+    }
+
+    if (dataInput.includes('/')) {
+      const [dia, mes, ano] = dataInput.split('/');
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    return dataInput;
   };
 
   return (
