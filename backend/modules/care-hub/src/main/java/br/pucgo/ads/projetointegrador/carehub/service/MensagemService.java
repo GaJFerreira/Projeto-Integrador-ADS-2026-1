@@ -138,7 +138,7 @@ public class MensagemService {
                     String role;
                     String email;
                     if (usuarioEhCuidador) {
-                        Optional<Cliente> ocl = clienteRepository.findById(id);
+                        Optional<Cliente> ocl = clienteRepository.findByPlatformUserId(id);
                         if (ocl.isPresent()) {
                             name = ocl.get().getName();
                             role = ocl.get().getRole();
@@ -149,7 +149,7 @@ public class MensagemService {
                             email = "";
                         }
                     } else {
-                        Optional<Cuidador> oc = cuidadorRepository.findById(id);
+                        Optional<Cuidador> oc = cuidadorRepository.findByPlatformUserId(id);
                         if (oc.isPresent()) {
                             name = oc.get().getName();
                             role = oc.get().getRole();
@@ -234,16 +234,17 @@ public class MensagemService {
         if (usuarioId == null)
             return "Desconhecido";
             
-        Optional<Cuidador> oc = cuidadorRepository.findById(usuarioId);
+        Optional<Cuidador> oc = cuidadorRepository.findByPlatformUserId(usuarioId);
         if (oc.isPresent()) return oc.get().getName();
         
-        Optional<Cliente> ocl = clienteRepository.findById(usuarioId);
+        Optional<Cliente> ocl = clienteRepository.findByPlatformUserId(usuarioId);
         if (ocl.isPresent()) return ocl.get().getName();
         
         return "Usuário desconhecido";
     }
     
     private boolean existeUsuario(Long usuarioId) {
-        return cuidadorRepository.existsById(usuarioId) || clienteRepository.existsById(usuarioId);
+        return cuidadorRepository.findByPlatformUserId(usuarioId).isPresent() || 
+               clienteRepository.findByPlatformUserId(usuarioId).isPresent();
     }
 }

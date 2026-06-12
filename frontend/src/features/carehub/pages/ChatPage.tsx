@@ -2,20 +2,20 @@ import { useEffect, useState, useRef } from 'react';
 import { mensagensApi } from '../api';
 import http from '../libHttp';
 import { listarContatos, marcarConversaComoLida, verificarChatAtivo } from '../api/mensagens';
-import { 
-  Box, 
-  Button, 
-  Card, 
-  CardContent, 
-  CircularProgress, 
-  Paper, 
-  Stack, 
-  TextField, 
-  Typography, 
-  List, 
-  ListItemButton, 
-  ListItemText, 
-  Avatar, 
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Paper,
+  Stack,
+  TextField,
+  Typography,
+  List,
+  ListItemButton,
+  ListItemText,
+  Avatar,
   Divider,
   Badge,
   InputAdornment,
@@ -49,7 +49,7 @@ export default function ChatPage() {
   import('../components/carehub-accessibility.css');
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
-  
+
   const [userId, setUserId] = useState<number | undefined>(undefined);
   // role state removed - use helper isCuidador() when needed
   const [contatoSelecionado, setContatoSelecionado] = useState<number | undefined>(undefined);
@@ -73,7 +73,7 @@ export default function ChatPage() {
       if (cachedId) {
         setUserId(cachedId); // Ativa a query imediatamente com o valor cacheado
       }
-      
+
       // Depois: atualizar o cache via API (pode substituir o userId se mudar)
       await checkAndCacheUserType();
       const id = getUserId();
@@ -291,16 +291,16 @@ export default function ChatPage() {
         >
           {playing ? <Pause sx={{ fontSize: 20 }} /> : <PlayArrow sx={{ fontSize: 20 }} />}
         </IconButton>
-        
+
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {/* Waveform visual estilo WhatsApp */}
-          <Box 
+          <Box
             onClick={seek}
-            sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 0.4, 
-              height: 32, 
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.4,
+              height: 32,
               cursor: 'pointer',
               mb: 0.5,
               '&:hover .waveform-bar': {
@@ -316,7 +316,7 @@ export default function ChatPage() {
                   flex: 1,
                   height: `${height}%`,
                   maxHeight: 32,
-                  bgcolor: (i / waveformBars.length * 100) < progress 
+                  bgcolor: (i / waveformBars.length * 100) < progress
                     ? (inverted ? 'rgba(255,255,255,0.9)' : 'primary.main')
                     : (inverted ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)'),
                   borderRadius: 1,
@@ -326,11 +326,11 @@ export default function ChatPage() {
               />
             ))}
           </Box>
-          
+
           <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography 
-              variant="caption" 
-              sx={{ 
+            <Typography
+              variant="caption"
+              sx={{
                 fontSize: 11,
                 fontWeight: 500,
                 color: inverted ? 'rgba(255,255,255,0.85)' : 'text.secondary'
@@ -338,7 +338,7 @@ export default function ChatPage() {
             >
               {playing ? formatTime(current) : formatTime(duration)}
             </Typography>
-            
+
             {/* Botão de velocidade estilo WhatsApp */}
             <Chip
               label={`${playbackRate}x`}
@@ -515,13 +515,13 @@ export default function ChatPage() {
   const contatosFiltrados = contatos
     .filter(contato => {
       // Filtro de busca por nome
-      const matchBusca = busca === '' || 
+      const matchBusca = busca === '' ||
         contato.nome.toLowerCase().includes(busca.toLowerCase());
-      
+
       // Filtro de mensagens não lidas
-      const matchNaoLidas = !filtroNaoLidas || 
+      const matchNaoLidas = !filtroNaoLidas ||
         (contato.mensagensNaoLidas && contato.mensagensNaoLidas > 0);
-      
+
       // Se o usuário logado for cuidador, escondemos outros cuidadores da lista (mostrar apenas clientes)
       const isUserCuidador = isCuidador();
       const perfilLower = (contato.perfil || '').toLowerCase();
@@ -542,22 +542,22 @@ export default function ChatPage() {
   return (
     <Stack gap={{ xs: 1.5, sm: 2, md: 3 }} sx={{ p: { xs: 1, sm: 1.5, md: 2 }, height: '100%' }}>
       {/* Header */}
-      <PageHeader 
+      <PageHeader
         title="Mensagens"
         subtitle={isCuidador() ? 'Converse com seus clientes' : 'Converse com cuidadores e clientes'}
         backTo="/carehub"
       />
 
-      <Box sx={{ 
-        display: 'flex', 
+      <Box sx={{
+        display: 'flex',
         flexDirection: { xs: 'column', md: 'row' },
-        gap: { xs: 1, md: 2 }, 
+        gap: { xs: 1, md: 2 },
         height: { xs: 'calc(100vh - 180px)', sm: 'calc(100vh - 200px)', md: 'calc(100vh - 250px)' },
         minHeight: { xs: 400, sm: 500 }
       }}>
         {/* Lista de Contatos */}
-        <Box sx={{ 
-          width: { xs: '100%', md: '320px', lg: '350px' }, 
+        <Box sx={{
+          width: { xs: '100%', md: '320px', lg: '350px' },
           minWidth: { md: '280px' },
           display: { xs: contatoSelecionado ? 'none' : 'flex', md: 'flex' },
           flexDirection: 'column',
@@ -565,10 +565,10 @@ export default function ChatPage() {
           maxHeight: { xs: 'none', md: '100%' }
         }}>
           <Paper variant="outlined" sx={{ height: '100%', display: 'flex', flexDirection: 'column', overflow: 'hidden', borderRadius: 2, boxShadow: 2 }}>
-            <Box sx={{ 
-              p: { xs: 1.5, sm: 2 }, 
-              bgcolor: 'primary.main', 
-              color: 'white', 
+            <Box sx={{
+              p: { xs: 1.5, sm: 2 },
+              bgcolor: 'primary.main',
+              color: 'white',
               flexShrink: 0
             }}>
               <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.15rem', md: '1.25rem' }, fontWeight: 600 }}>Conversas</Typography>
@@ -577,7 +577,7 @@ export default function ChatPage() {
                 {filtroNaoLidas && ' não lidas'}
               </Typography>
             </Box>
-            
+
             {/* Campo de Busca e Filtro */}
             <Box sx={{ p: 2, borderBottom: 1, borderColor: 'divider' }}>
               <TextField
@@ -600,7 +600,7 @@ export default function ChatPage() {
                     </InputAdornment>
                   )
                 }}
-                sx={{ 
+                sx={{
                   mb: 1.5,
                   '& .MuiOutlinedInput-root': {
                     borderRadius: 2,
@@ -609,7 +609,7 @@ export default function ChatPage() {
                   }
                 }}
               />
-              
+
               <Chip
                 icon={<FilterList sx={{ fontSize: '0.9rem !important' }} />}
                 label={filtroNaoLidas ? 'Mostrar todas' : 'Apenas não lidas'}
@@ -617,7 +617,7 @@ export default function ChatPage() {
                 color={filtroNaoLidas ? 'primary' : 'default'}
                 size="small"
                 variant={filtroNaoLidas ? 'filled' : 'outlined'}
-                sx={{ 
+                sx={{
                   fontWeight: 'medium',
                   px: 0.5,
                   transition: 'all 0.2s',
@@ -625,7 +625,7 @@ export default function ChatPage() {
                 }}
               />
             </Box>
-            
+
             {loadingContatos && (
               <Stack alignItems="center" p={4}>
                 <CircularProgress size={32} />
@@ -634,23 +634,23 @@ export default function ChatPage() {
                 </Typography>
               </Stack>
             )}
-            
+
             {!loadingContatos && contatosFiltrados.length === 0 && (
               <Box sx={{ p: 3, textAlign: 'center' }}>
                 <Chat sx={{ fontSize: 48, color: 'text.disabled', mb: 1 }} />
                 <Typography color="text.secondary" variant="body2">
-                  {contatos.length === 0 
-                    ? 'Nenhuma conversa ainda' 
+                  {contatos.length === 0
+                    ? 'Nenhuma conversa ainda'
                     : 'Nenhum contato encontrado'}
                 </Typography>
                 <Typography color="text.secondary" variant="caption">
-                  {contatos.length === 0 
+                  {contatos.length === 0
                     ? 'Envie uma mensagem para começar'
                     : 'Tente ajustar os filtros de busca'}
                 </Typography>
               </Box>
             )}
-            
+
             <List sx={{ p: 0, overflow: 'auto', flex: 1 }}>
               {contatosFiltrados.map((contato) => (
                 <Box key={contato.id}>
@@ -680,7 +680,7 @@ export default function ChatPage() {
                       color="error"
                       overlap="circular"
                       invisible={!contato.mensagensNaoLidas || contato.mensagensNaoLidas === 0}
-                      sx={{ 
+                      sx={{
                         mr: 1.5,
                         '@keyframes pulse': {
                           '0%': { boxShadow: '0 0 0 0 rgba(211, 47, 47, 0.4)' },
@@ -693,8 +693,8 @@ export default function ChatPage() {
                         }
                       }}
                     >
-                      <Avatar 
-                        sx={{ 
+                      <Avatar
+                        sx={{
                           bgcolor: contatoSelecionado === contato.id ? 'primary.main' : 'primary.light',
                           color: contatoSelecionado === contato.id ? 'primary.contrastText' : 'primary.main',
                           fontWeight: 'bold',
@@ -709,8 +709,8 @@ export default function ChatPage() {
                     <ListItemText
                       primary={
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <Typography 
-                            variant="body1" 
+                          <Typography
+                            variant="body1"
                             fontWeight={contato.mensagensNaoLidas ? 700 : 500}
                             color="text.primary"
                             sx={{ fontSize: '0.875rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
@@ -718,8 +718,8 @@ export default function ChatPage() {
                             {contato.nome}
                           </Typography>
                           {contato.dataUltimaMensagem && (
-                            <Typography 
-                              variant="caption" 
+                            <Typography
+                              variant="caption"
                               color="text.secondary"
                               sx={{ ml: 1, whiteSpace: 'nowrap', fontSize: '0.7rem' }}
                             >
@@ -733,8 +733,8 @@ export default function ChatPage() {
                       }
                       secondary={
                         contato.ultimaMensagem ? (
-                          <Typography 
-                            variant="body2" 
+                          <Typography
+                            variant="body2"
                             color="text.secondary"
                             fontWeight={contato.mensagensNaoLidas ? 600 : 'normal'}
                             sx={{
@@ -761,8 +761,8 @@ export default function ChatPage() {
         </Box>
 
         {/* Área de Chat */}
-        <Box sx={{ 
-          flex: 1, 
+        <Box sx={{
+          flex: 1,
           display: { xs: contatoSelecionado ? 'flex' : 'none', md: 'flex' },
           flexDirection: 'column',
           minWidth: 0,
@@ -771,12 +771,12 @@ export default function ChatPage() {
         }}>
           <Stack sx={{ height: '100%', overflow: 'hidden' }} gap={{ xs: 1, sm: 1.5, md: 2 }}>
             {!contatoSelecionado && (
-              <Card 
-                variant="outlined" 
-                sx={{ 
-                  flex: 1, 
-                  display: 'flex', 
-                  alignItems: 'center', 
+              <Card
+                variant="outlined"
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
                   justifyContent: 'center',
                   borderStyle: 'dashed'
                 }}
@@ -800,8 +800,8 @@ export default function ChatPage() {
                   <Stack direction="row" alignItems="center" gap={{ xs: 1, sm: 2 }}>
                     <IconButton
                       onClick={() => setContatoSelecionado(undefined)}
-                      sx={{ 
-                        display: { xs: 'flex', md: 'none' }, 
+                      sx={{
+                        display: { xs: 'flex', md: 'none' },
                         p: 0.5,
                         mr: 0.5
                       }}
@@ -809,11 +809,11 @@ export default function ChatPage() {
                     >
                       <ArrowBack fontSize="small" />
                     </IconButton>
-                    <Avatar 
-                      sx={{ 
-                        bgcolor: 'primary.main', 
+                    <Avatar
+                      sx={{
+                        bgcolor: 'primary.main',
                         fontWeight: 'bold',
-                        width: { xs: 38, sm: 44 }, 
+                        width: { xs: 38, sm: 44 },
                         height: { xs: 38, sm: 44 },
                         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                         fontSize: { xs: '0.95rem', sm: '1.1rem' }
@@ -823,27 +823,27 @@ export default function ChatPage() {
                     </Avatar>
                     <Box sx={{ minWidth: 0, flex: 1 }}>
                       <Stack direction="row" alignItems="center" gap={1} flexWrap="wrap">
-                        <Typography 
-                          variant="h6" 
-                          sx={{ 
-                            fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.2rem' }, 
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontSize: { xs: '0.95rem', sm: '1.1rem', md: '1.2rem' },
                             fontWeight: 600,
-                            whiteSpace: 'nowrap', 
-                            overflow: 'hidden', 
-                            textOverflow: 'ellipsis' 
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
                           }}
                         >
                           {contatoAtual?.nome}
                         </Typography>
                         {contatoAtual?.perfil && (
-                          <Chip 
-                            label={formatarPerfil(contatoAtual.perfil)} 
-                            size="small" 
+                          <Chip
+                            label={formatarPerfil(contatoAtual.perfil)}
+                            size="small"
                             color={contatoAtual.perfil.includes('CUIDADOR') ? 'primary' : 'secondary'}
                             variant="outlined"
-                            sx={{ 
-                              height: 20, 
-                              fontSize: '0.65rem', 
+                            sx={{
+                              height: 20,
+                              fontSize: '0.65rem',
                               fontWeight: 700,
                               borderRadius: '6px',
                               textTransform: 'uppercase'
@@ -876,14 +876,14 @@ export default function ChatPage() {
 
                 {/* Empty */}
                 {!isLoading && msgs.length === 0 && (
-                  <Card 
-                    variant="outlined" 
-                    sx={{ 
-                      py: 8, 
-                      textAlign: 'center', 
-                      flex: 1, 
-                      display: 'flex', 
-                      alignItems: 'center', 
+                  <Card
+                    variant="outlined"
+                    sx={{
+                      py: 8,
+                      textAlign: 'center',
+                      flex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
                       justifyContent: 'center',
                       borderStyle: 'dashed',
                       bgcolor: 'background.default'
@@ -903,14 +903,14 @@ export default function ChatPage() {
 
                 {/* Chat area */}
                 {!isLoading && msgs.length > 0 && (
-                  <Paper 
-                    variant="outlined" 
-                    sx={{ 
-                      flex: 1, 
-                      overflowY: 'auto', 
-                      p: { xs: 1, sm: 1.5, md: 2 }, 
-                      display: 'flex', 
-                      flexDirection: 'column', 
+                  <Paper
+                    variant="outlined"
+                    sx={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      p: { xs: 1, sm: 1.5, md: 2 },
+                      display: 'flex',
+                      flexDirection: 'column',
                       gap: { xs: 1, sm: 1.5 },
                       bgcolor: 'grey.50',
                       backgroundImage: 'linear-gradient(to bottom, transparent 95%, rgba(0,0,0,0.02) 100%)',
@@ -922,69 +922,70 @@ export default function ChatPage() {
                       const enviadaPorMim = mensagemEnviadaPorMim(m);
 
                       return (
-                      <Box 
-                        key={m.id} 
-                        sx={{ 
-                          alignSelf: enviadaPorMim ? 'flex-end' : 'flex-start', 
-                          maxWidth: { xs: '85%', sm: '75%', md: '70%' },
-                          animation: 'fadeIn 0.3s ease-in'
-                        }}
-                      >
-                        <Paper
-                          elevation={1}
-                          sx={{ 
-                            background: enviadaPorMim 
-                              ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-                              : 'white', 
-                            color: enviadaPorMim ? 'white' : 'text.primary',
-                            p: 1.5, 
-                            borderRadius: 2,
-                            borderBottomRightRadius: enviadaPorMim ? 4 : 16,
-                            borderBottomLeftRadius: enviadaPorMim ? 16 : 4,
-                            transition: 'all 0.2s',
-                            '&:hover': {
-                              transform: 'scale(1.02)',
-                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                            }
+                        <Box
+                          key={m.id}
+                          sx={{
+                            alignSelf: enviadaPorMim ? 'flex-end' : 'flex-start',
+                            maxWidth: { xs: '85%', sm: '75%', md: '70%' },
+                            animation: 'fadeIn 0.3s ease-in'
                           }}
                         >
-                          {m.mediaUrl ? (
-                            (() => {
-                              const mediaSrc = m.id < 0 ? m.mediaUrl : mediaObjectUrls[m.id];
-                              return mediaSrc ? (
-                                <AudioPlayer src={mediaSrc} inverted={enviadaPorMim} />
-                              ) : (
-                                <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
-                                  <CircularProgress size={16} sx={{ color: enviadaPorMim ? 'rgba(255,255,255,0.7)' : 'primary.main' }} />
-                                  <Typography variant="caption" sx={{ fontSize: 11, opacity: 0.8 }}>Carregando áudio...</Typography>
-                                </Stack>
-                              );
-                            })()
-                          ) : (
-                            m.conteudo && (
-                              <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
-                                {m.conteudo}
+                          <Paper
+                            elevation={1}
+                            sx={{
+                              background: enviadaPorMim
+                                ? '#1565C0'
+                                : 'white',
+                              color: enviadaPorMim ? 'white' : 'text.primary',
+                              p: 1.5,
+                              borderRadius: 2,
+                              borderBottomRightRadius: enviadaPorMim ? 4 : 16,
+                              borderBottomLeftRadius: enviadaPorMim ? 16 : 4,
+                              transition: 'all 0.2s',
+                              '&:hover': {
+                                transform: 'scale(1.02)',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
+                              }
+                            }}
+                          >
+                            {m.mediaUrl ? (
+                              (() => {
+                                const mediaSrc = m.id < 0 ? m.mediaUrl : mediaObjectUrls[m.id];
+                                return mediaSrc ? (
+                                  <AudioPlayer src={mediaSrc} inverted={enviadaPorMim} />
+                                ) : (
+                                  <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
+                                    <CircularProgress size={16} sx={{ color: enviadaPorMim ? 'rgba(255,255,255,0.7)' : 'primary.main' }} />
+                                    <Typography variant="caption" sx={{ fontSize: 11, opacity: 0.8 }}>Carregando áudio...</Typography>
+                                  </Stack>
+                                );
+                              })()
+                            ) : (
+                              m.conteudo && (
+                                <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                                  {m.conteudo}
+                                </Typography>
+                              )
+                            )}
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 0.5 }}>
+                              {m.id < 0 && <CircularProgress size={14} color="inherit" />}
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  opacity: 0.7,
+                                  fontSize: 10
+                                }}
+                              >
+                                {(() => {
+                                  const d = parseDate(m.dataEnvio);
+                                  return d ? dayjs(d).format('DD/MM HH:mm') : 'Data não informada';
+                                })()}
                               </Typography>
-                            )
-                          )}
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 1, mt: 0.5 }}>
-                            {m.id < 0 && <CircularProgress size={14} color="inherit" />}
-                            <Typography 
-                              variant="caption" 
-                              sx={{ 
-                                opacity: 0.7, 
-                                fontSize: 10
-                              }}
-                            >
-                              {(() => {
-                                const d = parseDate(m.dataEnvio);
-                                return d ? dayjs(d).format('DD/MM HH:mm') : 'Data não informada';
-                              })()}
-                            </Typography>
-                          </Box>
-                        </Paper>
-                      </Box>
-                    )})}
+                            </Box>
+                          </Paper>
+                        </Box>
+                      )
+                    })}
                   </Paper>
                 )}
 
@@ -1032,16 +1033,16 @@ export default function ChatPage() {
                     <CardContent sx={{ p: { xs: 1, sm: 1.5, md: 2 }, '&:last-child': { pb: { xs: 1, sm: 1.5, md: 2 } } }}>
                       {/* Pending recording preview - layout responsivo */}
                       {pendingRecording && (
-                        <Paper 
-                          elevation={0} 
-                          sx={{ 
-                            display: 'flex', 
+                        <Paper
+                          elevation={0}
+                          sx={{
+                            display: 'flex',
                             flexDirection: { xs: 'column', sm: 'row' },
-                            alignItems: { xs: 'stretch', sm: 'center' }, 
-                            gap: { xs: 1, sm: 2 }, 
+                            alignItems: { xs: 'stretch', sm: 'center' },
+                            gap: { xs: 1, sm: 2 },
                             mb: 1.5,
-                            p: { xs: 1, sm: 1.25 }, 
-                            borderRadius: 2, 
+                            p: { xs: 1, sm: 1.25 },
+                            borderRadius: 2,
                             bgcolor: 'grey.100'
                           }}
                         >
@@ -1061,13 +1062,13 @@ export default function ChatPage() {
                           </Stack>
                         </Paper>
                       )}
-                      
+
                       <Stack direction="row" gap={{ xs: 0.5, sm: 1 }} alignItems="flex-end" flexWrap="nowrap">
-                        <TextField 
-                          fullWidth 
-                          size="small" 
-                          value={texto} 
-                          onChange={(e) => setTexto(e.target.value)} 
+                        <TextField
+                          fullWidth
+                          size="small"
+                          value={texto}
+                          onChange={(e) => setTexto(e.target.value)}
                           placeholder="Digite sua mensagem..."
                           onKeyPress={(e) => {
                             if (e.key === 'Enter' && !e.shiftKey) {
@@ -1103,20 +1104,20 @@ export default function ChatPage() {
                             <Mic sx={{ fontSize: { xs: 20, sm: 24 } }} />
                           </IconButton>
                           {isRecording && (
-                            <Chip 
-                              label={`${recordingTime}s`} 
-                              size="small" 
-                              color="error" 
-                              sx={{ display: { xs: 'none', sm: 'flex' } }} 
+                            <Chip
+                              label={`${recordingTime}s`}
+                              size="small"
+                              color="error"
+                              sx={{ display: { xs: 'none', sm: 'flex' } }}
                             />
                           )}
                         </Box>
-                        <Button 
-                          variant="contained" 
-                          onClick={enviar} 
+                        <Button
+                          variant="contained"
+                          onClick={enviar}
                           disabled={enviarMutation.isPending || !texto.trim()}
                           endIcon={<Send sx={{ fontSize: { xs: 16, sm: 20 }, display: { xs: 'none', sm: 'block' } }} />}
-                          sx={{ 
+                          sx={{
                             minWidth: { xs: 'auto', sm: 100, md: 110 },
                             borderRadius: 2,
                             py: { xs: 0.8, sm: 1, md: 1.2 },

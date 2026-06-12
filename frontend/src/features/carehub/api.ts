@@ -17,6 +17,12 @@ import type {
   AlertaEmergenciaResponseDTO,
 } from './types';
 
+export interface Cuidador {
+  id: number;
+  platformUserId?: number;
+  nome: string;
+}
+
 export const clientesApi = {
   listarTodos: async (): Promise<Array<{ id: number; nome: string }>> => {
     const { data } = await http.get('/api/carehub/clientes');

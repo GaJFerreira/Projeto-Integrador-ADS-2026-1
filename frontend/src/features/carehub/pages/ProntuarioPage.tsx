@@ -1,31 +1,33 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { prontuariosApi, clientesApi } from '../api';
+import { useNavigate, useParams } from 'react-router-dom';
+import { prontuariosApi } from '../api';
 import { verificarPodeEditar } from '../api/prontuarios';
 import type { ProntuarioResponseDTO } from '../types';
-import { 
-  Box, 
-  Button, 
-  Card, 
-  CardContent, 
-  CircularProgress, 
-  Divider, 
-  Stack, 
-  TextField, 
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Divider,
+  Stack,
+  TextField,
   Typography,
-  Alert 
+  Alert
 } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from 'notistack';
 import { PageHeader } from '../components/PageHeader';
-import { Save, Lock } from '@mui/icons-material';
+import { Save, Lock, CalendarToday, LocalHospital, Phone } from '@mui/icons-material';
 import { getUserId, isCliente, checkAndCacheUserType } from '../components/auth';
+import Autocomplete from '@mui/material/Autocomplete';
 
 export default function ProntuarioPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
-  const [clienteId, setClienteId] = useState<number | undefined>(undefined);
+  const { clienteId: clienteIdParam } = useParams<{ clienteId: string }>();
+  const [clienteId, setClienteId] = useState<number | undefined>(clienteIdParam ? Number(clienteIdParam) : undefined);
   const [podeEditar, setPodeEditar] = useState(false);
   const [verificandoPermissao, setVerificandoPermissao] = useState(true);
   const [_ehCliente, setEhCliente] = useState<boolean | null>(null);
@@ -45,9 +47,15 @@ export default function ProntuarioPage() {
     verificarTipo();
   }, [navigate, enqueueSnackbar]);
 
+  // Buscar platformUserId do cliente se não veio via URL params
   useEffect(() => {
-    clientesApi.listarTodos().then(arr => setClienteId(arr[0]?.id));
-  }, []);
+    if (clienteIdParam) {
+      setClienteId(Number(clienteIdParam));
+      return;
+    }
+    // Se nao veio clienteId na URL, nao carregamos prontuario automaticamente
+    setClienteId(undefined);
+  }, [clienteIdParam]);
 
   const { data: model, isLoading } = useQuery({
     queryKey: ['prontuario', clienteId],
@@ -69,7 +77,7 @@ export default function ProntuarioPage() {
         setVerificandoPermissao(false);
         return;
       }
-      
+
       const pode = await verificarPodeEditar(clienteId);
       setPodeEditar(pode);
       setVerificandoPermissao(false);
@@ -87,9 +95,10 @@ export default function ProntuarioPage() {
   const salvarMutation = useMutation({
     mutationFn: async () => {
       if (!clienteId) throw new Error('Cliente não identificado');
-      
+
       const dto = {
         clienteId,
+        dataNascimento: formatarDataParaOInput(form.dataNascimento) || null,
         historicoMedico: form.historicoMedico || '',
         medicamentosUso: form.medicamentosUso || '',
         alergias: form.alergias || '',
@@ -98,6 +107,8 @@ export default function ProntuarioPage() {
         observacoesGerais: form.observacoesGerais || '',
         necessidadesEspeciais: form.necessidadesEspeciais || '',
       };
+
+      console.log('Enviando DTO:', dto);
 
       if (model?.id) {
         return prontuariosApi.atualizar(model.id, dto);
@@ -108,6 +119,7 @@ export default function ProntuarioPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prontuario', clienteId] });
       enqueueSnackbar('Prontuário salvo com sucesso!', { variant: 'success' });
+      navigate('/carehub/cuidador/prontuarios');
     },
     onError: (error: any) => {
       const message = error.response?.data?.message || 'Erro ao salvar prontuário';
@@ -121,16 +133,41 @@ export default function ProntuarioPage() {
 
   const camposDesabilitados = !podeEditar || verificandoPermissao;
 
+  const formatarDataParaOInput = (dataInput?: any) => {
+    if (!dataInput) return '';
+
+    // Handle array format [2024, 5, 23] if Jackson sends it that way
+    if (Array.isArray(dataInput)) {
+      const ano = dataInput[0];
+      const mes = String(dataInput[1]).padStart(2, '0');
+      const dia = String(dataInput[2]).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    if (typeof dataInput !== 'string') return String(dataInput);
+
+    if (dataInput.includes('-')) {
+      return dataInput.substring(0, 10);
+    }
+
+    if (dataInput.includes('/')) {
+      const [dia, mes, ano] = dataInput.split('/');
+      return `${ano}-${mes}-${dia}`;
+    }
+
+    return dataInput;
+  };
+
   return (
     <Stack gap={3} sx={{ p: 2 }}>
-      <PageHeader 
+      <PageHeader
         title="Prontuário Médico"
         subtitle="Mantenha as informações de saúde dos clientes atualizadas"
         backTo="/carehub"
       />
 
       {!podeEditar && !verificandoPermissao && (
-        <Alert severity="warning" icon={<Lock />}> 
+        <Alert severity="warning" icon={<Lock />}>
           <Typography variant="body2" fontWeight="medium">
             Modo Somente Leitura
           </Typography>
@@ -157,17 +194,69 @@ export default function ProntuarioPage() {
       {!isLoading && (
         <Card variant="outlined">
           <CardContent>
-            <Stack gap={2.5}>
+            <Stack gap={3}>
+              {/* Seção 1: Dados Básicos */}
               <Box>
-                <Typography variant="h6" gutterBottom color="primary">
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <CalendarToday />
+                  Dados Básicos
+                </Typography>
+                <Divider sx={{ mb: 3 }} />
+
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                  <TextField
+                    label="Data de Nascimento" 
+                    type="date"
+                    value={formatarDataParaOInput(form?.dataNascimento)}
+                    onChange={(e) => updateField('dataNascimento', e.target.value)}
+                    disabled={camposDesabilitados}
+                    InputLabelProps={{ shrink: true }}
+                    fullWidth
+                  />
+                  <Autocomplete
+                    options={['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']}
+                    disabled={camposDesabilitados}
+                    value={form?.tipoSanguineo || null} // O Autocomplete espera 'null' em vez de '' quando está vazio
+                    onChange={(event, newValue) => {
+                      // newValue entrega direto a string selecionada (ex: 'A+') ou null se limpar
+                      updateField('tipoSanguineo', newValue || '');
+                    }}
+                    // Define o comportamento de filtro enquanto o usuário digita
+                    onInputChange={(event, newInputValue) => {
+                      // Caso o usuário apenas digite sem clicar na opção, você também pode atualizar o estado
+                      updateField('tipoSanguineo', newInputValue.toUpperCase());
+                    }}
+                    // Renderiza o input visual usando o estilo do seu TextField original
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        label="Tipo Sanguíneo"
+                        placeholder="Ex: O+, A-, AB+"
+                        fullWidth
+                      />
+                    )}
+                    // Garante que a busca ignore maiúsculas/minúsculas (se digitar 'a', acha 'A+')
+                    filterOptions={(options, state) =>
+                      options.filter((item) =>
+                        item.toLowerCase().includes(state.inputValue.toLowerCase())
+                      )
+                    }
+                  />
+                </Box>
+              </Box>
+
+              {/* Seção 2: Informações Médicas */}
+              <Box>
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <LocalHospital />
                   Informações Médicas
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
-                
+                <Divider sx={{ mb: 3 }} />
+
                 <Stack gap={2}>
-                  <TextField 
-                    label="Histórico Médico" 
-                    value={form?.historicoMedico || ''} 
+                  <TextField
+                    label="Histórico Médico"
+                    value={form?.historicoMedico || ''}
                     onChange={(e) => updateField('historicoMedico', e.target.value)}
                     disabled={camposDesabilitados}
                     multiline
@@ -175,10 +264,10 @@ export default function ProntuarioPage() {
                     placeholder="Descreva histórico de doenças, cirurgias, tratamentos..."
                     fullWidth
                   />
-                  
-                  <TextField 
-                    label="Medicamentos em uso" 
-                    value={form?.medicamentosUso || ''} 
+
+                  <TextField
+                    label="Medicamentos em uso"
+                    value={form?.medicamentosUso || ''}
                     onChange={(e) => updateField('medicamentosUso', e.target.value)}
                     disabled={camposDesabilitados}
                     multiline
@@ -186,46 +275,40 @@ export default function ProntuarioPage() {
                     placeholder="Liste os medicamentos, dosagens e frequência"
                     fullWidth
                   />
-                  
-                  <TextField 
-                    label="Alergias" 
-                    value={form?.alergias || ''} 
+
+                  <TextField
+                    label="Alergias"
+                    value={form?.alergias || ''}
                     onChange={(e) => updateField('alergias', e.target.value)}
                     disabled={camposDesabilitados}
                     placeholder="Alergias a medicamentos, alimentos, etc."
                     fullWidth
-                  />
-                  
-                  <TextField 
-                    label="Tipo Sanguíneo" 
-                    value={form?.tipoSanguineo || ''} 
-                    onChange={(e) => updateField('tipoSanguineo', e.target.value)}
-                    disabled={camposDesabilitados}
-                    placeholder="Ex: O+, A-, AB+"
-                    sx={{ maxWidth: 200 }}
+                    color="warning"
                   />
                 </Stack>
               </Box>
 
+              {/* Seção 3: Informações de Contato e Cuidados */}
               <Box>
-                <Typography variant="h6" gutterBottom color="primary">
+                <Typography variant="h6" gutterBottom color="primary" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Phone />
                   Informações de Contato e Cuidados
                 </Typography>
-                <Divider sx={{ mb: 2 }} />
-                
+                <Divider sx={{ mb: 3 }} />
+
                 <Stack gap={2}>
-                  <TextField 
-                    label="Contato de Emergência" 
-                    value={form?.contatoEmergencia || ''} 
+                  <TextField
+                    label="Contato de Emergência"
+                    value={form?.contatoEmergencia || ''}
                     onChange={(e) => updateField('contatoEmergencia', e.target.value)}
                     disabled={camposDesabilitados}
                     placeholder="Nome: (XX) XXXXX-XXXX"
                     fullWidth
                   />
-                  
-                  <TextField 
-                    label="Necessidades Especiais" 
-                    value={form?.necessidadesEspeciais || ''} 
+
+                  <TextField
+                    label="Necessidades Especiais"
+                    value={form?.necessidadesEspeciais || ''}
                     onChange={(e) => updateField('necessidadesEspeciais', e.target.value)}
                     disabled={camposDesabilitados}
                     multiline
@@ -233,12 +316,12 @@ export default function ProntuarioPage() {
                     placeholder="Descreva necessidades especiais de cuidado"
                     fullWidth
                   />
-                  
-                  <TextField 
-                    label="Observações Gerais" 
-                    multiline 
-                    minRows={3} 
-                    value={form?.observacoesGerais || ''} 
+
+                  <TextField
+                    label="Observações Gerais"
+                    multiline
+                    minRows={3}
+                    value={form?.observacoesGerais || ''}
                     onChange={(e) => updateField('observacoesGerais', e.target.value)}
                     disabled={camposDesabilitados}
                     placeholder="Outras informações relevantes"
@@ -247,21 +330,21 @@ export default function ProntuarioPage() {
                 </Stack>
               </Box>
 
-              <Button 
-                variant="contained" 
+              <Button
+                variant="contained"
                 size="large"
                 startIcon={podeEditar ? <Save /> : <Lock />}
-                onClick={() => salvarMutation.mutate()} 
+                onClick={() => salvarMutation.mutate()}
                 disabled={!podeEditar || salvarMutation.isPending || !clienteId}
                 fullWidth
-                sx={{ mt: 2 }}
+                sx={{ mt: 2, py: 1.5, fontSize: '1.1rem', borderRadius: 2 }}
               >
-                {salvarMutation.isPending 
-                  ? 'Salvando...' 
-                  : !podeEditar 
-                    ? 'Edição Bloqueada (Sem Agendamento Ativo)' 
-                    : model?.id 
-                      ? 'Atualizar Prontuário' 
+                {salvarMutation.isPending
+                  ? 'Salvando...'
+                  : !podeEditar
+                    ? 'Edição Bloqueada (Sem Agendamento Ativo)'
+                    : model?.id
+                      ? 'Atualizar Prontuário'
                       : 'Criar Prontuário'
                 }
               </Button>

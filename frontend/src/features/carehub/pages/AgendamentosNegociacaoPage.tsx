@@ -62,7 +62,7 @@ export default function AgendamentosNegociacaoPage() {
     queryKey: ['cuidadores-list'],
     queryFn: async () => {
       const arr = await cuidadoresApi.listarTodos();
-      return arr.map(c => ({ id: c.id, nome: c.nome }));
+      return arr.map(c => ({ id: c.platformUserId || c.id, nome: c.nome }));
     },
   });
 

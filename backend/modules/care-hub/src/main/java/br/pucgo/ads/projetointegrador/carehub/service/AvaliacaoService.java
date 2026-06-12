@@ -42,7 +42,9 @@ public class AvaliacaoService {
             throw new RuntimeException("Avaliador não é o cliente do agendamento");
         }
 
-        if (!agendamento.getCuidador().getId().equals(dto.getCuidadorId())) {
+        Long localCuidadorId = agendamento.getCuidador().getId();
+        Long platformCuidadorId = agendamento.getCuidador().getPlatformUserId();
+        if (!localCuidadorId.equals(dto.getCuidadorId()) && (platformCuidadorId == null || !platformCuidadorId.equals(dto.getCuidadorId()))) {
             throw new RuntimeException("O cuidador informado não corresponde ao agendamento");
         }
 
@@ -76,7 +78,13 @@ public class AvaliacaoService {
 
     @Transactional(readOnly = true)
     public List<AvaliacaoResponseDTO> listarAvaliacoesCuidador(Long cuidadorId) {
-        return avaliacaoRepository.findByCuidadorIdOrderByDataAvaliacaoDesc(cuidadorId).stream()
+        // Tentar primeiro por platformUserId, se não achar nada, tentar por localId (fallback)
+        List<Avaliacao> avaliacoes = avaliacaoRepository.findByCuidadorPlatformUserIdOrderByDataAvaliacaoDesc(cuidadorId);
+        if (avaliacoes.isEmpty()) {
+            avaliacoes = avaliacaoRepository.findByCuidadorIdOrderByDataAvaliacaoDesc(cuidadorId);
+        }
+        
+        return avaliacoes.stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }

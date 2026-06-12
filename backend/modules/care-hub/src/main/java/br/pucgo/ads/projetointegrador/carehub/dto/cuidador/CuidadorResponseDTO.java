@@ -13,6 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class CuidadorResponseDTO {
     private Long id;
+    private Long platformUserId;
     private String nome;
     private String email;
     private String telefone;

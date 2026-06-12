@@ -181,8 +181,6 @@ export function GlobalMessageListener() {
               maxWidth: 360,
               borderRadius: 3,
               bgcolor: 'background.paper',
-              borderLeft: '4px solid',
-              borderColor: 'primary.main',
               pointerEvents: 'auto', // Re-enable clicks for the popup itself
               display: 'flex',
               flexDirection: 'column',
@@ -214,10 +212,10 @@ export function GlobalMessageListener() {
               </IconButton>
             </Box>
 
-            <Typography 
-              variant="body2" 
-              color="text.secondary" 
-              sx={{ 
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              sx={{
                 display: '-webkit-box',
                 WebkitLineClamp: 2,
                 WebkitBoxOrient: 'vertical',

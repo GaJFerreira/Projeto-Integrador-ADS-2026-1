@@ -352,7 +352,7 @@ export default function CuidadoresPage() {
                       sx={{
                         width: 56,
                         height: 56,
-                        background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                        background: '#1565C0',
                         color: 'white',
                         fontSize: '1.4rem',
                         fontWeight: 700,
@@ -502,7 +502,7 @@ export default function CuidadoresPage() {
                     <Button
                       variant="contained"
                       fullWidth
-                      onClick={() => navigate(`/carehub/agendamentos?cuidadorId=${c.id}`)}
+                      onClick={() => navigate(`/carehub/agendamentos?cuidadorId=${c.platformUserId || c.id}`)}
                       startIcon={<Schedule fontSize="small" />}
                       sx={{
                         borderRadius: '12px',
@@ -526,7 +526,7 @@ export default function CuidadoresPage() {
                     {/* Link para ver avaliações */}
                     <Button
                       component="a"
-                      href={`/carehub/avaliacoes/${c.id}`}
+                      href={`/carehub/avaliacoes/${c.platformUserId || c.id}`}
                       variant="text"
                       fullWidth
                       startIcon={<Visibility fontSize="small" />}
