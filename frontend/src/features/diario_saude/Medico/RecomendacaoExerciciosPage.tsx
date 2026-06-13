@@ -1,33 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
     Box, Button, Container, Paper, Typography,
     IconButton, Dialog, DialogTitle, DialogContent,
     DialogActions, Stack, TextField, Chip, Divider,
+    CircularProgress,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { exercicioRecomendadoApi } from "./exercicioRecomendadoApi";
-
-type Paciente = {
-    id_usuario: number;
-    nome: string;
-    idade: number;
-    peso: number;
-    altura: number;
-};
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import http from "@/lib/http";
 
 export default function RecomendacaoExerciciosPage() {
     const navigate = useNavigate();
     const location = useLocation();
-    const paciente = location.state?.paciente as Paciente;
-    const prescricaoExistente = location.state?.prescricao;
+    const token = localStorage.getItem("token");
+    const paciente = location.state?.paciente;
+    const prescricao = location.state?.prescricao;
+    const idPrescricao: number = prescricao?.id_prescricao;
+    const idUsuario: number = prescricao?.id_usuario ?? paciente?.id_usuario;
     const queryClient = useQueryClient();
 
-    const [recomendacoes, setRecomendacoes] = useState<string[]>([]);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [textoRecomendacao, setTextoRecomendacao] = useState("");
 
@@ -38,44 +33,62 @@ export default function RecomendacaoExerciciosPage() {
         } catch { return null; }
     })();
 
-    useEffect(() => {
-        if (!paciente) navigate("/medico");
-    }, [paciente, navigate]);
-
-    const addExercicioMutation = useMutation({
-        mutationFn: (descricao: string) =>
-            exercicioRecomendadoApi.adicionar(prescricaoExistente.id_prescricao, descricao),
-        onSuccess: () =>
-            queryClient.invalidateQueries({ queryKey: ["prescricao", prescricaoExistente.id_prescricao] }),
+    // Busca exercícios via prescrições do usuário — mesmo padrão do PedirExamesPage
+    const { data: exerciciosSalvos = [], isLoading: carregando } = useQuery({
+        queryKey: ["usuario", idUsuario, "exercicios"],
+        queryFn: async () => {
+            const { data: prescricoes } = await http.get(
+                `/api/diario_saude/prescricao/usuario/${idUsuario}`,
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            if (!Array.isArray(prescricoes)) return [];
+            // Pega só os exercícios da prescrição atual
+            const prescricaoAtual = prescricoes.find((p: any) => p.id_prescricao === idPrescricao);
+            return Array.isArray(prescricaoAtual?.exerciciosRecomendados)
+                ? prescricaoAtual.exerciciosRecomendados
+                : [];
+        },
+        enabled: !!idUsuario && !!idPrescricao,
     });
 
-    const handleAddRecomendacao = () => {
-        if (!textoRecomendacao.trim()) return alert("A recomendação não pode estar vazia!");
-        setRecomendacoes((prev) => [...prev, textoRecomendacao.trim()]);
-        setTextoRecomendacao("");
-        setDialogOpen(false);
-    };
+    const addMutation = useMutation({
+        mutationFn: async (descricao: string) => {
+            const { data } = await http.post(
+                "/api/diario_saude/exercicio-recomendado",
+                { idPrescricao, descricao },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            return data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["usuario", idUsuario, "exercicios"] });
+            setTextoRecomendacao("");
+            setDialogOpen(false);
+        },
+        onError: () => alert("Erro ao salvar recomendação."),
+    });
 
-    const handleSalvar = async () => {
-        if (!prescricaoExistente?.id_prescricao) return alert("Nenhuma prescrição encontrada!");
-        try {
-            for (const rec of recomendacoes) {
-                await addExercicioMutation.mutateAsync(rec);
-            }
-            alert("Recomendações salvas com sucesso!");
-            navigate(-1);
-        } catch (e) {
-            console.error(e);
-            alert("Erro ao salvar as recomendações.");
-        }
+    const removeMutation = useMutation({
+        mutationFn: async (id: number) => {
+            await http.delete(`/api/diario_saude/exercicio-recomendado/${id}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["usuario", idUsuario, "exercicios"] });
+        },
+        onError: () => alert("Erro ao remover recomendação."),
+    });
+
+    const handleAdd = () => {
+        if (!textoRecomendacao.trim()) return alert("A recomendação não pode estar vazia!");
+        addMutation.mutate(textoRecomendacao.trim());
     };
 
     const dataHoje = new Date().toLocaleDateString("pt-BR");
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
-
-            {/* Cabeçalho */}
             <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3, borderTop: "4px solid #008000" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Box display="flex" alignItems="center" gap={1.5}>
@@ -89,26 +102,19 @@ export default function RecomendacaoExerciciosPage() {
                             </Typography>
                         </Box>
                     </Box>
-                    <Button onClick={() => navigate(-1)} sx={{ textTransform: "none" }}>
-                        Voltar
-                    </Button>
+                    <Button onClick={() => navigate(-1)}>Voltar</Button>
                 </Box>
             </Paper>
 
             <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
-
-                {/* Dados paciente e médico */}
                 <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mb: 3, p: 2, bgcolor: "#f0f4ff", borderRadius: 2 }}>
                     <Box>
                         <Typography variant="caption" color="text.secondary">Paciente</Typography>
-                        <Typography fontWeight={700} fontSize="1rem">{paciente?.nome ?? "—"}</Typography>
-                        {paciente?.idade && (
-                            <Typography variant="body2" color="text.secondary">{paciente.idade} anos</Typography>
-                        )}
+                        <Typography fontWeight={700}>{paciente?.nome ?? "—"}</Typography>
                     </Box>
                     <Box textAlign="right">
                         <Typography variant="caption" color="text.secondary">Médico Responsável</Typography>
-                        <Typography fontWeight={700} fontSize="1rem">
+                        <Typography fontWeight={700}>
                             {medicoLogado?.name ?? medicoLogado?.nome ?? "Médico"}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">{dataHoje}</Typography>
@@ -117,33 +123,50 @@ export default function RecomendacaoExerciciosPage() {
 
                 <Divider sx={{ mb: 3 }} />
 
-                {/* Lista de recomendações */}
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
                     <Box display="flex" alignItems="center" gap={1}>
                         <FitnessCenterIcon sx={{ color: "#008000" }} />
                         <Typography variant="h6" fontWeight={600}>Exercícios Recomendados</Typography>
                     </Box>
-                    <Chip label={`${recomendacoes.length} item(s)`} size="small" color="primary" variant="outlined" />
+                    <Chip
+                        label={carregando ? "..." : `${exerciciosSalvos.length} item(s)`}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                    />
                 </Box>
 
-                {recomendacoes.length === 0 ? (
+                {carregando ? (
+                    <Box display="flex" justifyContent="center" py={3}>
+                        <CircularProgress size={32} />
+                    </Box>
+                ) : exerciciosSalvos.length === 0 ? (
                     <Box sx={{ p: 4, textAlign: "center", bgcolor: "#fafafa", borderRadius: 2, border: "1px dashed #ccc", mb: 3 }}>
                         <FitnessCenterIcon sx={{ fontSize: 40, color: "#ccc", mb: 1 }} />
                         <Typography color="text.secondary">Nenhuma recomendação adicionada ainda.</Typography>
                     </Box>
                 ) : (
                     <Stack spacing={1.5} mb={3}>
-                        {recomendacoes.map((rec, i) => (
+                        {exerciciosSalvos.map((rec: any) => (
                             <Paper
-                                key={i}
+                                key={rec.id}
                                 elevation={0}
-                                sx={{ p: 2, borderRadius: 2, border: "1px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}
+                                sx={{
+                                    p: 2, borderRadius: 2, border: "1px solid #e0e0e0",
+                                    borderLeft: "4px solid #008000",
+                                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                                }}
                             >
-                                <Box display="flex" alignItems="flex-start" gap={1}>
-                                    <FitnessCenterIcon fontSize="small" color="primary" sx={{ mt: 0.3 }} />
-                                    <Typography>{rec}</Typography>
+                                <Box display="flex" alignItems="center" gap={1} flex={1}>
+                                    <FitnessCenterIcon fontSize="small" sx={{ color: "#008000" }} />
+                                    <Typography sx={{ wordBreak: "break-word" }}>{rec.descricao}</Typography>
                                 </Box>
-                                <IconButton size="small" color="error" onClick={() => setRecomendacoes(recomendacoes.filter((_, idx) => idx !== i))}>
+                                <IconButton
+                                    size="small"
+                                    color="error"
+                                    onClick={() => removeMutation.mutate(rec.id)}
+                                    disabled={removeMutation.isPending}
+                                >
                                     <DeleteOutlineIcon />
                                 </IconButton>
                             </Paper>
@@ -155,32 +178,18 @@ export default function RecomendacaoExerciciosPage() {
                     startIcon={<AddIcon />}
                     variant="outlined"
                     fullWidth
-                    sx={{ mb: 3, borderRadius: 2, py: 1.2 }}
+                    sx={{ borderRadius: 2, py: 1.2 }}
                     onClick={() => setDialogOpen(true)}
                 >
                     Adicionar Recomendação
                 </Button>
-
-                <Divider sx={{ mb: 3 }} />
-
-                <Button
-                    variant="contained"
-                    fullWidth
-                    size="large"
-                    sx={{ borderRadius: 2, py: 1.5, fontSize: "1rem" }}
-                    onClick={handleSalvar}
-                    disabled={recomendacoes.length === 0 || addExercicioMutation.isPending}
-                >
-                    {addExercicioMutation.isPending ? "Salvando..." : "Salvar Recomendações"}
-                </Button>
             </Paper>
 
-            {/* Dialog */}
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm">
                 <DialogTitle sx={{ borderBottom: "1px solid #eee", pb: 2 }}>
                     <Box display="flex" alignItems="center" gap={1}>
                         <FitnessCenterIcon sx={{ color: "#008000" }} />
-                        Adicionar Recomendação
+                        Adicionar Recomendação de Exercício
                     </Box>
                 </DialogTitle>
                 <DialogContent>
@@ -198,7 +207,13 @@ export default function RecomendacaoExerciciosPage() {
                 </DialogContent>
                 <DialogActions sx={{ p: 2, borderTop: "1px solid #eee" }}>
                     <Button onClick={() => setDialogOpen(false)}>Cancelar</Button>
-                    <Button variant="contained" onClick={handleAddRecomendacao}>Adicionar</Button>
+                    <Button
+                        variant="contained"
+                        onClick={handleAdd}
+                        disabled={addMutation.isPending}
+                    >
+                        {addMutation.isPending ? "Salvando..." : "Adicionar"}
+                    </Button>
                 </DialogActions>
             </Dialog>
         </Container>

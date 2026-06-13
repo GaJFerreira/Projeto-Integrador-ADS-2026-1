@@ -68,7 +68,7 @@ export default function CuidadorPacientesPage() {
         navigate(destino, {
             state: {
                 paciente: pacienteSelecionado,
-                modoLeitura: destino === "/informacoesSaude",
+                modoLeitura: destino === "/informacoes_saude",
             }
         });
     };
@@ -221,7 +221,7 @@ export default function CuidadorPacientesPage() {
 
                         <Paper
                             elevation={0}
-                            onClick={() => handleNavegar("/informacoesSaude")}
+                            onClick={() => handleNavegar("/informacoes_saude")}
                             sx={{
                                 p: 2, borderRadius: 2, border: "1px solid #f3e5f5",
                                 cursor: "pointer", display: "flex", alignItems: "center", gap: 1.5,

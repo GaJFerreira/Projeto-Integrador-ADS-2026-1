@@ -1,28 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Container, Paper, Typography, Button, Box,
-  IconButton, Chip, Divider, Autocomplete, TextField, Stack,
+  IconButton, Chip, Divider, Autocomplete, TextField,
+  Stack, CircularProgress,
 } from "@mui/material";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import AddIcon from "@mui/icons-material/Add";
 import ScienceIcon from "@mui/icons-material/Science";
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
+import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import http from "@/lib/http";
 
-export default function PrescreverExamePage() {
+export default function PedirExamesPage() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const token = localStorage.getItem("token");
   const prescricao = location.state?.prescricao;
   const paciente = location.state?.paciente;
-  const idPrescricaoMedica =
-    prescricao?.id_prescricao_medica ?? prescricao?.id_prescricao ?? prescricao?.id;
+  const idPrescricao = prescricao?.id_prescricao_medica ?? prescricao?.id_prescricao ?? prescricao?.id;
+  const idUsuario: number = prescricao?.id_usuario ?? paciente?.id_usuario;
+  const queryClient = useQueryClient();
 
-  const [listaExames, setListaExames] = useState<any[]>([]);
   const [exameSelecionado, setExameSelecionado] = useState<any>(null);
-  const [examesPrescritos, setExamesPrescritos] = useState<any[]>([]);
-  const [loadingExames, setLoadingExames] = useState(false);
 
   const medicoLogado = (() => {
     try {
@@ -31,179 +31,177 @@ export default function PrescreverExamePage() {
     } catch { return null; }
   })();
 
-  useEffect(() => {
-    if (!idPrescricaoMedica) {
-      alert("Prescrição médica não encontrada. Inicie a consulta primeiro.");
-      navigate(-1);
-    }
-  }, [idPrescricaoMedica, navigate]);
+  // Catálogo de exames
+  const { data: listaExames = [], isLoading: loadingExames } = useQuery({
+    queryKey: ["exames", "catalogo"],
+    queryFn: async () => {
+      const { data } = await http.get("/api/diario_saude/exames", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return Array.isArray(data) ? data : [];
+    },
+  });
 
-  useEffect(() => {
-    if (!token) return;
-    setLoadingExames(true);
-    fetch("http://localhost:8080/api/diario_saude/exames", {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((r) => r.json())
-      .then((data) => setListaExames(Array.isArray(data) ? data : []))
-      .catch((err) => console.error("Erro ao carregar exames:", err))
-      .finally(() => setLoadingExames(false));
-  }, [token]);
+  // Busca todas as prescrições do paciente e agrega os exames pendentes
+  // Usa o endpoint existente: GET /prescricao/usuario/{id}
+  // Cada prescrição já retorna os exames com resultado/data_realizacao
+  const { data: examesPendentes = [], isLoading: carregando } = useQuery({
+    queryKey: ["usuario", idUsuario, "exames", "pendentes"],
+    queryFn: async () => {
+      const { data: prescricoes } = await http.get(
+        `/api/diario_saude/prescricao/usuario/${idUsuario}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      if (!Array.isArray(prescricoes)) return [];
 
-  const handleAddExame = () => {
+      // Agrega todos os exames sem resultado de todas as prescrições
+      const todos: any[] = prescricoes.flatMap((p: any) =>
+        Array.isArray(p.exames) ? p.exames : []
+      );
+      return todos.filter((e: any) => !e.resultado && !e.data_realizacao);
+    },
+    enabled: !!idUsuario,
+  });
+
+  const adicionarMutation = useMutation({
+    mutationFn: async (exame: any) => {
+      const { data } = await http.post(
+        "/api/diario_saude/prescricao/exame",
+        {
+          id_exame: exame.id_exame,
+          id_prescricao_medica: idPrescricao,
+          data_prescricao: new Date().toISOString().split("T")[0],
+          observacao: "",
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["usuario", idUsuario, "exames"] });
+      setExameSelecionado(null);
+    },
+    onError: () => alert("Erro ao prescrever exame."),
+  });
+
+  const handleAdd = () => {
     if (!exameSelecionado) return;
-    if (examesPrescritos.some((x) => x.id_exame === exameSelecionado.id_exame)) return;
-    setExamesPrescritos((prev) => [...prev, exameSelecionado]);
-    setExameSelecionado(null);
-  };
-
-  const handleRemove = (id: number) => {
-    setExamesPrescritos((prev) => prev.filter((e) => e.id_exame !== id));
-  };
-
-  const handleSalvar = async () => {
-    if (!token || !idPrescricaoMedica || examesPrescritos.length === 0) return;
-    try {
-      for (const e of examesPrescritos) {
-        const resp = await fetch("http://localhost:8080/api/diario_saude/prescricao/exame", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify({
-            id_exame: e.id_exame,
-            id_prescricao_medica: idPrescricaoMedica,
-            data_prescricao: new Date().toISOString().split("T")[0],
-            observacao: "",
-          }),
-        });
-        if (!resp.ok) throw new Error(`Erro ao salvar exame (status ${resp.status})`);
-      }
-      alert("Exames prescritos com sucesso!");
-      navigate(-1);
-    } catch (err) {
-      console.error(err);
-      alert("Erro ao prescrever exames.");
-    }
+    const jaAdicionado = examesPendentes.some(
+      (e: any) =>
+        e.id_exame === exameSelecionado.id_exame
+    );
+    if (jaAdicionado) return alert("Este exame já está pendente para este paciente.");
+    adicionarMutation.mutate(exameSelecionado);
   };
 
   const dataHoje = new Date().toLocaleDateString("pt-BR");
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-
-      {/* Cabeçalho */}
       <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3, borderTop: "4px solid #1565c0" }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Box display="flex" alignItems="center" gap={1.5}>
             <LocalHospitalIcon sx={{ fontSize: 36, color: "#1565c0" }} />
             <Box>
-              <Typography variant="h5" fontWeight={700} color="#1565c0">
-                PRESCRIÇÃO DE EXAMES
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Plataforma UNATI — Diário da Saúde
-              </Typography>
+              <Typography variant="h5" fontWeight={700} color="#1565c0">PEDIR EXAMES</Typography>
+              <Typography variant="body2" color="text.secondary">Plataforma UNATI — Diário da Saúde</Typography>
             </Box>
           </Box>
-          <Button onClick={() => navigate(-1)} sx={{ textTransform: "none" }}>
-            Voltar
-          </Button>
+          <Button onClick={() => navigate(-1)}>Voltar</Button>
         </Box>
       </Paper>
 
       <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
-
-        {/* Dados paciente e médico */}
         <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2, mb: 3, p: 2, bgcolor: "#f0f4ff", borderRadius: 2 }}>
           <Box>
             <Typography variant="caption" color="text.secondary">Paciente</Typography>
-            <Typography fontWeight={700} fontSize="1rem">{paciente?.nome ?? "—"}</Typography>
-            {paciente?.idade && (
-              <Typography variant="body2" color="text.secondary">{paciente.idade} anos</Typography>
-            )}
+            <Typography fontWeight={700}>{paciente?.nome ?? "—"}</Typography>
           </Box>
           <Box textAlign="right">
             <Typography variant="caption" color="text.secondary">Médico Responsável</Typography>
-            <Typography fontWeight={700} fontSize="1rem">
-              {medicoLogado?.name ?? medicoLogado?.nome ?? "Médico"}
-            </Typography>
+            <Typography fontWeight={700}>{medicoLogado?.name ?? medicoLogado?.nome ?? "Médico"}</Typography>
             <Typography variant="body2" color="text.secondary">{dataHoje}</Typography>
           </Box>
         </Box>
 
         <Divider sx={{ mb: 3 }} />
 
-        {/* Seleção de exame */}
+        {/* Adicionar exame */}
         <Box display="flex" alignItems="center" gap={1} mb={2}>
           <ScienceIcon color="primary" />
-          <Typography variant="h6" fontWeight={600}>Adicionar Exame</Typography>
+          <Typography variant="h6" fontWeight={600}>Pedir Novo Exame</Typography>
         </Box>
 
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2} mb={3}>
           <Autocomplete
             fullWidth
             options={listaExames}
-            getOptionLabel={(option) => option.nome_exame ?? ""}
+            getOptionLabel={(o) => o.nome_exame ?? ""}
             value={exameSelecionado}
             onChange={(_, v) => setExameSelecionado(v)}
             loading={loadingExames}
-            renderInput={(params) => (
-              <TextField {...params} label="Selecione o Exame" />
-            )}
+            renderInput={(params) => <TextField {...params} label="Selecione o Exame" />}
           />
           <Button
             variant="outlined"
             startIcon={<AddIcon />}
-            onClick={handleAddExame}
-            disabled={!exameSelecionado}
+            onClick={handleAdd}
+            disabled={!exameSelecionado || adicionarMutation.isPending}
             sx={{ borderRadius: 2, minWidth: 160, py: 1.5 }}
           >
-            Adicionar
+            {adicionarMutation.isPending ? "Salvando..." : "Pedir"}
           </Button>
         </Stack>
 
-        {/* Lista de exames prescritos */}
+        <Divider sx={{ mb: 3 }} />
+
+        {/* Exames pendentes do paciente */}
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-          <Typography variant="h6" fontWeight={600}>Exames Prescritos</Typography>
-          <Chip label={`${examesPrescritos.length} item(s)`} size="small" color="primary" variant="outlined" />
+          <Box display="flex" alignItems="center" gap={1}>
+            <HourglassEmptyIcon color="warning" />
+            <Typography variant="h6" fontWeight={600}>Exames Pendentes do Paciente</Typography>
+          </Box>
+          <Chip
+            label={carregando ? "..." : `${examesPendentes.length} pendente(s)`}
+            size="small"
+            color="warning"
+            variant="outlined"
+          />
         </Box>
 
-        {examesPrescritos.length === 0 ? (
-          <Box sx={{ p: 4, textAlign: "center", bgcolor: "#fafafa", borderRadius: 2, border: "1px dashed #ccc", mb: 3 }}>
+        {carregando ? (
+          <Box display="flex" justifyContent="center" py={3}><CircularProgress size={32} /></Box>
+        ) : examesPendentes.length === 0 ? (
+          <Box sx={{ p: 4, textAlign: "center", bgcolor: "#fafafa", borderRadius: 2, border: "1px dashed #ccc" }}>
             <ScienceIcon sx={{ fontSize: 40, color: "#ccc", mb: 1 }} />
-            <Typography color="text.secondary">Nenhum exame adicionado ainda.</Typography>
+            <Typography color="text.secondary">Nenhum exame pendente para este paciente.</Typography>
           </Box>
         ) : (
-          <Stack spacing={1.5} mb={3}>
-            {examesPrescritos.map((ex) => (
+          <Stack spacing={1.5}>
+            {examesPendentes.map((ex: any) => (
               <Paper
-                key={ex.id_exame}
+                key={ex.id_prescricao_exame}
                 elevation={0}
-                sx={{ p: 2, borderRadius: 2, border: "1px solid #e0e0e0", display: "flex", justifyContent: "space-between", alignItems: "center" }}
+                sx={{ p: 2, borderRadius: 2, border: "1px solid #e0e0e0", borderLeft: "4px solid #f57c00" }}
               >
-                <Box display="flex" alignItems="center" gap={1}>
-                  <ScienceIcon fontSize="small" color="primary" />
-                  <Typography fontWeight={600}>{ex.nome_exame}</Typography>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <HourglassEmptyIcon fontSize="small" color="warning" />
+                    <Box>
+                      <Typography fontWeight={600}>{ex.nome_exame ?? "Exame"}</Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Pedido em: {ex.data_prescricao
+                          ? new Date(ex.data_prescricao).toLocaleDateString("pt-BR")
+                          : "—"}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Chip label="Pendente" size="small" color="warning" variant="outlined" />
                 </Box>
-                <IconButton size="small" color="error" onClick={() => handleRemove(ex.id_exame)}>
-                  <DeleteOutlineIcon />
-                </IconButton>
               </Paper>
             ))}
           </Stack>
         )}
-
-        <Divider sx={{ mb: 3 }} />
-
-        <Button
-          variant="contained"
-          fullWidth
-          size="large"
-          sx={{ borderRadius: 2, py: 1.5, fontSize: "1rem" }}
-          onClick={handleSalvar}
-          disabled={examesPrescritos.length === 0}
-        >
-          Salvar Prescrição de Exames
-        </Button>
       </Paper>
     </Container>
   );

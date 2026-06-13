@@ -44,7 +44,8 @@ public class DoencaService {
                     }
                 }
 
-                if (linha.trim().isEmpty()) continue;
+                if (linha.trim().isEmpty())
+                    continue;
 
                 String[] colunas = linha.split(";", -1);
 
@@ -55,8 +56,10 @@ public class DoencaService {
                 String nome = colunas.length > 4 ? colunas[4].trim() : null;
                 String nomeAbrev = colunas.length > 5 ? colunas[5].trim() : null;
 
-                if (codigo == null || codigo.isEmpty()) continue;
-                if (nome == null || nome.isEmpty()) continue;
+                if (codigo == null || codigo.isEmpty())
+                    continue;
+                if (nome == null || nome.isEmpty())
+                    continue;
 
                 Optional<DoencasEntity> existente = repository.findByCodigo(codigo);
                 if (existente.isPresent()) {
@@ -79,5 +82,9 @@ public class DoencaService {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao importar CSV de doenças: " + e.getMessage(), e);
         }
+    }
+
+    public void deletarDoenca(Long id) {
+        repository.deleteById(id);
     }
 }

@@ -38,9 +38,19 @@ public class UsuarioService {
                         "Paciente não encontrado para platformUserId: " + usuario.getPlatformUserId()));
 
         entity.setNome(usuario.getNome());
-        entity.setIdade(usuario.getIdade());
         entity.setPeso(usuario.getPeso());
         entity.setAltura(usuario.getAltura());
+        entity.setDataNascimento(usuario.getDataNascimento());
+
+        // Calcula idade automaticamente a partir da data de nascimento
+        if (usuario.getDataNascimento() != null) {
+            int idade = java.time.LocalDate.now().getYear() - usuario.getDataNascimento().getYear();
+            if (java.time.LocalDate.now().getDayOfYear() < usuario.getDataNascimento().getDayOfYear())
+                idade--;
+            entity.setIdade(idade);
+        } else {
+            entity.setIdade(usuario.getIdade());
+        }
 
         return new UsuarioDTO(usuarioRepository.save(entity));
     }
@@ -76,4 +86,5 @@ public class UsuarioService {
 
         return usuarioRepository.save(entity);
     }
+
 }

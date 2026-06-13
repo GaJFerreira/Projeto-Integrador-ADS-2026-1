@@ -5,8 +5,8 @@ import br.pucgo.ads.projetointegrador.diario_saude.entity.AlergiaEntity;
 import br.pucgo.ads.projetointegrador.diario_saude.service.AlergiaService;
 
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -47,5 +47,11 @@ public class AlergiaController {
     @PostMapping("/criar-multiplas")
     public List<AlergiaEntity> criarMultiplas(@RequestBody List<AlergiaDTO> alergias) {
         return service.criarMultiplas(alergias);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarAlergia(@PathVariable Long id) {
+        service.deletarAlergia(id);
+        return ResponseEntity.ok().build();
     }
 }

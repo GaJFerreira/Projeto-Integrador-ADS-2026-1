@@ -1,9 +1,10 @@
 package br.pucgo.ads.projetointegrador.diario_saude.entity;
 
-import org.springframework.beans.BeanUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import br.pucgo.ads.projetointegrador.diario_saude.dto.UsuarioDTO;
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.util.List;
 
 @Entity
@@ -30,6 +31,9 @@ public class UsuarioEntity {
     @Column(name = "platform_user_id")
     private Long platformUserId;
 
+    @Column(name = "data_nascimento")
+    private LocalDate dataNascimento;
+
     @OneToMany(mappedBy = "usuario")
     @JsonIgnore
     private List<PrescricaoMedicaEntity> prescricoesMedicas;
@@ -38,8 +42,14 @@ public class UsuarioEntity {
     @JsonIgnore
     private List<UsuarioDoencasEntity> usuarioDoencas;
 
-    public UsuarioEntity(UsuarioDTO usuario) {
-        BeanUtils.copyProperties(usuario, this);
+    public UsuarioEntity(UsuarioDTO dto) {
+        this.idUsuario = dto.getId_usuario();
+        this.nome = dto.getNome();
+        this.idade = dto.getIdade();
+        this.peso = dto.getPeso();
+        this.altura = dto.getAltura();
+        this.platformUserId = dto.getPlatformUserId();
+        this.dataNascimento = dto.getDataNascimento();
     }
 
     public UsuarioEntity() {
@@ -127,5 +137,13 @@ public class UsuarioEntity {
 
     public void setUsuarioDoencas(List<UsuarioDoencasEntity> usuarioDoencas) {
         this.usuarioDoencas = usuarioDoencas;
+    }
+
+    public LocalDate getDataNascimento() {
+        return dataNascimento;
+    }
+
+    public void setDataNascimento(LocalDate dataNascimento) {
+        this.dataNascimento = dataNascimento;
     }
 }
