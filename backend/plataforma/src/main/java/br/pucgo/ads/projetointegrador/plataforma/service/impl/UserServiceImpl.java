@@ -1,11 +1,14 @@
 package br.pucgo.ads.projetointegrador.plataforma.service.impl;
 
+import br.pucgo.ads.projetointegrador.plataforma.dto.PermissionResponseDto;
 import br.pucgo.ads.projetointegrador.plataforma.dto.RoleDto;
 import br.pucgo.ads.projetointegrador.plataforma.dto.UserProfileDto;
 import br.pucgo.ads.projetointegrador.plataforma.dto.UserResponseDto;
+import br.pucgo.ads.projetointegrador.plataforma.entity.Permission;
 import br.pucgo.ads.projetointegrador.plataforma.entity.Role;
 import br.pucgo.ads.projetointegrador.plataforma.entity.User;
 import br.pucgo.ads.projetointegrador.plataforma.exception.UserNotFoundException;
+import br.pucgo.ads.projetointegrador.plataforma.repository.PermissionRepository;
 import br.pucgo.ads.projetointegrador.plataforma.repository.RoleRepository;
 import br.pucgo.ads.projetointegrador.plataforma.repository.UserRepository;
 import br.pucgo.ads.projetointegrador.plataforma.service.UserService;
@@ -13,7 +16,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +27,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final PermissionRepository permissionRepository;
 
     @Override
     public UserResponseDto getUserById(Long id) {
@@ -70,6 +76,14 @@ public class UserServiceImpl implements UserService {
         user.setCertificacao(userDto.getCertificacao());
         user.setExperiencia(userDto.getExperiencia());
 
+        // Atualiza permissões individuais do usuário (tabela user_permissions)
+        if (userDto.getPermissionIds() != null) {
+            Set<Permission> permissions = new HashSet<>(
+                permissionRepository.findAllById(userDto.getPermissionIds())
+            );
+            user.setPermissions(permissions);
+        }
+
         User savedUser = userRepository.save(user);
         return convertToDto(savedUser);
     }
@@ -113,6 +127,23 @@ public class UserServiceImpl implements UserService {
             dto.setRole(roleDto);
         }
 
+        // Incluir permissões individuais do usuário na resposta
+        if (user.getPermissions() != null && !user.getPermissions().isEmpty()) {
+            List<PermissionResponseDto> permissionDtos = user.getPermissions().stream()
+                    .map(permission -> {
+                        PermissionResponseDto permDto = new PermissionResponseDto();
+                        permDto.setId(permission.getId());
+                        permDto.setName(permission.getName());
+                        if (permission.getModule() != null) {
+                            permDto.setModuleId(permission.getModule().getId());
+                            permDto.setModuleName(permission.getModule().getName());
+                        }
+                        return permDto;
+                    })
+                    .collect(Collectors.toList());
+            dto.setPermissions(permissionDtos);
+        }
+
         return dto;
     }
-}
+}

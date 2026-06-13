@@ -2,6 +2,8 @@ package br.pucgo.ads.projetointegrador.plataforma.dto;
 
 import lombok.Data;
 
+import java.util.List;
+
 @Data
 public class UserProfileDto {
 
@@ -14,4 +16,7 @@ public class UserProfileDto {
     private String crm;
     private String certificacao;
     private String experiencia;
+
+    // IDs das permissões individuais a serem atribuídas ao usuário
+    private List<Long> permissionIds;
 }
