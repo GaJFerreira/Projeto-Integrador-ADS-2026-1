@@ -61,6 +61,13 @@ import AdminEditConquistaPage from '@/features/remember/pages/AdminEditConquista
 // Jogos
 import JogosPage from "@/features/jogos/pages/JogosPage.tsx";
 
+// Dose Certa
+import CadastroMedicamento from '@/features/medicamentos/components/CadastroMedicamento';
+import HistoricoMedicamentosPage from '@/features/medicamentos/pages/HistoricoMedicamentosPage';
+import ListaMedicamentosPage from '@/features/medicamentos/pages/ListaMedicamentosPage';
+import InitialPage from '@/features/medicamentos/pages/InicialPage';
+import EditarMedicamentoPage from "@/features/medicamentos/pages/EditarMedicamentoPage";
+
 function Home() {
   return (
     <div>
@@ -157,8 +164,8 @@ export function AppRoutes() {
          <Route path="jogos" element={<JogosPage/>}/>
 
          {/* Rotas de Medicamentos */}
-         <Route path="medicamentos">
-         <Route path="" element={<IncialPage />} />
+         <Route path="dose-certa">
+         <Route path="" element={<InitialPage />} />
          <Route path="cadastro" element={<CadastroMedicamento />} />
          <Route path="editar/:id" element={<EditarMedicamentoPage />} />
          <Route path="historico" element={<HistoricoMedicamentosPage />} />

@@ -22,14 +22,13 @@ import MedicationNotifier from "@/features/medicamentos/components/MedicationNot
 import { medicamentoApi, type MedicamentoDTO } from "@/features/medicamentos/api/medicamentoApi";
 
 
-const IncialPage: React.FC = () => {
+const InicialPage: React.FC = () => {
   const [medicamentos, setMedicamentos] = useState<MedicamentoDTO[]>([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
     async function carregar() {
-      if (!usuarioId) return;
 
       try {
         const lista = await medicamentoApi.listarMeus();
@@ -144,4 +143,4 @@ const IncialPage: React.FC = () => {
   );
 };
 
-export default IncialPage;
+export default InicialPage;

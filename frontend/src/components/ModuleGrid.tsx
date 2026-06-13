@@ -26,7 +26,7 @@ export function ModuleGrid() {
       icon: <MedicationIcon sx={{ fontSize: 40 }} />,
       title: 'Medicamentos',
       desc: 'Monitore horários e doses.',
-       to: '/medicamentos',
+       to: '/dose-certa',
     },
     {
       icon: <SportsEsportsIcon sx={{ fontSize: 40 }} />,

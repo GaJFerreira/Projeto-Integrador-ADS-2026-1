@@ -16,7 +16,7 @@ import {
 
 import { useNavigate, useParams } from "react-router-dom";
 
-import { medicamentoApi } from "../api/medicamentoApi";   // ✔ correto
+import { medicamentoApi } from "../api/medicamentoApi";
 import { anvisaApi } from "../api/anvisaApi";
 
 
@@ -37,7 +37,7 @@ export default function EditarMedicamentoPage() {
 
   // Carrega medicamento
   useEffect(() => {
-    medicamentoApi.buscarPorId(Number(id))   // ✔ singular
+    medicamentoApi.buscarPorId(Number(id))
       .then((data) => {
         const horarios = data.horarios?.map((h: any) => h.horario) ?? [""];
 
@@ -181,7 +181,7 @@ export default function EditarMedicamentoPage() {
 
             {/* BOTÕES */}
             <Stack direction="row" justifyContent="space-between">
-              <Button variant="outlined" onClick={() => navigate("/medicamentos/lista")}>
+              <Button variant="outlined" onClick={() => navigate("/dose-certa/lista")}>
                 Cancelar
               </Button>
 
