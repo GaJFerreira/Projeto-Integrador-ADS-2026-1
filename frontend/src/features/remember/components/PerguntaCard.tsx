@@ -18,9 +18,15 @@ interface PerguntaCardProps {
     onResponder: (pergunta: PerguntaCognitiva) => void;
 }
 
+type PerguntaComDatasAlternativas = PerguntaCognitiva & {
+    data_geracao?: string;
+    data?: string;
+};
+
 export default function PerguntaCard({ pergunta, onResponder }: PerguntaCardProps) {
+    const perguntaComDatas = pergunta as PerguntaComDatasAlternativas;
     const dataFormatada = formatarDataRemember(
-        pergunta.dataGeracao ?? (pergunta as any).data_geracao ?? (pergunta as any).data
+        pergunta.dataGeracao ?? perguntaComDatas.data_geracao ?? perguntaComDatas.data
     );
 
     const pendente = pergunta.status === 'ENVIADA';

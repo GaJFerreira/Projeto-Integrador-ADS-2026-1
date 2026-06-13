@@ -28,6 +28,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 // Importando a API que criamos acima
 import { adminConquistasApi, type Conquista } from '../api/conquistas';
 import { usuarioPodeGerenciarConquistas } from '../utils/auth';
+import { getMensagemErroRemember } from '../utils/errors';
 
 export default function AdminConquistasPage() {
     const { enqueueSnackbar } = useSnackbar();
@@ -38,6 +39,7 @@ export default function AdminConquistasPage() {
     const [loading, setLoading] = useState<boolean>(false);
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selected, setSelected] = useState<Conquista | null>(null);
+    const [erroPagina, setErroPagina] = useState('');
 
     const openMenu = Boolean(anchorEl);
     const podeGerenciar = usuarioPodeGerenciarConquistas();
@@ -49,11 +51,13 @@ export default function AdminConquistasPage() {
 
     async function loadConquistas() {
         setLoading(true);
+        setErroPagina('');
         try {
             const data = await adminConquistasApi.listar();
             setRows(data);
-        } catch (err: any) {
-            const message = err?.response?.data?.message || 'Erro ao carregar conquistas.';
+        } catch (err: unknown) {
+            const message = getMensagemErroRemember(err, 'Erro ao carregar conquistas.');
+            setErroPagina(message);
             enqueueSnackbar(message, { variant: 'error' });
         } finally {
             setLoading(false);
@@ -89,14 +93,16 @@ export default function AdminConquistasPage() {
         // if (!window.confirm('Tem certeza que deseja excluir esta conquista?')) return closeMenu();
 
         try {
+            setErroPagina('');
             await adminConquistasApi.remover(selected.identificadorConquista);
 
             // Atualiza a lista localmente removendo o item
             setRows((prev) => prev.filter((r) => r.identificadorConquista !== selected.identificadorConquista));
 
             enqueueSnackbar('Conquista removida com sucesso.', { variant: 'success' });
-        } catch (err: any) {
-            const message = err?.response?.data?.message || 'Erro ao remover conquista.';
+        } catch (err: unknown) {
+            const message = getMensagemErroRemember(err, 'Erro ao remover conquista.');
+            setErroPagina(message);
             enqueueSnackbar(message, { variant: 'error' });
         } finally {
             closeMenu();
@@ -111,6 +117,12 @@ export default function AdminConquistasPage() {
                 </Alert>
             )}
             {/* Cabeçalho da Página */}
+            {erroPagina && (
+                <Alert severity="error" onClose={() => setErroPagina('')} sx={{ mb: 3 }}>
+                    {erroPagina}
+                </Alert>
+            )}
+
             <Box display="flex" alignItems="center" mb={3}>
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
                     <EmojiEventsIcon color="primary" fontSize="large" />
