@@ -10,6 +10,7 @@ import {
   Divider,
   Chip,
   IconButton,
+  Alert,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -18,6 +19,7 @@ import HistoryIcon from "@mui/icons-material/History";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 import { useNavigate } from "react-router-dom";
 import { medicamentoApi, type MedicamentoDTO } from "../api/medicamentoApi";
@@ -52,6 +54,22 @@ export default function ListaMedicamentosPage() {
       d.getMonth() === now.getMonth() &&
       d.getDate() === now.getDate()
     );
+  };
+
+const getAlertaEstoque = (diasRestantes?: number | null) => {
+    if (diasRestantes === null || diasRestantes === undefined) return null;
+    if (diasRestantes > 5) return null;
+
+    if (diasRestantes <= 0) {
+      return { texto: "⚠️ Seu medicamento acaba hoje!", cor: "error" as const };
+    }
+    if (diasRestantes === 1) {
+      return { texto: "⚠️ Seu medicamento está acabando em 1 dia!", cor: "error" as const };
+    }
+    return {
+      texto: `⚠️ Seu medicamento está acabando em ${diasRestantes} dias!`,
+      cor: diasRestantes <= 2 ? ("error" as const) : ("warning" as const),
+    };
   };
 
   const carregar = async () => {
@@ -217,6 +235,20 @@ export default function ListaMedicamentosPage() {
 
                     <Divider sx={{ my: 1 }} />
 
+                     {/* Alerta de estoque acabando */}
+                    {(() => {
+                      const alerta = getAlertaEstoque(m.diasRestantes);
+                      if (!alerta) return null;
+                      return (
+                        <Alert
+                          severity={alerta.cor}
+                          icon={<WarningAmberIcon fontSize="small" />}
+                          sx={{ mb: 1, py: 0.5, fontSize: 14, fontWeight: 600, borderRadius: 1 }}
+                        >
+                          {alerta.texto}
+                        </Alert>
+                      );
+                    })()}
                     <Stack spacing={1}>
                       {horariosDeHoje.length === 0 ? (
                         <Typography sx={{ fontSize: 16, color: "text.secondary" }}>

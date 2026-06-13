@@ -63,6 +63,9 @@ public class Medicamento {
     @Column(name = "data_fim")
     private LocalDate dataFim;
 
+    @Column(name = "estoque_notificado")
+    private Boolean estoqueNotificado = false;
+
     @OneToMany(mappedBy = "medicamento", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MedicamentoHorario> horarios;
 
@@ -81,9 +84,7 @@ public class Medicamento {
         return contatosEmergencia;
     }
 
-    public void setContatosEmergencia(List<ContatoEmergencia> contatosEmergencia) {
-        this.contatosEmergencia = contatosEmergencia;
-    }
+    public void setContatosEmergencia(List<ContatoEmergencia> contatosEmergencia) {this.contatosEmergencia = contatosEmergencia;}
 
     public Integer getQuantidadeCartela() { return quantidadeCartela; }
     public void setQuantidadeCartela(Integer quantidadeCartela) { this.quantidadeCartela = quantidadeCartela; }
@@ -117,6 +118,8 @@ public class Medicamento {
     public List<MedicamentoHorario> getHorarios() { return horarios; }
     public void setHorarios(List<MedicamentoHorario> horarios) { this.horarios = horarios; }
 
+    public Boolean getEstoqueNotificado() { return estoqueNotificado; }
+    public void setEstoqueNotificado(Boolean estoqueNotificado) { this.estoqueNotificado = estoqueNotificado; }
 
     // ===== CÁLCULO DE DIAS =====
     public int calcularDias() {

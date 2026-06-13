@@ -19,4 +19,6 @@ public interface MedicamentoRepository extends JpaRepository<Medicamento, Long> 
             Long platformUserId, String nomeProduto
     );
 
+    List<Medicamento> findByEstoqueNotificadoFalse();
+
 }

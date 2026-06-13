@@ -4,6 +4,8 @@ import br.pucgo.ads.projetointegrador.dosecerta.database.entity.Medicamento;
 import br.pucgo.ads.projetointegrador.dosecerta.database.entity.MedicamentoHorario;
 import br.pucgo.ads.projetointegrador.dosecerta.database.entity.RegistroTomada;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,9 +14,8 @@ public class MedicamentoResponseDTO {
     private Long id;
     private String nome;
     private String tarja;
-
     private Boolean contatarEmergencia;
-
+    private Integer diasRestantes;
     private List<MedicamentoHorarioDTO> horarios;
 
     public MedicamentoResponseDTO(Medicamento medicamento,
@@ -27,6 +28,15 @@ public class MedicamentoResponseDTO {
 
 
         this.contatarEmergencia = medicamento.getContatarEmergencia();
+
+        // Usa dataFim que já é salvo no banco ao cadastrar/atualizar
+        if (medicamento.getDataFim() != null) {
+            long dias = ChronoUnit.DAYS.between(LocalDate.now(), medicamento.getDataFim());
+            this.diasRestantes = (int) dias;
+        } else {
+            int calculado = medicamento.calcularDias();
+            this.diasRestantes = calculado > 0 ? calculado : null;
+        }
 
         this.horarios = horarios.stream().map(h -> {
             RegistroTomada registro = registrosDia.stream()
@@ -48,4 +58,6 @@ public class MedicamentoResponseDTO {
     }
 
     public List<MedicamentoHorarioDTO> getHorarios() { return horarios; }
+
+    public Integer getDiasRestantes() { return diasRestantes; }
 }

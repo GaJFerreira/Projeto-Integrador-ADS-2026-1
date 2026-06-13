@@ -18,7 +18,8 @@ export interface MedicamentoDTO {
   id: number;
   nome: string;
   tarja: string;
-  contatarEmergencia: boolean;   
+  contatarEmergencia: boolean;
+  diasRestantes?: number | null;
   horarios: MedicamentoHorarioDTO[];      // ✔ agora compatível
 }
 
