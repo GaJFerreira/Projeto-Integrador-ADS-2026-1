@@ -58,6 +58,14 @@ import AdminConquistasPage from '@/features/remember/pages/AdminConquistasPage';
 import AdminCreateConquistaPage from '@/features/remember/pages/AdminCreateConquistaPage';
 import AdminEditConquistaPage from '@/features/remember/pages/AdminEditConquistaPage';
 
+// ✅ Dúvidas e Sugestões
+import DuvidasPage from '@/features/duvidas/pages/DuvidasPage';
+import AdminDuvidasPage from '@/features/duvidas/pages/AdminDuvidasPage';
+import AdminFaqPage from '@/features/duvidas/pages/AdminFaqPage';
+
+// ✅ Perfil do usuário
+import ProfilePage from '@/features/auth/pages/ProfilePage';
+
 //Sabor Familia
 
 import LoginSaborFamilia from '@/features/sabor_familia/pages/login/login';
@@ -99,6 +107,9 @@ export function AppRoutes() {
       {/* Áreas autenticadas */}
       <Route element={<AppLayout />}>
         <Route path="/home" element={<Home />} />
+
+        {/* Perfil do usuário logado */}
+        <Route path="perfil" element={<ProfilePage />} />
 
         {/* Rotas administrativas */}
         <Route path="admin" element={<AdminPage />} />
@@ -168,6 +179,13 @@ export function AppRoutes() {
         <Route path="admin/conquistas" element={<AdminConquistasPage />} />
         <Route path="admin/conquistas/novo" element={<AdminCreateConquistaPage />} />
         <Route path="admin/conquistas/:id/edit" element={<AdminEditConquistaPage />} />
+
+        {/* Admin: Dúvidas e Sugestões */}
+        <Route path="admin/duvidas" element={<AdminDuvidasPage />} />
+        <Route path="admin/faqs" element={<AdminFaqPage />} />
+
+        {/* Dúvidas e Sugestões */}
+        <Route path="duvidas" element={<DuvidasPage />} />
 
         {/* Rotas Modulo Sabor_Familia */}
         <Route

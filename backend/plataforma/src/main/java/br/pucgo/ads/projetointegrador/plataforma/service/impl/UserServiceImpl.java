@@ -13,6 +13,7 @@ import br.pucgo.ads.projetointegrador.plataforma.repository.RoleRepository;
 import br.pucgo.ads.projetointegrador.plataforma.repository.UserRepository;
 import br.pucgo.ads.projetointegrador.plataforma.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,8 +29,10 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponseDto getUserById(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com ID: " + id));
@@ -37,6 +40,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponseDto getUserByEmail(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado com email: " + email));
@@ -44,6 +48,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<UserResponseDto> getAllUsers() {
         return userRepository.findAll().stream()
                 .map(this::convertToDto)
@@ -66,6 +71,10 @@ public class UserServiceImpl implements UserService {
         if (userDto.getUsername() != null)
             user.setUsername(userDto.getUsername());
 
+        if (userDto.getPassword() != null && !userDto.getPassword().trim().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        }
+
         if (userDto.getRoleId() != null) {
             Role role = roleRepository.findById(userDto.getRoleId())
                     .orElseThrow(() -> new UserNotFoundException("Role não encontrada: " + userDto.getRoleId()));
@@ -75,6 +84,10 @@ public class UserServiceImpl implements UserService {
         user.setCrm(userDto.getCrm());
         user.setCertificacao(userDto.getCertificacao());
         user.setExperiencia(userDto.getExperiencia());
+
+        if (userDto.getPhone() != null) user.setPhone(userDto.getPhone());
+        if (userDto.getBirthDate() != null) user.setBirthDate(userDto.getBirthDate());
+        if (userDto.getPhotoUrl() != null) user.setPhotoUrl(userDto.getPhotoUrl());
 
         // Atualiza permissões individuais do usuário (tabela user_permissions)
         if (userDto.getPermissionIds() != null) {
