@@ -5,8 +5,31 @@ import {
 } from "@mui/material";
 import MonitorWeightIcon from "@mui/icons-material/MonitorWeight";
 import StraightenIcon from "@mui/icons-material/Straighten";
+import CakeIcon from "@mui/icons-material/Cake";
 import SaveIcon from "@mui/icons-material/Save";
 import { useNavigate } from "react-router-dom";
+import http from "@/lib/http";
+
+function parseDateToInput(dataNascimento: any): string {
+    if (!dataNascimento) return "";
+    try {
+        // Array [ano, mes, dia] — formato do Spring/Jackson
+        if (Array.isArray(dataNascimento)) {
+            const [ano, mes, dia] = dataNascimento;
+            return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+        }
+        const str = dataNascimento.toString();
+        // Formato brasileiro "dd/MM/yyyy"
+        if (str.includes("/")) {
+            const [dia, mes, ano] = str.split("/");
+            return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+        }
+        // String ISO "2000-05-15T00:00:00" ou "2000-05-15"
+        return str.includes("T") ? str.split("T")[0] : str;
+    } catch {
+        return "";
+    }
+}
 
 export default function DadosBiometricosPage() {
     const navigate = useNavigate();
@@ -19,48 +42,39 @@ export default function DadosBiometricosPage() {
         } catch { return null; }
     })();
 
-    const usuarioId = usuarioLogado?.id_usuario ?? usuarioLogado?.userId;
-
     const userId = usuarioLogado?.userId ?? usuarioLogado?.id;
 
     const [peso, setPeso] = useState<string>("");
     const [altura, setAltura] = useState<string>("");
+    const [dataNascimento, setDataNascimento] = useState<string>("");
     const [loading, setLoading] = useState(true);
     const [salvando, setSalvando] = useState(false);
     const [sucesso, setSucesso] = useState(false);
     const [erro, setErro] = useState("");
-
     const [dadosUsuario, setDadosUsuario] = useState<any>(null);
 
     useEffect(() => {
-        const idParaBusca = userId ?? usuarioId;
-
-        if (!idParaBusca) {
+        if (!userId) {
             setErro("Usuário não encontrado. Faça login novamente.");
             setLoading(false);
             return;
         }
 
-        const url = userId
-            ? `http://localhost:8080/api/diario_saude/usuario/por-user/${userId}`
-            : `http://localhost:8080/api/diario_saude/usuario/${usuarioId}`;
+        const nomeReal = usuarioLogado?.username ?? usuarioLogado?.name ?? "";
 
-        fetch(url, {
+        http.get(`/api/diario_saude/usuario/por-user/${userId}`, {
             headers: { Authorization: `Bearer ${token}` },
+            params: nomeReal ? { nome: nomeReal } : undefined,
         })
-            .then(async r => {
-                if (!r.ok) throw new Error();
-                return r.json();
-            })
-            .then(data => {
-                console.log("DADOS DO USUARIO:", JSON.stringify(data));
+            .then(({ data }) => {
                 setDadosUsuario(data);
-                setPeso(data.peso?.toString() ?? "");
-                setAltura(data.altura?.toString() ?? "");
+                setPeso(data.peso > 0 ? data.peso.toString() : "");
+                setAltura(data.altura > 0 ? data.altura.toString() : "");
+                setDataNascimento(parseDateToInput(data.dataNascimento));
             })
             .catch(() => setErro("Erro ao carregar dados. Tente novamente."))
             .finally(() => setLoading(false));
-    }, [userId, usuarioId]);
+    }, [userId]);
 
     const handleSalvar = async () => {
         const pesoNum = parseFloat(peso);
@@ -70,6 +84,8 @@ export default function DadosBiometricosPage() {
             return setErro("Informe um peso válido (entre 1 e 300 kg).");
         if (!altura || isNaN(alturaNum) || alturaNum <= 0 || alturaNum > 250)
             return setErro("Informe uma altura válida (entre 1 e 250 cm).");
+        if (!dataNascimento)
+            return setErro("Informe a data de nascimento.");
         if (!dadosUsuario)
             return setErro("Dados do usuário não carregados. Recarregue a página.");
 
@@ -77,33 +93,22 @@ export default function DadosBiometricosPage() {
         setSalvando(true);
 
         try {
-            const idAtual = dadosUsuario.id_usuario ?? null;
-
-            if (!idAtual) {
-                setErro("Não foi possível identificar o registro. Recarregue a página.");
-                return;
-            }
-
-            const putResp = await fetch(
-                `http://localhost:8080/api/diario_saude/usuario`,
+            const { data } = await http.put(
+                `/api/diario_saude/usuario`,
                 {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                    body: JSON.stringify({
-                        ...dadosUsuario,       // já tem userId correto vindo do backend
-                        id_usuario: idAtual,
-                        peso: pesoNum,
-                        altura: alturaNum,
-                    }),
-                }
+                    ...dadosUsuario,
+                    id_usuario: dadosUsuario.id_usuario,
+                    peso: pesoNum,
+                    altura: alturaNum,
+                    dataNascimento,
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
             );
-            if (!putResp.ok) throw new Error("Erro ao salvar.");
 
-            // ✅ atualiza o estado local com os novos valores sem precisar recarregar
-            setDadosUsuario((prev: any) => ({ ...prev, peso: pesoNum, altura: alturaNum }));
+            setDadosUsuario(data);
+            setPeso(data.peso > 0 ? data.peso.toString() : pesoNum.toString());
+            setAltura(data.altura > 0 ? data.altura.toString() : alturaNum.toString());
+            setDataNascimento(parseDateToInput(data.dataNascimento));
             setSucesso(true);
             setTimeout(() => setSucesso(false), 3000);
         } catch (e: any) {
@@ -120,6 +125,16 @@ export default function DadosBiometricosPage() {
         return (p / (a * a)).toFixed(1);
     })();
 
+    const idadeCalculada = (() => {
+        if (!dataNascimento) return null;
+        const hoje = new Date();
+        const nasc = new Date(dataNascimento);
+        let idade = hoje.getFullYear() - nasc.getFullYear();
+        const m = hoje.getMonth() - nasc.getMonth();
+        if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+        return idade;
+    })();
+
     const classificacaoImc = (valor: number) => {
         if (valor < 18.5) return { label: "Abaixo do peso", color: "#1565c0" };
         if (valor < 25) return { label: "Peso normal", color: "#2e7d32" };
@@ -129,7 +144,6 @@ export default function DadosBiometricosPage() {
 
     return (
         <Container maxWidth="sm" sx={{ py: 4 }}>
-
             <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3, borderTop: "4px solid #1565c0" }}>
                 <Box display="flex" justifyContent="space-between" alignItems="center">
                     <Box display="flex" alignItems="center" gap={1.5}>
@@ -143,9 +157,7 @@ export default function DadosBiometricosPage() {
                             </Typography>
                         </Box>
                     </Box>
-                    <Button onClick={() => navigate(-1)} sx={{ textTransform: "none" }}>
-                        Voltar
-                    </Button>
+                    <Button onClick={() => navigate(-1)}>Voltar</Button>
                 </Box>
             </Paper>
 
@@ -156,7 +168,6 @@ export default function DadosBiometricosPage() {
                     </Box>
                 ) : (
                     <Stack spacing={3}>
-
                         {sucesso && (
                             <Alert severity="success" sx={{ borderRadius: 2 }}>
                                 Dados atualizados com sucesso!
@@ -168,6 +179,25 @@ export default function DadosBiometricosPage() {
                             </Alert>
                         )}
 
+                        {/* Data de Nascimento */}
+                        <Box>
+                            <Box display="flex" alignItems="center" gap={1} mb={1}>
+                                <CakeIcon color="primary" fontSize="small" />
+                                <Typography fontWeight={600}>Data de Nascimento</Typography>
+                            </Box>
+                            <TextField
+                                fullWidth
+                                label="Data de Nascimento *"
+                                type="date"
+                                value={dataNascimento}
+                                onChange={e => setDataNascimento(e.target.value)}
+                                InputLabelProps={{ shrink: true }}
+                                inputProps={{ max: new Date().toISOString().split("T")[0] }}
+                                helperText={idadeCalculada !== null ? `${idadeCalculada} anos` : ""}
+                            />
+                        </Box>
+
+                        {/* Peso */}
                         <Box>
                             <Box display="flex" alignItems="center" gap={1} mb={1}>
                                 <MonitorWeightIcon color="primary" fontSize="small" />
@@ -175,7 +205,7 @@ export default function DadosBiometricosPage() {
                             </Box>
                             <TextField
                                 fullWidth
-                                label="Peso (kg)"
+                                label="Peso (kg) *"
                                 type="number"
                                 value={peso}
                                 onChange={e => setPeso(e.target.value)}
@@ -184,6 +214,7 @@ export default function DadosBiometricosPage() {
                             />
                         </Box>
 
+                        {/* Altura */}
                         <Box>
                             <Box display="flex" alignItems="center" gap={1} mb={1}>
                                 <StraightenIcon color="primary" fontSize="small" />
@@ -191,7 +222,7 @@ export default function DadosBiometricosPage() {
                             </Box>
                             <TextField
                                 fullWidth
-                                label="Altura (cm)"
+                                label="Altura (cm) *"
                                 type="number"
                                 value={altura}
                                 onChange={e => setAltura(e.target.value)}
@@ -200,6 +231,7 @@ export default function DadosBiometricosPage() {
                             />
                         </Box>
 
+                        {/* IMC */}
                         {imc && (
                             <>
                                 <Divider />
@@ -239,7 +271,6 @@ export default function DadosBiometricosPage() {
                         >
                             {salvando ? "Salvando..." : "Salvar Alterações"}
                         </Button>
-
                     </Stack>
                 )}
             </Paper>

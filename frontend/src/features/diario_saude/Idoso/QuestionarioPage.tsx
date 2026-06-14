@@ -114,8 +114,9 @@ export default function QuestionarioPage() {
     const pontuacaoAtual = respostasExistentes!.reduce((acc, r) => acc + (r.peso ?? 0), 0);
 
     const classificacao = (() => {
-      if (pontuacaoAtual <= 3) return { label: "Robusto", color: "#2e7d32", descricao: "Sem fragilidade detectada." };
-      if (pontuacaoAtual <= 7) return { label: "Pré-frágil", color: "#f57c00", descricao: "Atenção recomendada." };
+      if (pontuacaoAtual <= 6) return { label: "Robusto", color: "#2e7d32", descricao: "Sem fragilidade detectada." };
+      if (pontuacaoAtual <= 14) return { label: "Em risco", color: "#f57c00", descricao: "Atenção recomendada." };
+      if (pontuacaoAtual <= 20) return { label: "Moderadamente frágil", color: "#e65100", descricao: "Acompanhamento recomendado." };
       return { label: "Frágil", color: "#c62828", descricao: "Acompanhamento necessário." };
     })();
 

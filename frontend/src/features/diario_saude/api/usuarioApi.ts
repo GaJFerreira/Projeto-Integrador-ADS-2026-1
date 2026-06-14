@@ -7,6 +7,13 @@ const getAuthHeader = () => ({
   Authorization: `Bearer ${localStorage.getItem("token")}`,
 });
 
+const getUsuarioLogado = () => {
+  try {
+    return JSON.parse(localStorage.getItem("usuario") || "null") ||
+      JSON.parse(localStorage.getItem("user") || "null");
+  } catch { return null; }
+};
+
 export const usuarioApi = {
   porId: async (id: number): Promise<Usuario> => {
     const { data } = await http.get(`${base}/${id}`, { headers: getAuthHeader() });
@@ -26,10 +33,14 @@ export const usuarioApi = {
   },
 
   porUsuarioId: async (userId: number): Promise<Usuario> => {
+    // Pega o nome real do localStorage — a resposta do login tem username com o nome real
+    const usuarioLogado = getUsuarioLogado();
+    const nomeReal = usuarioLogado?.username ?? usuarioLogado?.name ?? "";
+
     const { data } = await http.get(`${base}/por-user/${userId}`, {
-      headers: getAuthHeader()
+      headers: getAuthHeader(),
+      params: nomeReal ? { nome: nomeReal } : undefined,
     });
     return data;
   },
-
 };

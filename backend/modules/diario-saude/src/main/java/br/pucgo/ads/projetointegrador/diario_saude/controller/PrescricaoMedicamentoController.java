@@ -16,22 +16,27 @@ public class PrescricaoMedicamentoController {
     private PrescricaoMedicamentoService service;
 
     @GetMapping
-    public List<PrescricaoMedicamentoDTO> listarTodos(){
+    public List<PrescricaoMedicamentoDTO> listarTodos() {
         return service.listarTodos();
     }
 
+    @GetMapping("/prescricao/{idPrescricao}")
+    public ResponseEntity<List<PrescricaoMedicamentoDTO>> listarPorPrescricao(@PathVariable Long idPrescricao) {
+        return ResponseEntity.ok(service.listarPorPrescricao(idPrescricao));
+    }
+
     @PostMapping
-    public void inserir(@RequestBody PrescricaoMedicamentoDTO dto){
+    public void inserir(@RequestBody PrescricaoMedicamentoDTO dto) {
         service.inserir(dto);
     }
 
     @PutMapping
-    public PrescricaoMedicamentoDTO alterar(@RequestBody PrescricaoMedicamentoDTO dto){
+    public PrescricaoMedicamentoDTO alterar(@RequestBody PrescricaoMedicamentoDTO dto) {
         return service.alterar(dto);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> excluir(@PathVariable Long id){
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
         service.excluir(id);
         return ResponseEntity.ok().build();
     }

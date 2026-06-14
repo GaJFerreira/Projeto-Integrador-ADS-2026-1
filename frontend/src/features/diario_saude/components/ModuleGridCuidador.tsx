@@ -1,38 +1,20 @@
 import { Box, Paper, Typography } from '@mui/material';
-import QuizIcon from '@mui/icons-material/Quiz';
-import CoronavirusIcon from '@mui/icons-material/Coronavirus';
-import LinkIcon from '@mui/icons-material/Link';
+import PeopleIcon from '@mui/icons-material/People';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate } from 'react-router-dom';
 
 const items = [
     {
-        icon: <QuizIcon sx={{ fontSize: 28 }} />,
-        title: 'Gerenciar Questionário',
-        desc: 'Adicionar, editar ou excluir perguntas.',
-        path: '/admin/questionario',
-        color: "#f57c00",
-        bgcolor: "#fff3e0",
-    },
-    {
-        icon: <CoronavirusIcon sx={{ fontSize: 28 }} />,
-        title: 'Alergias e Doenças',
-        desc: 'Cadastro de alergias e doenças.',
-        path: '/admin/cadastro-alergia-doenca',
-        color: "#c62828",
-        bgcolor: "#ffebee",
-    },
-    {
-        icon: <LinkIcon sx={{ fontSize: 28 }} />,
-        title: 'Vínculos Cuidador-Paciente',
-        desc: 'Vincular e gerenciar cuidadores e pacientes.',
-        path: '/admin/vinculos-cuidador',
+        icon: <PeopleIcon sx={{ fontSize: 28 }} />,
+        title: 'Meus Pacientes',
+        desc: 'Ver e gerenciar seus pacientes vinculados.',
+        path: '/cuidador/pacientes',
         color: "#1565c0",
         bgcolor: "#e3f2fd",
     },
 ];
 
-export function ModuleGridAdmin() {
+export function ModuleGridCuidador() {
     const navigate = useNavigate();
 
     return (

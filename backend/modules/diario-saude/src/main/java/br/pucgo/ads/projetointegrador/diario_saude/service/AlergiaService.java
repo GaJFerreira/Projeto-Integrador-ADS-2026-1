@@ -6,6 +6,9 @@ import br.pucgo.ads.projetointegrador.diario_saude.repository.AlergiaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import br.pucgo.ads.projetointegrador.diario_saude.repository.UsuarioAlergiaRepository;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,6 +17,9 @@ public class AlergiaService {
 
     @Autowired
     private AlergiaRepository repository;
+
+    @Autowired
+    private UsuarioAlergiaRepository usuarioAlergiaRepository;
 
     public AlergiaEntity criarAlergia(AlergiaEntity alergia) {
         return repository.save(alergia);
@@ -55,6 +61,12 @@ public class AlergiaService {
         }
 
         return salvas;
+    }
+
+    @Transactional
+    public void deletarAlergia(Long id) {
+        usuarioAlergiaRepository.deleteByAlergia_Id(id);
+        repository.deleteById(id);
     }
 
 }

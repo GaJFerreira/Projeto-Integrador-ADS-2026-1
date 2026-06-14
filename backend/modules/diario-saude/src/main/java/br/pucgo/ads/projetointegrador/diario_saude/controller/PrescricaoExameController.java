@@ -23,31 +23,23 @@ public class PrescricaoExameController {
 
     @Autowired
     private PrescricaoExameService service;
-
     @Autowired
     private ExameRepository exameRepository;
-
     @Autowired
     private PrescricaoMedicaRepository prescricaoMedicaRepository;
-
     @Autowired
-    private PrescricaoExameRepository prescricaoExameRepository; // ← estava faltando
+    private PrescricaoExameRepository prescricaoExameRepository;
 
     @PostMapping
     public ResponseEntity<?> save(@RequestBody PrescricaoExameDTO dto) {
         PrescricaoExameEntity entity = new PrescricaoExameEntity(dto);
-
         ExameEntity exame = exameRepository.findById(dto.getId_exame()).orElse(null);
         PrescricaoMedicaEntity prescricaoMedica = prescricaoMedicaRepository
                 .findById(dto.getId_prescricao_medica()).orElse(null);
-
-        if (exame == null || prescricaoMedica == null) {
+        if (exame == null || prescricaoMedica == null)
             return ResponseEntity.badRequest().body("Exame ou Prescrição Médica não encontrado.");
-        }
-
         entity.setExame(exame);
         entity.setPrescricaoMedica(prescricaoMedica);
-
         return ResponseEntity.ok(service.save(entity));
     }
 
@@ -56,31 +48,35 @@ public class PrescricaoExameController {
         return ResponseEntity.ok(service.findAll());
     }
 
+    // Por prescrição — mantidos para compatibilidade
     @GetMapping("/prescricao/{idPrescricao}/pendentes")
-    public ResponseEntity<List<PrescricaoExameEntity>> findPendentes(
-            @PathVariable Long idPrescricao) {
-        return ResponseEntity.ok(
-                prescricaoExameRepository.findPendentesByPrescricao(idPrescricao));
+    public ResponseEntity<List<PrescricaoExameEntity>> findPendentes(@PathVariable Long idPrescricao) {
+        return ResponseEntity.ok(prescricaoExameRepository.findPendentesByPrescricao(idPrescricao));
     }
 
-    // Histórico de exames já analisados
     @GetMapping("/prescricao/{idPrescricao}/analisados")
-    public ResponseEntity<List<PrescricaoExameEntity>> findAnalisados(
-            @PathVariable Long idPrescricao) {
-        return ResponseEntity.ok(
-                prescricaoExameRepository.findAnalisadosByPrescricao(idPrescricao));
+    public ResponseEntity<List<PrescricaoExameEntity>> findAnalisados(@PathVariable Long idPrescricao) {
+        return ResponseEntity.ok(prescricaoExameRepository.findAnalisadosByPrescricao(idPrescricao));
+    }
+
+    // Por usuário — pendentes (para PedirExamesPage)
+    @GetMapping("/usuario/{idUsuario}/pendentes")
+    public ResponseEntity<List<PrescricaoExameEntity>> findPendentesByUsuario(@PathVariable Long idUsuario) {
+        return ResponseEntity.ok(prescricaoExameRepository.findPendentesByUsuario(idUsuario));
+    }
+
+    // Por usuário — todos (para RegistrarResultadoExamePage)
+    @GetMapping("/usuario/{idUsuario}/todos")
+    public ResponseEntity<List<PrescricaoExameEntity>> findAllByUsuario(@PathVariable Long idUsuario) {
+        return ResponseEntity.ok(prescricaoExameRepository.findAllByUsuario(idUsuario));
     }
 
     @PutMapping("/{id}/resultado")
-    public ResponseEntity<?> registrarResultado(
-            @PathVariable Long id,
-            @RequestBody Map<String, String> body) {
-
+    public ResponseEntity<?> registrarResultado(@PathVariable Long id, @RequestBody Map<String, String> body) {
         return prescricaoExameRepository.findById(id).map(exame -> {
             exame.setResultado(body.get("resultado"));
-            if (body.get("data_realizacao") != null) {
+            if (body.get("data_realizacao") != null)
                 exame.setData_realizacao(LocalDate.parse(body.get("data_realizacao")));
-            }
             return ResponseEntity.ok(prescricaoExameRepository.save(exame));
         }).orElse(ResponseEntity.notFound().build());
     }
