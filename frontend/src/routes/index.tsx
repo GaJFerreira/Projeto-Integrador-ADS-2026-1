@@ -24,7 +24,7 @@ import QuestionarioEldenCare from '@/features/eldercare/QuestionarioDemo';
 import { CareHubRoutes } from '@/features/carehub/routes/CareHubRoutes';
 
 //Diário Saúde
-        
+
 import InformacoesSaude from '@/features/diario_saude/Idoso/InformacoesSaude';
 import QuestionarioPage from '@/features/diario_saude/Idoso/QuestionarioPage';
 import HistoricoConsultasPage from '@/features/diario_saude/Idoso/HistoricoConsultasPage';
@@ -43,9 +43,9 @@ import MedicoRespostasQuestionarioPage from '@/features/diario_saude/Medico/Medi
 import RegistrarResultadoExamePage from '@/features/diario_saude/Medico/RegistrarResultadoExamePage';
 import GerenciarQuestionarioPage from '@/features/diario_saude/Admin/GerenciarQuestionarioPage';
 import CadastroAlergiaDoencaPage from '@/features/diario_saude/Admin/CadastroAlergiaDoencaPage';
-        
-//Lista Compras     
-        
+
+//Lista Compras
+
 import ListaComprasPage from '@/features/lista-compras/pages/ListaComprasPage';
 import CreateListaPage from '@/features/lista-compras/pages/CreateListaPage';
 import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
@@ -67,6 +67,25 @@ import HistoricoMedicamentosPage from '@/features/medicamentos/pages/HistoricoMe
 import ListaMedicamentosPage from '@/features/medicamentos/pages/ListaMedicamentosPage';
 import InitialPage from '@/features/medicamentos/pages/InicialPage';
 import EditarMedicamentoPage from "@/features/medicamentos/pages/EditarMedicamentoPage";
+
+//Sabor Familia
+
+import LoginSaborFamilia from '@/features/sabor_familia/pages/login/login';
+import CriarPerfil from '@/features/sabor_familia/pages/perfil/CriarPerfil';
+import { HomeSaborFamilia } from '@/features/sabor_familia/pages/home/HomeSaborFamilia';
+import AddReceita from '@/features/sabor_familia/pages/receita/AdicionarReceita';
+import EditarReceita from '@/features/sabor_familia/pages/receita/EditarReceita';
+import ReceitaDetalhe from '@/features/sabor_familia/pages/receita/ReceitaDetalhe';
+import ErrorSaborFamilia from '@/features/sabor_familia/pages/error/Error';
+import Perfil from '@/features/sabor_familia/pages/perfil/Perfil';
+import { Explorar } from '@/features/sabor_familia/pages/explorar/Explorar';
+import { Chat } from '@/features/sabor_familia/pages/chat/Chat';
+import { Favoritos } from '@/features/sabor_familia/pages/favoritos/Favoritos';
+import { VerSeguidores, VerSeguindo } from '@/features/sabor_familia/pages/ver_seguidores/VerSeguidores';
+import { Configuracoes } from '@/features/sabor_familia/pages/configuracoes/Configuracoes';
+import { AuthProvider } from '@/features/sabor_familia/context/AuthProvider';
+import SaborFamiliaModuleLayout from '@/features/sabor_familia/layout/SaborFamiliaModuleLayout';
+
 
 function Home() {
   return (
@@ -165,13 +184,39 @@ export function AppRoutes() {
 
          {/* Rotas de Medicamentos */}
          <Route path="dose-certa">
-         <Route path="" element={<InitialPage />} />
-         <Route path="cadastro" element={<CadastroMedicamento />} />
-         <Route path="editar/:id" element={<EditarMedicamentoPage />} />
-         <Route path="historico" element={<HistoricoMedicamentosPage />} />
-         <Route path="listagem" element={<ListaMedicamentosPage />} />
-         <Route path="lista" element={<ListaMedicamentosPage />} />
+           <Route path="" element={<InitialPage />} />
+           <Route path="cadastro" element={<CadastroMedicamento />} />
+           <Route path="editar/:id" element={<EditarMedicamentoPage />} />
+           <Route path="historico" element={<HistoricoMedicamentosPage />} />
+           <Route path="listagem" element={<ListaMedicamentosPage />} />
+           <Route path="lista" element={<ListaMedicamentosPage />} />
          </Route>
+
+        {/* Rotas Modulo Sabor_Familia */}
+        <Route
+          path="sabor-familia"
+          element={
+            <AuthProvider>
+              <SaborFamiliaModuleLayout />
+            </AuthProvider>
+          }
+        >
+          <Route path="login" element={<LoginSaborFamilia />} />
+          <Route path="cadastro" element={<CriarPerfil />} />
+          <Route path="home" element={<HomeSaborFamilia />} />
+          <Route path="explorar" element={<Explorar />} />
+          <Route path="mensagens" element={<Chat />} />
+          <Route path="configuracoes" element={<Configuracoes />} />
+          <Route path="favoritos" element={<Favoritos />} />
+          <Route path="perfil/:perfilId/seguidores" element={<VerSeguidores />} />
+          <Route path="perfil/:perfilId/seguindo" element={<VerSeguindo />} />
+          <Route path="receita/nova" element={<AddReceita />} />
+          <Route path="receita/:receitaId/editar" element={<EditarReceita />} />
+          <Route path="receita/:receitaId" element={<ReceitaDetalhe />} />
+          <Route path="perfil/:perfilId" element={<Perfil />} />
+          <Route path="error" element={<ErrorSaborFamilia />} />
+          <Route path="*" element={<ErrorSaborFamilia />} />
+        </Route>
 
       </Route>
     </Routes>
