@@ -30,16 +30,8 @@ const jogos: Jogo[] = [
         imagem: vacaVsOvni,
         link: "https://1drv.ms/f/c/a2639b7dc27c60fc/IgAABklKhSFWTpksHMVO0-VMAaJfwpk59i3sOMcsj5IG-S0",
     },
-    {
-        nome: "Jogo 2",
-        imagem: vacaVsOvni,
-        link: "https://1drv.ms/f/c/a2639b7dc27c60fc/IgAABklKhSFWTpksHMVO0-VMAaJfwpk59i3sOMcsj5IG-S0",
-    },
-    {
-        nome: "Jogo 3",
-        imagem: vacaVsOvni,
-        link: "https://1drv.ms/f/c/a2639b7dc27c60fc/IgAABklKhSFWTpksHMVO0-VMAaJfwpk59i3sOMcsj5IG-S0",
-    },
+
+
 ];
 
 const JogosPage: React.FC = () => {
@@ -101,10 +93,11 @@ const JogosPage: React.FC = () => {
 
                     <Grid container spacing={2} justifyContent="center">
                         {jogos.map((jogo, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={index}>
+                            <Grid item xs={12} sm={3} md={2} key={index}>
                                 <Card
                                     sx={{
-                                        height: "100%",
+                                        width: 220,
+                                        mx: "auto",
                                         display: "flex",
                                         flexDirection: "column",
                                         borderRadius: 2,
@@ -126,7 +119,7 @@ const JogosPage: React.FC = () => {
                                     >
                                         <CardMedia
                                             component="img"
-                                            height="200"
+                                            height="120"
                                             image={jogo.imagem}
                                             alt={jogo.nome}
                                             sx={{
@@ -138,7 +131,7 @@ const JogosPage: React.FC = () => {
                                             <Typography
                                                 variant="h6"
                                                 textAlign="center"
-                                                fontWeight={600}
+                                                fontWeight={500}
                                                 gutterBottom
                                             >
                                                 {jogo.nome}
