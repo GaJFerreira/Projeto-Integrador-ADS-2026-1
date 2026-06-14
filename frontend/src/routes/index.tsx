@@ -61,6 +61,18 @@ import AdminConquistasPage from '@/features/remember/pages/AdminConquistasPage';
 import AdminCreateConquistaPage from '@/features/remember/pages/AdminCreateConquistaPage';
 import AdminEditConquistaPage from '@/features/remember/pages/AdminEditConquistaPage';
 
+
+// Jogos
+import JogosPage from "@/features/jogos/pages/JogosPage.tsx";
+
+// Dose Certa
+import CadastroMedicamento from '@/features/medicamentos/components/CadastroMedicamento';
+import HistoricoMedicamentosPage from '@/features/medicamentos/pages/HistoricoMedicamentosPage';
+import ListaMedicamentosPage from '@/features/medicamentos/pages/ListaMedicamentosPage';
+import InitialPage from '@/features/medicamentos/pages/InicialPage';
+import EditarMedicamentoPage from "@/features/medicamentos/pages/EditarMedicamentoPage";
+
+
 //Sabor Familia
 
 import LoginSaborFamilia from '@/features/sabor_familia/pages/login/login';
@@ -175,6 +187,21 @@ export function AppRoutes() {
         <Route path="admin/conquistas" element={<AdminConquistasPage />} />
         <Route path="admin/conquistas/novo" element={<AdminCreateConquistaPage />} />
         <Route path="admin/conquistas/:id/edit" element={<AdminEditConquistaPage />} />
+
+
+        {/* Jogos */}
+        <Route path="jogos" element={<JogosPage/>}/>
+
+        {/* Rotas de Medicamentos */}
+        <Route path="dose-certa">
+        <Route path="" element={<InitialPage />} />
+        <Route path="cadastro" element={<CadastroMedicamento />} />
+        <Route path="editar/:id" element={<EditarMedicamentoPage />} />
+        <Route path="historico" element={<HistoricoMedicamentosPage />} />
+        <Route path="listagem" element={<ListaMedicamentosPage />} />
+        <Route path="lista" element={<ListaMedicamentosPage />} />
+        </Route>
+
 
         {/* Rotas Modulo Sabor_Familia */}
         <Route

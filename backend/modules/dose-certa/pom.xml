@@ -16,10 +16,11 @@
 	<description>Módulo Dose Certa - Controle de medicamentos para idosos</description>
 
 	<dependencies>
+
 		<dependency>
-			<groupId>br.pucgo.ads</groupId>
-			<artifactId>plataforma</artifactId>
-			<version>${project.version}</version>
+			<groupId>com.twilio.sdk</groupId>
+			<artifactId>twilio</artifactId>
+			<version>8.31.1</version>
 		</dependency>
 	</dependencies>
 
