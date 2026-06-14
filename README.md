@@ -23,14 +23,29 @@ O repositório está dividido em duas pastas principais:
 Contém as APIs da aplicação, divididas nos seguintes módulos principais:
 
 * **`plataforma/`**
-  Serviço Core (núcleo) da aplicação. Responsável pela segurança (SecurityConfig, JWT), gestão de usuários, papéis (roles) e permissões.
+  Serviço Core (núcleo) da aplicação. Responsável pela segurança, gestão unificada de usuários e perfis (CRM, Certificações, etc.), autenticação (JWT) e também por gerenciar o sistema dinâmico de Dúvidas, Sugestões e FAQ do portal.
 
 * **`sabor-da-familia/`**
   Serviço focado em receitas culinárias, contendo funcionalidades de curtidas, favoritos, comentários, restrições alimentares, chat e feed de usuários.
 
-* **Outros serviços:**
-  `care-hub/`, `care-keeper/`, `dose-certa/`, `elden-care/`, `remember/`
-  (Microsserviços de apoio para gestão de saúde e lembretes).
+* **`dose-certa/`** *(Em desenvolvimento na branch funcional)*
+  Módulo de gestão e lembretes de medicamentos. Focado em garantir a adesão correta aos tratamentos médicos, emitindo alertas sobre horários e controle de posologia.
+
+* **`care-hub/`**
+  Sistema central de monitoramento. Conecta pacientes a médicos e cuidadores, emitindo alertas em tempo real sobre situações de atenção ou emergência.
+
+* **`remember/`**
+  Diário cognitivo que estimula a memória através de registros diários. Possui um sistema gamificado de conquistas para incentivar a regularidade e acompanhar a evolução cognitiva.
+
+* **`elden-care/`**
+  Focado na saúde física e mobilidade. Gera planos de exercícios físicos personalizados para idosos baseados em questionários prévios de condicionamento físico.
+
+* **`lista-compras/`** *(Compre com Saúde)*
+  Gestão inteligente de listas de supermercado. Fornece templates alimentares e dicas alinhadas às restrições nutricionais e de saúde dos usuários.
+
+* **Outros serviços em andamento:**
+  `care-keeper/`, `diario-saude/`
+  (Microsserviços de apoio para acompanhamento biométrico e consultas médicas).
 
 ---
 
@@ -67,7 +82,7 @@ Antes de começar, certifique-se de ter instalado:
 
 ## ⚙️ Executando o Backend
 
-Como o backend é modular, você precisará rodar os serviços essenciais separadamente.
+Como o backend é modular, todas as dependências estão unificadas através da `plataforma`. Você só precisa rodar o módulo Core a partir da raiz do projeto para que todos os outros submódulos (como Sabor da Família, Remember, etc.) subam juntos.
 
 ### 1. Clone o repositório
 
@@ -80,48 +95,38 @@ cd Projeto-Integrador-ADS-2026-1
 
 ### 2. Configuração do Banco de Dados
 
-* Crie os bancos de dados no PostgreSQL conforme esperado pelos módulos
-* Verifique os arquivos:
+* Crie um banco de dados chamado `projeto_integrador` no PostgreSQL.
+* Verifique/Ajuste as credenciais no arquivo central:
 
 ```
-backend/plataforma/src/main/resources
-backend/sabor-da-familia/src/main/resources
+backend/plataforma/src/main/resources/application.properties
 ```
 
-* Ajuste as credenciais:
-
-```
-spring.datasource.username
-spring.datasource.password
+```properties
+spring.datasource.username=postgres
+spring.datasource.password=sua_senha
 ```
 
 ---
 
-### 3. Iniciando a Plataforma (Serviço Core)
+### 3. Iniciando a Aplicação Completa (Plataforma + Módulos)
 
+No terminal, estando **na raiz do projeto** (`Projeto-Integrador-ADS-2026-1`), execute o seguinte comando:
+
+**No Windows:**
 ```bash
-cd backend/plataforma
-./mvnw spring-boot:run
+./mvnw.cmd spring-boot:run --projects backend/plataforma
 ```
 
----
-
-### 4. Iniciando um Módulo (ex: Sabor da Família)
-
-Abra um novo terminal e execute:
-
+**No Linux/Mac:**
 ```bash
-cd backend/sabor-da-familia
-./mvnw spring-boot:run
+./mvnw spring-boot:run --projects backend/plataforma
 ```
 
-As APIs geralmente estarão disponíveis em:
-
+A API estará disponível na porta padrão:
 ```
 http://localhost:8080
 ```
-
-(ou em portas definidas nos arquivos `.properties`)
 
 ---
 
