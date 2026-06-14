@@ -63,19 +63,19 @@ export default function IniciarConsulta() {
     staleTime: 60_000,
   });
 
+  const nomeLogado = usuario?.username ?? usuario?.name ?? usuario?.nome ?? "";
+
   const filtered = pacientes.filter((p) =>
-    p != null && p.nome && p.nome.toLowerCase().includes(search.toLowerCase())
+    p != null && p.nome &&
+    p.nome.toLowerCase().includes(search.toLowerCase()) &&
+    p.nome.toLowerCase() !== nomeLogado.toLowerCase()
   );
 
   const criarOuReutilizarPrescricao = useMutation({
     mutationFn: async (pacienteSelecionado: any) => {
       if (!pacienteSelecionado?.id_usuario) throw new Error("Nenhum paciente selecionado");
 
-      const { data: pacienteModulo } = await http.get(
-        `/api/diario_saude/usuario/por-user/${pacienteSelecionado.platformUserId ?? pacienteSelecionado.id_usuario}`,
-        { headers: getAuthHeader() }
-      );
-      const idUsuario = pacienteModulo.id_usuario;
+      const idUsuario = pacienteSelecionado.id_usuario;
 
       const { data: prescricoes } = await http.get(
         `/api/diario_saude/prescricao/usuario/${idUsuario}`,
@@ -95,9 +95,11 @@ export default function IniciarConsulta() {
       return data as Prescricao;
     },
     onSuccess: (prescricao, pacienteSelecionado) => {
+      console.log("paciente selecionado:", pacienteSelecionado);
+      console.log("prescricao:", prescricao);
       navigate("/atendimento/dashboard", {
         state: {
-          paciente: { ...pacienteSelecionado, id_usuario: prescricao.id_usuario },
+          paciente: pacienteSelecionado,
           prescricao,
         },
       });

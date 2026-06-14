@@ -12,7 +12,6 @@ import CoronavirusIcon from "@mui/icons-material/Coronavirus";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import AssignmentIcon from "@mui/icons-material/Assignment";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
-import FavoriteIcon from "@mui/icons-material/Favorite";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import http from "@/lib/http";
@@ -24,9 +23,7 @@ function formatarData(data: any): string {
     return new Date(ano, mes - 1, dia).toLocaleDateString("pt-BR");
   }
   const str = String(data);
-  // Formato brasileiro "dd/MM/yyyy" — já está formatado
   if (str.includes("/")) return str;
-  // Formato ISO "yyyy-MM-dd"
   const [ano, mes, dia] = str.split("T")[0].split("-").map(Number);
   return new Date(ano, mes - 1, dia).toLocaleDateString("pt-BR");
 }
@@ -38,7 +35,6 @@ function calcularIdade(dataNascimento: any): number | null {
     nasc = new Date(dataNascimento[0], dataNascimento[1] - 1, dataNascimento[2]);
   } else {
     const str = String(dataNascimento);
-    // Formato brasileiro "dd/MM/yyyy"
     if (str.includes("/")) {
       const [dia, mes, ano] = str.split("/").map(Number);
       nasc = new Date(ano, mes - 1, dia);
@@ -73,11 +69,7 @@ function SecaoCard({ titulo, icone, cor, count, children }: {
   titulo: string; icone: React.ReactNode; cor: string; count: number; children: React.ReactNode;
 }) {
   return (
-    <Paper elevation={0} sx={{
-      borderRadius: 3,
-      border: "1px solid #e8eaf6",
-      overflow: "hidden",
-    }}>
+    <Paper elevation={0} sx={{ borderRadius: 3, border: "1px solid #e8eaf6", overflow: "hidden" }}>
       <Box sx={{
         px: 2.5, py: 1.5,
         bgcolor: `${cor}10`,
@@ -90,9 +82,7 @@ function SecaoCard({ titulo, icone, cor, count, children }: {
         </Box>
         <Chip label={count} size="small" sx={{ bgcolor: `${cor}20`, color: cor, fontWeight: 700, border: "none", fontSize: "0.8rem" }} />
       </Box>
-      <Box sx={{ p: 2.5 }}>
-        {children}
-      </Box>
+      <Box sx={{ p: 2.5 }}>{children}</Box>
     </Paper>
   );
 }
@@ -100,13 +90,9 @@ function SecaoCard({ titulo, icone, cor, count, children }: {
 function MetricaCard({ icone, valor, label, cor }: { icone: React.ReactNode; valor: string; label: string; cor: string }) {
   return (
     <Box sx={{
-      flex: 1,
-      p: 2,
-      borderRadius: 2.5,
-      border: "1px solid #e8eaf6",
-      bgcolor: "#fafbff",
-      textAlign: "center",
-      display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5,
+      flex: 1, p: 2, borderRadius: 2.5,
+      border: "1px solid #e8eaf6", bgcolor: "#fafbff",
+      textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 0.5,
     }}>
       <Box sx={{ color: cor }}>{icone}</Box>
       <Typography fontWeight={700} fontSize="1.2rem" color={cor}>{valor}</Typography>
@@ -115,10 +101,11 @@ function MetricaCard({ icone, valor, label, cor }: { icone: React.ReactNode; val
   );
 }
 
-export default function ProntuarioPacientePage() {
+export default function InformacoesSaude() {
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("token");
+
   const paciente = location.state?.paciente;
   const prescricao = location.state?.prescricao;
 
@@ -129,20 +116,50 @@ export default function ProntuarioPacientePage() {
     } catch { return null; }
   })();
 
-  const platformUserId = paciente?.platformUserId ?? usuarioLogado?.userId ?? usuarioLogado?.id;
-  const idUsuarioModulo: number = prescricao?.id_usuario ?? paciente?.id_usuario;
+  // id_usuario no módulo diário saúde (mais confiável quando disponível)
+  const idUsuarioModulo: number | undefined =
+    prescricao?.id_usuario ??
+    paciente?.id_usuario ??
+    undefined;
+
+  // platformUserId para buscar respostas do questionário
+  // Quando vem do cuidador, paciente.platformUserId é o ID da plataforma do PACIENTE
+  const platformUserId: number | undefined =
+    paciente?.platformUserId ??
+    usuarioLogado?.userId ??
+    usuarioLogado?.id ??
+    undefined;
+
+  console.log("DEBUG v2:", {
+    paciente,
+    prescricao,
+    idUsuarioModulo,
+    platformUserId,
+    usuarioLogado,
+  });
   const headers = { Authorization: `Bearer ${token}` };
 
+  // Busca dados clínicos — prioriza id_usuario direto, fallback para por-user
   const { data: dadosClinicos, isLoading: loadingDados } = useQuery({
-    queryKey: ["prontuario", "dados", platformUserId],
+    queryKey: ["prontuario", "dados", idUsuarioModulo ?? platformUserId],
     queryFn: async () => {
-      const { data } = await http.get(`/api/diario_saude/usuario/por-user/${platformUserId}`, { headers });
+      if (idUsuarioModulo) {
+        const { data } = await http.get(`/api/diario_saude/usuario/${idUsuarioModulo}`, { headers });
+        return data;
+      }
+      const nomeUsuario = encodeURIComponent(paciente?.nome ?? usuarioLogado?.name ?? usuarioLogado?.nome ?? "");
+      const { data } = await http.get(`/api/diario_saude/usuario/por-user/${platformUserId}?nome=${nomeUsuario}`, { headers });
       return data;
     },
-    enabled: !!platformUserId,
+    enabled: !!idUsuarioModulo || !!platformUserId,
   });
 
-  const idUsuario: number = idUsuarioModulo ?? dadosClinicos?.id_usuario;
+  // ID definitivo para buscar doenças, alergias e prescrições
+  const idUsuario: number | undefined = idUsuarioModulo ?? dadosClinicos?.id_usuario;
+
+  // platformUserId definitivo para questionário
+  const platformUserIdFinal: number | undefined =
+    platformUserId ?? dadosClinicos?.platformUserId;
 
   const { data: doencas = [], isLoading: loadingDoencas } = useQuery({
     queryKey: ["prontuario", "doencas", idUsuario],
@@ -172,12 +189,12 @@ export default function ProntuarioPacientePage() {
   });
 
   const { data: respostas = [] } = useQuery({
-    queryKey: ["prontuario", "questionario", platformUserId],
+    queryKey: ["prontuario", "questionario", platformUserIdFinal],
     queryFn: async () => {
-      const { data } = await http.get(`/api/diario_saude/questionario/respostas/${platformUserId}`, { headers });
+      const { data } = await http.get(`/api/diario_saude/questionario/respostas/${platformUserIdFinal}`, { headers });
       return Array.isArray(data) ? data : [];
     },
-    enabled: !!platformUserId,
+    enabled: !!platformUserIdFinal,
   });
 
   const pontuacaoTotal = respostas.reduce((acc: number, r: any) => acc + (r.peso ?? 0), 0);
@@ -186,7 +203,7 @@ export default function ProntuarioPacientePage() {
   const todosExercicios = prescricoes.flatMap((p: any) => Array.isArray(p.exerciciosRecomendados) ? p.exerciciosRecomendados : []);
 
   const carregando = loadingDados || loadingDoencas || loadingAlergias || loadingPrescricoes;
-  const nomePaciente = dadosClinicos?.nome ?? paciente?.nome ?? "Paciente";
+  const nomePaciente = dadosClinicos?.nome ?? paciente?.nome ?? usuarioLogado?.name ?? usuarioLogado?.nome ?? "Paciente";
   const inicial = nomePaciente[0]?.toUpperCase() ?? "P";
   const idade = calcularIdade(dadosClinicos?.dataNascimento) ?? dadosClinicos?.idade;
   const imc = dadosClinicos?.peso > 0 && dadosClinicos?.altura > 0
@@ -199,7 +216,6 @@ export default function ProntuarioPacientePage() {
 
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
-      {/* Cabeçalho */}
       <Paper elevation={0} sx={{ p: 3, mb: 3, borderRadius: 3, border: "1px solid #e8eaf6", borderTop: "4px solid #1565c0" }}>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Box display="flex" alignItems="center" gap={1.5}>
@@ -220,16 +236,9 @@ export default function ProntuarioPacientePage() {
       ) : (
         <Stack spacing={2}>
 
-          {/* Card de identificação */}
           <Paper elevation={0} sx={{ p: 3, borderRadius: 3, border: "1px solid #e8eaf6", background: "linear-gradient(135deg, #f8f9ff 0%, #eef2ff 100%)" }}>
             <Box display="flex" alignItems="center" gap={2} mb={2.5}>
-              <Avatar sx={{
-                width: 60, height: 60,
-                bgcolor: "#1565c0",
-                fontSize: "1.5rem",
-                fontWeight: 700,
-                boxShadow: "0 2px 8px #1565c040"
-              }}>
+              <Avatar sx={{ width: 60, height: 60, bgcolor: "#1565c0", fontSize: "1.5rem", fontWeight: 700, boxShadow: "0 2px 8px #1565c040" }}>
                 {inicial}
               </Avatar>
               <Box flex={1}>
@@ -250,7 +259,6 @@ export default function ProntuarioPacientePage() {
               </Box>
             </Box>
 
-            {/* Métricas biométricas */}
             {(dadosClinicos?.peso > 0 || dadosClinicos?.altura > 0 || imc) && (
               <>
                 <Divider sx={{ mb: 2 }} />
@@ -274,7 +282,6 @@ export default function ProntuarioPacientePage() {
             )}
           </Paper>
 
-          {/* Doenças */}
           <SecaoCard titulo="Doenças Diagnosticadas" icone={<CoronavirusIcon sx={{ color: "#c62828", fontSize: 20 }} />} cor="#c62828" count={doencas.length}>
             {doencas.length === 0 ? vazioMsg("Nenhuma doença registrada.") : (
               <Box display="flex" gap={1} flexWrap="wrap">
@@ -286,7 +293,6 @@ export default function ProntuarioPacientePage() {
             )}
           </SecaoCard>
 
-          {/* Alergias */}
           <SecaoCard titulo="Alergias" icone={<WarningAmberIcon sx={{ color: "#e65100", fontSize: 20 }} />} cor="#e65100" count={alergias.length}>
             {alergias.length === 0 ? vazioMsg("Nenhuma alergia registrada.") : (
               <Box display="flex" gap={1} flexWrap="wrap">
@@ -298,7 +304,6 @@ export default function ProntuarioPacientePage() {
             )}
           </SecaoCard>
 
-          {/* Receituário */}
           <SecaoCard titulo="Receituário Médico" icone={<MedicationIcon sx={{ color: "#c62828", fontSize: 20 }} />} cor="#c62828" count={todosMedicamentos.length}>
             {todosMedicamentos.length === 0 ? vazioMsg("Nenhum medicamento prescrito.") : (
               <Stack spacing={1.5}>
@@ -318,7 +323,6 @@ export default function ProntuarioPacientePage() {
             )}
           </SecaoCard>
 
-          {/* Exames */}
           <SecaoCard titulo="Exames" icone={<ScienceIcon sx={{ color: "#f57c00", fontSize: 20 }} />} cor="#f57c00" count={todosExames.length}>
             {todosExames.length === 0 ? vazioMsg("Nenhum exame solicitado.") : (
               <Stack spacing={1}>
@@ -340,7 +344,6 @@ export default function ProntuarioPacientePage() {
             )}
           </SecaoCard>
 
-          {/* Exercícios */}
           <SecaoCard titulo="Exercícios Recomendados" icone={<FitnessCenterIcon sx={{ color: "#2e7d32", fontSize: 20 }} />} cor="#2e7d32" count={todosExercicios.length}>
             {todosExercicios.length === 0 ? vazioMsg("Nenhuma recomendação de exercício.") : (
               <Stack spacing={1}>

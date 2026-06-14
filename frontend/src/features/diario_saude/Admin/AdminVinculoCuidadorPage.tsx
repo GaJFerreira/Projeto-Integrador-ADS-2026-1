@@ -75,7 +75,7 @@ export default function AdminVinculoCuidadorPage() {
         mutationFn: async () => {
             // Busca o registro clínico do idoso selecionado para pegar o id_usuario
             const { data: clinico } = await http.get(
-                `/api/diario_saude/usuario/por-user/${pacienteSelecionado.id}`,
+                `/api/diario_saude/usuario/por-user/${pacienteSelecionado.id}?nome=${encodeURIComponent(pacienteSelecionado.name ?? "")}`,
                 { headers }
             );
             await http.post("/api/diario_saude/cuidador-paciente/vincular", null, {

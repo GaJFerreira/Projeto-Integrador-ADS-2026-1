@@ -63,6 +63,8 @@ export default function DashboardMedico() {
         if (!id) return;
         questionarioApi.obterRespostas(id).then((respostas) => {
             const total = respostas.reduce((acc: number, r: any) => acc + r.peso, 0);
+            console.log("respostas:", respostas);
+            console.log("pontuacao total:", total);
             setPontuacao(total);
         });
     }, [paciente?.id_usuario]);
