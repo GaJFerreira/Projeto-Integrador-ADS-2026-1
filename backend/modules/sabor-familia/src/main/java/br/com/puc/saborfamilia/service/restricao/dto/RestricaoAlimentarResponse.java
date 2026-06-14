@@ -1,6 +1,6 @@
 package br.com.puc.saborfamilia.service.restricao.dto;
 
-import br.com.puc.saborfamilia.database.enums.StatusEnum;
+import br.com.puc.saborfamilia.enums.StatusEnum;
 import java.time.LocalDateTime;
 
 public record RestricaoAlimentarResponse(

@@ -19,9 +19,15 @@ interface DiarioCardProps {
     onDelete: (id: number) => void; // Nova prop para deletar
 }
 
+type DiarioComDatasAlternativas = Diario & {
+    data_escrita?: string;
+    data?: string;
+};
+
 export default function DiarioCard({ diario, onClick, onDelete }: DiarioCardProps) {
+    const diarioComDatas = diario as DiarioComDatasAlternativas;
     const dataFormatada = formatarDataRemember(
-        diario.dataEscrita ?? (diario as any).data_escrita ?? (diario as any).data
+        diario.dataEscrita ?? diarioComDatas.data_escrita ?? diarioComDatas.data
     );
 
     // Função para evitar que o clique na lixeira abra o card

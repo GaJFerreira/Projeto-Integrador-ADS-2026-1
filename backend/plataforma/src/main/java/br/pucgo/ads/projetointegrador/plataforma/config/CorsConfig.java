@@ -35,7 +35,9 @@ public class CorsConfig {
             "Content-Type",
             "Accept",
             "Origin",
-            "X-Requested-With"
+            "X-Requested-With",
+            "Cache-Control",
+            "Pragma"
         ));
         
         // Expor headers na resposta

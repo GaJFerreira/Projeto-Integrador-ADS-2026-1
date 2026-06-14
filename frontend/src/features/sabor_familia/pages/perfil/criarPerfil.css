@@ -1,0 +1,146 @@
+@import "../../components/common/sfSectionAccent.css";
+@import "../../components/common/sfPillToggle.css";
+@import "../configuracoes/configuracoes.css";
+
+.cp-main {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  background: linear-gradient(
+    180deg,
+    rgba(186, 117, 23, 0.045) 0%,
+    var(--bg) 140px
+  );
+  padding: 2rem 1.5rem 2.5rem;
+  padding-bottom: max(2.5rem, env(safe-area-inset-bottom, 0px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.cp-main::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cp-main::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb, #b0a090);
+  border-radius: 4px;
+}
+
+.cp-container {
+  width: 100%;
+  max-width: 580px;
+  display: flex;
+  flex-direction: column;
+}
+
+.cp-header {
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid rgba(186, 117, 23, 0.12);
+}
+
+.cp-eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.cp-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--text);
+  margin: 0 0 6px;
+  line-height: 1.25;
+}
+
+.cp-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.cp-profile-header--cadastro {
+  margin-bottom: 1rem;
+}
+
+.cp-profile-avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  color: var(--brand);
+  background: rgba(186, 117, 23, 0.08);
+}
+
+.cp-optional {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.cp-loading {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-style: italic;
+}
+
+.cp-error {
+  font-size: 13px;
+  font-weight: 600;
+  color: #c00;
+  background: #fff0f0;
+  border: 1px solid #fcc;
+  border-radius: 8px;
+  padding: 0.65rem 0.9rem;
+  font-family: var(--font-sans);
+  margin: 0 0 1rem;
+}
+
+.cp-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+.cp-login-link {
+  text-align: center;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  color: var(--text-muted);
+  margin: 1.25rem 0 0;
+}
+
+.cp-link-btn {
+  background: none;
+  border: none;
+  color: var(--brand);
+  font-size: 13px;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.cp-link-btn:hover {
+  color: var(--brand-dark);
+}

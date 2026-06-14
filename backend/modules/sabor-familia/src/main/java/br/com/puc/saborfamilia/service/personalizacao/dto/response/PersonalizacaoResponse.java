@@ -1,7 +1,7 @@
 package br.com.puc.saborfamilia.service.personalizacao.dto.response;
 
-import br.com.puc.saborfamilia.database.enums.CategoriaPersonalizacaoEnum;
-import br.com.puc.saborfamilia.database.enums.StatusEnum;
+import br.com.puc.saborfamilia.enums.CategoriaPersonalizacaoEnum;
+import br.com.puc.saborfamilia.enums.StatusEnum;
 
 public record PersonalizacaoResponse(
     Long id,

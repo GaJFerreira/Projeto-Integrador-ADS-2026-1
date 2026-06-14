@@ -16,6 +16,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import { useSnackbar } from 'notistack';
 import { adminConquistasApi, type UpdateConquistaPayload } from '../api/conquistas';
 import { usuarioPodeGerenciarConquistas } from '../utils/auth';
+import { getMensagemErroRemember } from '../utils/errors';
 
 interface ConquistaFormData {
     nome: string;
@@ -34,6 +35,7 @@ export default function AdminEditConquistaPage() {
 
     const conquistaId = useMemo(() => Number(id), [id]);
     const [loading, setLoading] = useState(false);
+    const [erroFormulario, setErroFormulario] = useState('');
 
     const [form, setForm] = useState<ConquistaFormData>({
         nome: '',
@@ -52,6 +54,7 @@ export default function AdminEditConquistaPage() {
 
     async function loadConquista() {
         setLoading(true);
+        setErroFormulario('');
         try {
             const data = await adminConquistasApi.porId(conquistaId);
 
@@ -63,8 +66,9 @@ export default function AdminEditConquistaPage() {
                 tipo: data.tipo,
                 iconeBase64: data.icone || '',
             });
-        } catch (err: any) {
-            const msg = err?.response?.data?.message || 'Erro ao carregar conquista.';
+        } catch (err: unknown) {
+            const msg = getMensagemErroRemember(err, 'Erro ao carregar conquista.');
+            setErroFormulario(msg);
             enqueueSnackbar(msg, { variant: 'error' });
         } finally {
             setLoading(false);
@@ -72,14 +76,25 @@ export default function AdminEditConquistaPage() {
     }
 
     function handleChange<K extends keyof ConquistaFormData>(key: K, value: ConquistaFormData[K]) {
+        setErroFormulario('');
         setForm((prev) => ({ ...prev, [key]: value }));
     }
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        setErroFormulario('');
 
-        if (!form.nome) {
-            enqueueSnackbar('O Nome é obrigatório.', { variant: 'warning' });
+        if (!form.nome.trim()) {
+            const mensagem = 'O nome e obrigatorio.';
+            setErroFormulario(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'warning' });
+            return;
+        }
+
+        if (!form.descricao.trim()) {
+            const mensagem = 'A descricao e obrigatoria.';
+            setErroFormulario(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'warning' });
             return;
         }
 
@@ -94,8 +109,9 @@ export default function AdminEditConquistaPage() {
 
             enqueueSnackbar('Conquista atualizada com sucesso!', { variant: 'success' });
             navigate('/admin/conquistas');
-        } catch (err: any) {
-            const msg = err?.response?.data?.message || 'Erro ao atualizar conquista.';
+        } catch (err: unknown) {
+            const msg = getMensagemErroRemember(err, 'Erro ao atualizar conquista.');
+            setErroFormulario(msg);
             enqueueSnackbar(msg, { variant: 'error' });
         } finally {
             setLoading(false);
@@ -133,6 +149,12 @@ export default function AdminEditConquistaPage() {
                             <Typography variant="h5" color="primary">
                                 Dados da Conquista
                             </Typography>
+
+                            {erroFormulario && (
+                                <Alert severity="error" onClose={() => setErroFormulario('')}>
+                                    {erroFormulario}
+                                </Alert>
+                            )}
 
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 1 }}>
                                 <Box

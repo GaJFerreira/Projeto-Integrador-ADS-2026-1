@@ -1,0 +1,87 @@
+.sf-voltar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.sf-voltar__icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: var(--brand);
+}
+
+.sf-voltar__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  line-height: 1.25;
+}
+
+.sf-voltar__prefixo {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.sf-voltar__destino {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Barra larga — foco de receita (explorar, perfil, favoritos) */
+.sf-voltar--barra {
+  width: 100%;
+  max-width: var(--feed-w, 680px);
+  margin: 0 auto 1.25rem;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.sf-voltar--barra:hover {
+  background: var(--brand-light);
+  border-color: var(--brand);
+  box-shadow: var(--shadow);
+}
+
+.sf-voltar--barra:hover .sf-voltar__destino {
+  color: var(--brand-dark);
+}
+
+/* Compacto — cabeçalho de listas (seguidores / seguindo) */
+.sf-voltar--compacto {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+}
+
+.sf-voltar--compacto .sf-voltar__text {
+  display: none;
+}
+
+.sf-voltar--compacto .sf-voltar__icon {
+  font-size: 1.25rem;
+}
+
+.sf-voltar--compacto:hover {
+  background: var(--brand-light);
+  border-color: var(--brand);
+}

@@ -82,7 +82,7 @@ public interface CuidadorRepository extends JpaRepository<Cuidador, Long> {
         // ── Projection queries ────────────────────────────────────────────────────
 
         @Query(value = "SELECT DISTINCT ON (c.id) " +
-                        "  c.id as \"id\", c.name as \"name\", c.email as \"email\", c.telefone as \"phone\", " +
+                        "  c.id as \"id\", c.platform_user_id as \"platformUserId\", c.name as \"name\", c.email as \"email\", c.telefone as \"phone\", " +
                         "  c.experiencia as \"experiencia\", c.cidade as \"cidade\", c.estado as \"estado\", " +
                         "  c.disponibilidade as \"disponibilidade\", c.taxa_hora as \"taxaHora\", " +
                         "  c.avaliacao_media as \"avaliacaoMedia\", c.total_avaliacoes as \"totalAvaliacoes\", " +

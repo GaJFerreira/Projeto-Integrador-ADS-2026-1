@@ -1,0 +1,89 @@
+.receita-acoes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.receita-acoes__buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.receita-acoes__btn {
+  padding: 6px 14px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.receita-acoes__btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.receita-acoes__btn--editar {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.receita-acoes__btn--editar:hover:not(:disabled) {
+  border-color: var(--brand);
+  color: var(--brand);
+}
+
+.receita-acoes__btn--apagar {
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid rgba(220, 53, 69, 0.35);
+}
+
+.receita-acoes__btn--apagar:hover:not(:disabled) {
+  background: #fff5f5;
+  border-color: var(--danger);
+}
+
+/* Cabeçalho do card no feed */
+.receita-acoes--inline .receita-acoes__btn {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+/* Painel de detalhes (ao abrir a receita) */
+.receita-acoes--panel {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  margin-bottom: 1.25rem;
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.receita-acoes--panel .receita-acoes__label {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.receita-acoes--panel .receita-acoes__buttons {
+  width: 100%;
+}
+
+.receita-acoes--panel .receita-acoes__btn {
+  flex: 1;
+  text-align: center;
+  padding: 9px 14px;
+  font-size: 14px;
+}

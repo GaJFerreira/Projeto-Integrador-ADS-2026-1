@@ -1,0 +1,18 @@
+/* Elevação compartilhada: sombra principal + contorno sutil (meio-termo borda grossa × só sombra) */
+
+:root {
+  --sf-pill-edge: rgba(186, 117, 23, 0.22);
+  --sf-pill-edge-hover: rgba(186, 117, 23, 0.34);
+  --sf-pill-shadow-idle:
+    0 1px 2px rgba(0, 0, 0, 0.05),
+    0 2px 6px rgba(186, 117, 23, 0.09);
+  --sf-pill-shadow-idle-hover:
+    0 2px 4px rgba(0, 0, 0, 0.07),
+    0 4px 10px rgba(186, 117, 23, 0.14);
+  --sf-pill-shadow-active:
+    0 2px 6px rgba(186, 117, 23, 0.26),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+  --sf-pill-shadow-active-hover:
+    0 3px 10px rgba(186, 117, 23, 0.32),
+    0 1px 3px rgba(0, 0, 0, 0.08);
+}

@@ -14,6 +14,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useMensagensNaoLidas } from '../hooks/useMensagensNaoLidas';
 import { getUserId, isCuidador as isRoleCuidador } from './auth';
 import { agendamentosApi } from '../api';
@@ -24,9 +25,7 @@ export function CareHubModuleGrid() {
   const [detectedCuidador, setDetectedCuidador] = useState<boolean | null>(null);
   const { data: naoLidas = 0 } = useMensagensNaoLidas(userId || 0);
   
-  // Contadores de notificações
-  const [pendentesCuidador, setPendentesCuidador] = useState<number>(0);
-  const [reagendadosCliente, setReagendadosCliente] = useState<number>(0);
+
 
   useEffect(() => {
     const id = getUserId();
@@ -64,29 +63,25 @@ export function CareHubModuleGrid() {
     setDetectedCuidador(false);
   }, [userId]);
 
-  // Carregar contadores de notificações
-  useEffect(() => {
-    const carregarContadores = async () => {
-      // Aguardar userId e detectedCuidador estarem definidos
-      if (!userId || detectedCuidador === null) return;
+  const { data: pendentesCuidador = 0 } = useQuery({
+    queryKey: ['pendentesCuidador', userId],
+    queryFn: async () => {
+      const { count } = await agendamentosApi.contarPendentesCuidador();
+      return count;
+    },
+    enabled: !!userId && detectedCuidador === true,
+    refetchInterval: 5000,
+  });
 
-      try {
-        if (detectedCuidador) {
-          // Cuidador: buscar agendamentos pendentes de confirmação
-          const { count } = await agendamentosApi.contarPendentesCuidador();
-          setPendentesCuidador(count);
-        } else {
-          // Cliente: buscar agendamentos reagendados (contrapropostas)
-          const { count } = await agendamentosApi.contarReagendadosCliente();
-          setReagendadosCliente(count);
-        }
-      } catch {
-        // Silenciosamente ignora erro
-      }
-    };
-
-    carregarContadores();
-  }, [userId, detectedCuidador]);
+  const { data: reagendadosCliente = 0 } = useQuery({
+    queryKey: ['reagendadosCliente', userId],
+    queryFn: async () => {
+      const { count } = await agendamentosApi.contarReagendadosCliente();
+      return count;
+    },
+    enabled: !!userId && detectedCuidador === false,
+    refetchInterval: 5000,
+  });
 
   // Módulos do Cliente (Dona Maria - ID 2)
   const clienteModules = [

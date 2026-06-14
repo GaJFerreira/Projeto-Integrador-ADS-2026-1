@@ -3,12 +3,14 @@ import {
     Box,
     Typography,
     CircularProgress,
+    Alert,
 } from '@mui/material';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import { useSnackbar } from 'notistack';
 import { lembrancasApi, type Lembranca } from '../api/lembrancas';
 import LembrancaCard from '../components/LembrancaCard';
 import LembrancaModal from '../components/LembrancaModal';
+import { getMensagemErroRemember } from '../utils/errors';
 
 interface LembrancasPageProps {
     usuarioId: number;
@@ -19,6 +21,7 @@ export default function LembrancasPage({ usuarioId }: LembrancasPageProps) {
 
     const [lembrancas, setLembrancas] = useState<Lembranca[]>([]);
     const [loading, setLoading] = useState(true);
+    const [erroPagina, setErroPagina] = useState('');
 
     // --- ESTADOS PARA EDIÇÃO ---
     const [modalOpen, setModalOpen] = useState(false);
@@ -32,11 +35,14 @@ export default function LembrancasPage({ usuarioId }: LembrancasPageProps) {
 
     async function carregarLembrancas() {
         setLoading(true);
+        setErroPagina('');
         try {
             const dados = await lembrancasApi.listarPorUsuario(usuarioId);
             setLembrancas(dados);
         } catch (error) {
-            enqueueSnackbar('Erro ao carregar suas lembranças.', { variant: 'error' });
+            const mensagem = getMensagemErroRemember(error, 'Erro ao carregar suas lembrancas.');
+            setErroPagina(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'error' });
         } finally {
             setLoading(false);
         }
@@ -53,13 +59,16 @@ export default function LembrancasPage({ usuarioId }: LembrancasPageProps) {
 
     // --- EXCLUIR LEMBRANÇA ---
     const handleDeleteLembranca = async (id: number) => {
+        setErroPagina('');
         try {
             await lembrancasApi.remover(id);
             enqueueSnackbar('Lembrança excluída com sucesso!', { variant: 'success' });
             // Atualiza a lista localmente removendo o item
             setLembrancas((prev) => prev.filter(l => l.identificadorLembranca !== id));
         } catch (error) {
-            enqueueSnackbar('Erro ao excluir lembrança.', { variant: 'error' });
+            const mensagem = getMensagemErroRemember(error, 'Erro ao excluir lembranca.');
+            setErroPagina(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'error' });
         }
     };
 
@@ -83,6 +92,12 @@ export default function LembrancasPage({ usuarioId }: LembrancasPageProps) {
 
     return (
         <>
+            {erroPagina && (
+                <Alert severity="error" onClose={() => setErroPagina('')} sx={{ mb: 3 }}>
+                    {erroPagina}
+                </Alert>
+            )}
+
             {lembrancas.length === 0 ? (
                 <Box textAlign="center" py={8} sx={{ opacity: 0.7 }}>
                     <AutoAwesomeIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />

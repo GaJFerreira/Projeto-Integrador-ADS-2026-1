@@ -30,7 +30,7 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
         SELECT *
         FROM sabor_familia.receita receita
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
-        AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
+        AND (:titulo IS NULL OR LOWER(receita.titulo) LIKE LOWER(CONCAT('%', :titulo, '%')))
         ORDER BY receita.data_cadastro DESC, receita.id DESC
       """,
     countQuery =
@@ -38,7 +38,7 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
         SELECT COUNT(*)
         FROM sabor_familia.receita receita
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
-        AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
+        AND (:titulo IS NULL OR LOWER(receita.titulo) LIKE LOWER(CONCAT('%', :titulo, '%')))
       """,
     nativeQuery = true
   )
@@ -56,7 +56,7 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
         LEFT JOIN sabor_familia.personalizacao_receita personalizacao ON personalizacao.receita_id = receita.id
         LEFT JOIN sabor_familia.personalizacao p ON p.id = personalizacao.personalizacao_id
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
-        AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
+        AND (:titulo IS NULL OR LOWER(receita.titulo) LIKE LOWER(CONCAT('%', :titulo, '%')))
         GROUP BY receita.id
         ORDER BY
           COUNT(CASE WHEN p.codigo IN (:codigosPersonalizacao) THEN 1 END) DESC,
@@ -68,7 +68,7 @@ public interface ReceitaRepository extends JpaRepository<ReceitaEntity, Long> {
         SELECT COUNT(*)
         FROM sabor_familia.receita receita
         WHERE (:tipoRefeicao IS NULL OR receita.tipo_refeicao = :tipoRefeicao)
-        AND (:titulo IS NULL OR receita.titulo LIKE CONCAT('%', :titulo, '%'))
+        AND (:titulo IS NULL OR LOWER(receita.titulo) LIKE LOWER(CONCAT('%', :titulo, '%')))
       """,
     nativeQuery = true
   )

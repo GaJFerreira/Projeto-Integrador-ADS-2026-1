@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Data
 @NoArgsConstructor
@@ -16,6 +17,7 @@ public class ProntuarioRequestDTO {
     @NotNull(message = "Cliente é obrigatório")
     private Long clienteId;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dataNascimento;
 
     @NotBlank(message = "Histórico médico é obrigatório")

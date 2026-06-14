@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { agendamentosApi, cuidadoresApi, clientesApi } from '../api';
+import { agendamentosApi, cuidadoresApi } from '../api';
 import type { AgendamentoRequestDTO } from '../types';
-import { Box, Button, Card, CardContent, Chip, CircularProgress, MenuItem, Stack, TextField, Typography, Paper, Divider, Alert, Avatar } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
+import { Box, Button, Card, CardContent, Chip, CircularProgress, MenuItem, Stack, TextField, Typography, Paper, Divider, Alert, Avatar, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useSnackbar } from '../libSnackbar';
 import { PageHeader } from '../components/PageHeader';
@@ -10,13 +11,16 @@ import { parseDate } from '../utils/dateUtils';
 import { CalendarMonth, Schedule, CheckCircle, Cancel, AccessTime, Person, LocationOn } from '@mui/icons-material';
 
 import { getUserId, isCuidador as isRoleCuidador, checkAndCacheUserType } from '../components/auth';
+import http from '../libHttp';
 
 export default function AgendamentosPage() {
+  const navigate = useNavigate();
   // feature-level accessibility styles
   import('../components/carehub-accessibility.css');
   const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
   const [isCuidador, setIsCuidador] = useState<boolean>(false);
+  const [openConfirmDialog, setOpenConfirmDialog] = useState<boolean>(false);
   const params = new URLSearchParams(window.location.search);
   const initialCuidador = Number(params.get('cuidadorId') || '') || undefined;
 
@@ -35,15 +39,27 @@ export default function AgendamentosPage() {
   useEffect(() => {
     const inicializar = async () => {
       await checkAndCacheUserType();
-      setIsCuidador(isRoleCuidador());
+      let perfilRole = '';
+      let perfilUserId: number | undefined;
 
-      const uid = getUserId();
-      if (uid) {
-        setClienteId(uid);
-        return;
+      try {
+        const { data } = await http.get('/api/carehub/perfil');
+        perfilRole = String(data?.role || '').toUpperCase();
+        perfilUserId = Number(data?.platformUserId || data?.id) || undefined;
+      } catch {
+        // Mantem fallback local quando o perfil nao puder ser carregado.
       }
 
-      clientesApi.listarTodos().then((arr) => setClienteId(arr[0]?.id));
+      const ehCuidador = perfilRole
+        ? perfilRole.includes('CUIDADOR')
+        : isRoleCuidador();
+
+      setIsCuidador(ehCuidador);
+
+      const uid = perfilUserId || getUserId();
+      if (uid) {
+        setClienteId(uid);
+      }
     };
     inicializar();
   }, []);
@@ -53,19 +69,19 @@ export default function AgendamentosPage() {
     queryKey: ['cuidadores-list'],
     queryFn: async () => {
       const arr = await cuidadoresApi.listarTodos();
-      return arr.map(c => ({ id: c.id, nome: c.nome }));
+      return arr.map(c => ({ id: c.platformUserId || c.id, nome: c.nome }));
     },
   });
 
   // Fetch agendamentos - APENAS quando tiver clienteId ou cuidadorId
   const { data: lista = [], isLoading, isError } = useQuery({
-    queryKey: ['agendamentos', cuidadorId, clienteId],
+    queryKey: ['agendamentos', isCuidador, cuidadorId, clienteId],
     queryFn: async () => {
-      if (cuidadorId) return agendamentosApi.porCuidador(cuidadorId);
+      if (isCuidador && cuidadorId) return agendamentosApi.porCuidador(cuidadorId);
       if (clienteId) return agendamentosApi.porCliente(clienteId);
       return [];
     },
-    enabled: !!(cuidadorId || clienteId), // CRUCIAL: só busca quando tem ID
+    enabled: !!(isCuidador ? cuidadorId : clienteId), // CRUCIAL: só busca quando tem ID
     staleTime: 5000, // Cache por 5 segundos
   });
 
@@ -74,9 +90,10 @@ export default function AgendamentosPage() {
     mutationFn: (dto: AgendamentoRequestDTO) => agendamentosApi.criar(dto),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      enqueueSnackbar('Agendamento criado com sucesso!', { variant: 'success' });
+      enqueueSnackbar('Agendamento realizado com sucesso!', { variant: 'success' });
       setInicio(dayjs().add(30, 'minute').format('YYYY-MM-DDTHH:mm'));
       setFim(dayjs().add(1, 'hour').add(30, 'minute').format('YYYY-MM-DDTHH:mm'));
+      navigate('/carehub');
     },
     onError: (error: any) => {
       const msg = error?.message || 'Erro ao criar agendamento';
@@ -98,6 +115,24 @@ export default function AgendamentosPage() {
     },
   });
 
+  const executarCriacao = () => {
+    setOpenConfirmDialog(false);
+    if (!cuidadorId || !clienteId) return;
+
+    const dInicio = dayjs(inicio);
+    const dFim = dayjs(fim);
+    const dataInicio = dInicio.toDate().toISOString();
+    const dataFim = dFim.toDate().toISOString();
+
+    criarMutation.mutate({
+      clienteId,
+      cuidadorId,
+      dataHoraInicio: dataInicio,
+      dataHoraFim: dataFim,
+      tipoAtendimento: tipo
+    });
+  };
+
   const criar = () => {
     if (!cuidadorId || !clienteId) {
       enqueueSnackbar('Selecione um cuidador', { variant: 'warning' });
@@ -118,17 +153,7 @@ export default function AgendamentosPage() {
       return;
     }
 
-    // ✅ Usar formato local sem conversão para UTC
-    const dataInicio = dInicio.toDate().toISOString();
-    const dataFim = dFim.toDate().toISOString();
-
-    criarMutation.mutate({
-      clienteId,
-      cuidadorId,
-      dataHoraInicio: dataInicio,
-      dataHoraFim: dataFim,
-      tipoAtendimento: tipo
-    });
+    setOpenConfirmDialog(true);
   };
 
   // -----------------------------------------------------------------------------------------------------------
@@ -616,20 +641,6 @@ export default function AgendamentosPage() {
 
                   {/* Botões de ação */}
                   <Stack direction="row" gap={1}>
-                    {a.clienteId === clienteId && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        color="error"
-                        disabled={atualizarStatusMutation.isPending || a.status === 'CANCELADO'}
-                        onClick={() => atualizarStatusMutation.mutate({ id: a.id, status: 'CANCELADO' })}
-                        fullWidth
-                        startIcon={<Cancel />}
-                        sx={{ borderRadius: 2, py: 0.75, textTransform: 'none', fontWeight: 'bold' }}
-                      >
-                        Cancelar
-                      </Button>
-                    )}
 
                     {isCuidador && a.cuidadorId === getUserId() && a.status !== 'CONFIRMADO' && a.status !== 'CANCELADO' && (
                       <Button
@@ -651,6 +662,33 @@ export default function AgendamentosPage() {
             );
           })}
       </Box>
+
+      <Dialog
+        open={openConfirmDialog}
+        onClose={() => setOpenConfirmDialog(false)}
+        aria-labelledby="confirm-dialog-title"
+        aria-describedby="confirm-dialog-description"
+        PaperProps={{
+          sx: { borderRadius: 3, p: 1 }
+        }}
+      >
+        <DialogTitle id="confirm-dialog-title" sx={{ fontWeight: 'bold' }}>
+          Confirmar Agendamento
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="confirm-dialog-description">
+            Deseja realmente solicitar este agendamento com o cuidador selecionado para o período informado?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setOpenConfirmDialog(false)} color="inherit" sx={{ fontWeight: 'bold' }}>
+            Cancelar
+          </Button>
+          <Button onClick={executarCriacao} variant="contained" color="primary" autoFocus sx={{ fontWeight: 'bold', borderRadius: 2 }}>
+            Confirmar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   );
 }

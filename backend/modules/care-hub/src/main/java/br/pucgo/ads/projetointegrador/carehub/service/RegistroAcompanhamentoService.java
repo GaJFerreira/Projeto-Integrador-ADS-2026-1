@@ -26,13 +26,13 @@ public class RegistroAcompanhamentoService {
     private AgendamentoRepository agendamentoRepository;
 
     @Transactional
-    public RegistroAcompanhamentoResponseDTO criarRegistro(Long cuidadorId, RegistroAcompanhamentoRequestDTO dto) {
+    public RegistroAcompanhamentoResponseDTO criarRegistro(Long cuidadorPlatformId, RegistroAcompanhamentoRequestDTO dto) {
         Long agendamentoId = Objects.requireNonNull(dto.getAgendamentoId(), "Agendamento ID não pode ser null");
 
         Agendamento agendamento = agendamentoRepository.findById(agendamentoId)
                 .orElseThrow(() -> new RuntimeException("Agendamento não encontrado"));
 
-        if (!agendamento.getCuidador().getId().equals(cuidadorId)) {
+        if (!agendamento.getCuidador().getPlatformUserId().equals(cuidadorPlatformId)) {
             throw new RuntimeException("Cuidador não autorizado para este agendamento");
         }
 
@@ -58,16 +58,16 @@ public class RegistroAcompanhamentoService {
     }
 
     @Transactional(readOnly = true)
-    public List<RegistroAcompanhamentoResponseDTO> listarPorCliente(Long clienteId) {
-        return registroRepository.findByClienteIdOrderByDataHoraRegistroDesc(clienteId)
+    public List<RegistroAcompanhamentoResponseDTO> listarPorCliente(Long clientePlatformId) {
+        return registroRepository.findByCliente_PlatformUserIdOrderByDataHoraRegistroDesc(clientePlatformId)
                 .stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public List<RegistroAcompanhamentoResponseDTO> listarPorCuidador(Long cuidadorId) {
-        return registroRepository.findByCuidadorIdOrderByDataHoraRegistroDesc(cuidadorId)
+    public List<RegistroAcompanhamentoResponseDTO> listarPorCuidador(Long cuidadorPlatformId) {
+        return registroRepository.findByCuidador_PlatformUserIdOrderByDataHoraRegistroDesc(cuidadorPlatformId)
                 .stream()
                 .map(this::toResponseDTO)
                 .collect(Collectors.toList());
@@ -95,9 +95,9 @@ public class RegistroAcompanhamentoService {
         dto.setId(registro.getId());
         dto.setAgendamentoId(registro.getAgendamento().getId());
         dto.setAgendamentoStatus(registro.getAgendamento().getStatus().name()); // Adiciona o status do agendamento
-        dto.setCuidadorId(registro.getCuidador().getId());
+        dto.setCuidadorId(registro.getCuidador().getPlatformUserId());
         dto.setCuidadorNome(registro.getCuidador().getName());
-        dto.setClienteId(registro.getCliente().getId());
+        dto.setClienteId(registro.getCliente().getPlatformUserId());
         dto.setClienteNome(registro.getCliente().getName());
         dto.setDataHoraRegistro(registro.getDataHoraRegistro());
         dto.setPressaoArterial(registro.getPressaoArterial());

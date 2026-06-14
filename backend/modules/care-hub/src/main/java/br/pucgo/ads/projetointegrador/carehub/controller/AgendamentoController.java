@@ -68,14 +68,30 @@ public class AgendamentoController {
         return principal.getName();
     }
 
+    private Long obterClienteLocalAutenticado(Principal principal) {
+        String usernameOrEmail = getUsername(principal);
+
+        var cliente = clienteRepository.findByUsername(usernameOrEmail)
+                .or(() -> clienteRepository.findByEmail(usernameOrEmail));
+
+        if (cliente.isPresent()) {
+            return cliente.get().getId();
+        }
+
+        throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.FORBIDDEN,
+                "Apenas clientes podem criar agendamentos");
+    }
+
     @PostMapping
     public ResponseEntity<AgendamentoResponseDTO> criarAgendamento(
-            @Valid @RequestBody AgendamentoRequestDTO dto) {
+            @Valid @RequestBody AgendamentoRequestDTO dto,
+            Principal principal) {
         log.info("Criando agendamento: clienteId={}, cuidadorId={}, data={}",
                 dto.getClienteId(), dto.getCuidadorId(), dto.getDataHoraInicio());
 
-        // Resolve platform user id para id local do cliente
-        Long localClienteId = obterIdLocal(dto.getClienteId());
+        // Usa sempre o cliente autenticado para evitar agendamento em nome de outro usuario.
+        Long localClienteId = obterClienteLocalAutenticado(principal);
         dto.setClienteId(localClienteId);
 
         AgendamentoResponseDTO agendamento = agendamentoService.criarAgendamento(dto);

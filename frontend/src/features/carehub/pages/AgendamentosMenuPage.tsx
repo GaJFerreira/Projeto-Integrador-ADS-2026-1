@@ -3,7 +3,10 @@ import { AccessTime, AssignmentTurnedIn, CalendarMonth, History } from '@mui/ico
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PageHeader } from '../components/PageHeader';
-import { isCuidador } from '../components/auth';
+import { isCuidador, getUserId } from '../components/auth';
+import { useQuery } from '@tanstack/react-query';
+import { agendamentosApi } from '../api';
+import { Badge } from '@mui/material';
 
 type MenuOption = {
   title: string;
@@ -17,6 +20,39 @@ export default function AgendamentosMenuPage() {
   const navigate = useNavigate();
   const theme = useTheme();
   const usuarioCuidador = isCuidador();
+  const userId = getUserId();
+
+  const { data: pendentesCuidador = 0 } = useQuery({
+    queryKey: ['pendentesCuidador', userId],
+    queryFn: async () => {
+      const { count } = await agendamentosApi.contarPendentesCuidador();
+      return count;
+    },
+    enabled: !!userId && usuarioCuidador,
+    refetchInterval: 5000,
+  });
+
+  const { data: reagendadosCliente = 0 } = useQuery({
+    queryKey: ['reagendadosCliente', userId],
+    queryFn: async () => {
+      const { count } = await agendamentosApi.contarReagendadosCliente();
+      return count;
+    },
+    enabled: !!userId && !usuarioCuidador,
+    refetchInterval: 5000,
+  });
+
+  const getAgendamentosIcon = () => {
+    const notificacoes = usuarioCuidador ? pendentesCuidador : reagendadosCliente;
+    if (notificacoes > 0) {
+      return (
+        <Badge badgeContent={notificacoes} color="error">
+          <AssignmentTurnedIn />
+        </Badge>
+      );
+    }
+    return <AssignmentTurnedIn />;
+  };
 
   const options: MenuOption[] = [
     {
@@ -29,7 +65,7 @@ export default function AgendamentosMenuPage() {
     {
       title: 'Ver Agendamentos em Andamento',
       description: 'Consulte a lista principal de agendamentos e seus status.',
-      icon: <AssignmentTurnedIn />,
+      icon: getAgendamentosIcon(),
       to: usuarioCuidador ? '/carehub/cuidador/agendamentos' : '/carehub/agendamentos',
       highlight: 'Agendamentos',
     },

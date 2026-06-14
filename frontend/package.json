@@ -15,7 +15,9 @@
     "@mui/icons-material": "^7.3.4",
     "@mui/material": "^7.3.4",
     "@mui/x-date-pickers": "^8.12.0",
+    "@stomp/stompjs": "^7.3.0",
     "@tanstack/react-query": "^5.90.2",
+    "@types/sockjs-client": "^1.5.4",
     "axios": "^1.12.2",
     "dayjs": "^1.11.18",
     "jspdf": "^4.2.1",
@@ -26,6 +28,7 @@
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.3",
     "react-use": "^17.6.0",
+    "sockjs-client": "^1.6.1",
     "zod": "^4.1.12"
   },
   "devDependencies": {

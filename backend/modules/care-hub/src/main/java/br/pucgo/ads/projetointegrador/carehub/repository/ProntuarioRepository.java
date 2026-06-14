@@ -8,5 +8,6 @@ import java.util.Optional;
 
 @Repository
 public interface ProntuarioRepository extends JpaRepository<Prontuario, Long> {
-    Optional<Prontuario> findByClienteId(Long clienteId);
+    Optional<Prontuario> findByCliente_PlatformUserId(Long platformUserId);
+    Optional<Prontuario> findByClienteId(Long clienteLocalId);
 }

@@ -39,8 +39,8 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
     List<Agendamento> findProximosAgendamentos(Long userId, OffsetDateTime inicio, OffsetDateTime fim);
 
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END " +
-           "FROM Agendamento a WHERE a.cuidador.id = :cuidadorId " +
-           "AND a.cliente.id = :clienteId " +
+           "FROM Agendamento a WHERE a.cuidador.platformUserId = :cuidadorId " +
+           "AND a.cliente.platformUserId = :clienteId " +
            "AND a.dataHoraInicio >= :inicio " +
            "AND a.dataHoraInicio < :fim " +
            "AND a.status IN ('CONFIRMADO', 'EM_ANDAMENTO')")
@@ -48,15 +48,15 @@ public interface AgendamentoRepository extends JpaRepository<Agendamento, Long> 
 
     /** Retorna true somente se houver agendamento ATIVO entre os usuários (permite envio de mensagens). */
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END " +
-           "FROM Agendamento a WHERE ((a.cuidador.id = :user1Id AND a.cliente.id = :user2Id) " +
-           "OR (a.cuidador.id = :user2Id AND a.cliente.id = :user1Id)) " +
+           "FROM Agendamento a WHERE ((a.cuidador.platformUserId = :user1Id AND a.cliente.platformUserId = :user2Id) " +
+           "OR (a.cuidador.platformUserId = :user2Id AND a.cliente.platformUserId = :user1Id)) " +
            "AND a.status IN ('PENDENTE', 'CONFIRMADO', 'EM_ANDAMENTO')")
     boolean existsBetweenUsers(Long user1Id, Long user2Id);
 
     /** Retorna true se já houve QUALQUER agendamento entre os usuários (permite visualizar histórico). */
     @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END " +
-           "FROM Agendamento a WHERE (a.cuidador.id = :user1Id AND a.cliente.id = :user2Id) " +
-           "OR (a.cuidador.id = :user2Id AND a.cliente.id = :user1Id)")
+           "FROM Agendamento a WHERE (a.cuidador.platformUserId = :user1Id AND a.cliente.platformUserId = :user2Id) " +
+           "OR (a.cuidador.platformUserId = :user2Id AND a.cliente.platformUserId = :user1Id)")
     boolean existsAnyBetweenUsers(Long user1Id, Long user2Id);
 
     @Query("SELECT a FROM Agendamento a " +

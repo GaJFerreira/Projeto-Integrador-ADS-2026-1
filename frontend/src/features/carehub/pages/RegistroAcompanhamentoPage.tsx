@@ -21,7 +21,20 @@ import {
   DialogActions,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
-import { Save, CheckCircle, Done } from '@mui/icons-material';
+import {
+  Save,
+  CheckCircle,
+  Done,
+  Favorite,
+  Bloodtype,
+  MonitorHeart,
+  Medication,
+  Restaurant,
+  DirectionsWalk,
+  EmojiEmotions,
+  Description,
+  Assignment,
+} from '@mui/icons-material';
 import { PageHeader } from '../components/PageHeader';
 import http from '../libHttp';
 import { useSnackbar } from 'notistack';
@@ -213,169 +226,261 @@ export function RegistroAcompanhamentoPage() {
             </Alert>
           )}
 
-          <Card component="form" onSubmit={handleSubmit}>
-            <CardContent>
-              <Stack spacing={3}>
-                {/* Seleção de Agendamento */}
-                <FormControl fullWidth required>
-                  <InputLabel>Agendamento</InputLabel>
-                  <Select
-                    value={agendamentoSelecionado}
-                    onChange={handleSelectChange}
-                    label="Agendamento"
-                  >
-                    <MenuItem value="">
-                      <em>Selecione um agendamento</em>
+          <Card
+            component="form"
+            onSubmit={handleSubmit}
+            variant="outlined"
+            sx={{
+              borderRadius: 3,
+              boxShadow: '0 8px 24px rgba(15, 23, 42, 0.04)',
+              border: '1px solid',
+              borderColor: 'divider',
+              overflow: 'hidden',
+              bgcolor: 'background.paper',
+            }}
+          >
+            {/* Header / Seleção de Agendamento */}
+            <Box sx={{ p: { xs: 2.5, md: 3 }, bgcolor: 'rgba(21, 101, 192, 0.02)', borderBottom: '1px solid', borderColor: 'divider' }}>
+              <Typography variant="subtitle2" color="primary" fontWeight={700} sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, letterSpacing: '0.05em', textTransform: 'uppercase' }}>
+                <Assignment fontSize="small" />
+                Vincular Agendamento
+              </Typography>
+              <FormControl fullWidth required variant="outlined">
+                <InputLabel id="agendamento-select-label">Selecione o Atendimento em Andamento</InputLabel>
+                <Select
+                  labelId="agendamento-select-label"
+                  value={agendamentoSelecionado}
+                  onChange={handleSelectChange}
+                  label="Selecione o Atendimento em Andamento"
+                  sx={{
+                    borderRadius: 2.5,
+                    bgcolor: 'background.paper',
+                  }}
+                >
+                  <MenuItem value="">
+                    <em>Nenhum selecionado</em>
+                  </MenuItem>
+                  {agendamentos.map((agendamento) => (
+                    <MenuItem key={agendamento.id} value={agendamento.id.toString()}>
+                      {agendamento.clienteNome} — {formatDate(agendamento.dataHoraInicio)}
                     </MenuItem>
-                    {agendamentos.map((agendamento) => (
-                      <MenuItem key={agendamento.id} value={agendamento.id.toString()}>
-                        {agendamento.clienteNome} - {formatDate(agendamento.dataHoraInicio)} ({agendamento.status})
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
 
-                <Divider />
-
+            <CardContent sx={{ p: { xs: 2.5, md: 4 } }}>
+              <Stack spacing={4}>
                 {/* Sinais Vitais */}
-                <Paper elevation={0} sx={{ p: 2, bgcolor: 'grey.50' }}>
-                  <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <CheckCircle color="primary" />
+                <Box>
+                  <Typography variant="subtitle1" color="primary" fontWeight={700} sx={{ mb: 2.5, display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                    <MonitorHeart sx={{ color: 'error.main' }} />
                     Sinais Vitais
                   </Typography>
-                  <Stack spacing={2} sx={{ mt: 2 }}>
+                  
+                  <Box display="grid" gridTemplateColumns={{ xs: '1fr', sm: '1fr 1fr' }} gap={3} sx={{ mb: 3 }}>
                     <TextField
-                      label="Pressão Arterial *"
+                      label="Pressão Arterial"
                       name="pressaoArterial"
                       value={formData.pressaoArterial}
                       onChange={handleChange}
                       placeholder="Ex: 120/80 mmHg"
                       fullWidth
                       required
+                      InputProps={{
+                        startAdornment: <Favorite sx={{ color: 'error.light', mr: 1, fontSize: 20 }} />,
+                        sx: { borderRadius: 2.5 }
+                      }}
                     />
                     <TextField
-                      label="Glicemia *"
+                      label="Glicemia"
                       name="glicemia"
                       value={formData.glicemia}
                       onChange={handleChange}
                       placeholder="Ex: 95 mg/dL"
                       fullWidth
                       required
+                      InputProps={{
+                        startAdornment: <Bloodtype sx={{ color: 'error.light', mr: 1, fontSize: 20 }} />,
+                        sx: { borderRadius: 2.5 }
+                      }}
                     />
-                    <TextField
-                      label="Outros Sinais Vitais *"
-                      name="sinaisVitais"
-                      value={formData.sinaisVitais}
-                      onChange={handleChange}
-                      placeholder="Ex: Temperatura 36.5°C, FC 72 bpm"
-                      fullWidth
-                      multiline
-                      rows={2}
-                      required
-                    />
-                  </Stack>
-                </Paper>
-
-                {/* Medicamentos */}
-                <TextField
-                  label="Medicamentos Administrados *"
-                  name="medicamentosAdministrados"
-                  value={formData.medicamentosAdministrados}
-                  onChange={handleChange}
-                  placeholder="Ex: Losartana 50mg às 9h, Metformina 850mg às 9h (ou 'Nenhum' se não houver)"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  required
-                />
-
-                {/* Alimentação */}
-                <TextField
-                  label="Alimentação *"
-                  name="alimentacao"
-                  value={formData.alimentacao}
-                  onChange={handleChange}
-                  placeholder="Ex: Café da manhã - aceitação boa, Almoço - aceitação regular"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  required
-                />
-
-                {/* Atividades */}
-                <TextField
-                  label="Atividades Realizadas *"
-                  name="atividadesRealizadas"
-                  value={formData.atividadesRealizadas}
-                  onChange={handleChange}
-                  placeholder="Ex: Caminhada de 15 minutos, Exercícios de memória, Leitura"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  required
-                />
-
-                {/* Humor e Estado */}
-                <TextField
-                  label="Humor e Estado Emocional *"
-                  name="humorEstado"
-                  value={formData.humorEstado}
-                  onChange={handleChange}
-                  placeholder="Ex: Alegre e comunicativo, Sonolento mas tranquilo"
-                  fullWidth
-                  required
-                />
-
-                {/* Intercorrências */}
-                <TextField
-                  label="Intercorrências *"
-                  name="intercorrencias"
-                  value={formData.intercorrencias}
-                  onChange={handleChange}
-                  placeholder="Ex: Nenhuma, ou descreva qualquer evento incomum"
-                  fullWidth
-                  multiline
-                  rows={3}
-                  required
-                />
-
-                {/* Observações Gerais */}
-                <TextField
-                  label="Observações Gerais"
-                  name="observacoes"
-                  value={formData.observacoes}
-                  onChange={handleChange}
-                  placeholder="Ex: Paciente apresentou boa disposição durante todo o atendimento"
-                  fullWidth
-                  multiline
-                  rows={4}
-                  required
-                />
+                  </Box>
+                  
+                  <TextField
+                    label="Outros Sinais Vitais"
+                    name="sinaisVitais"
+                    value={formData.sinaisVitais}
+                    onChange={handleChange}
+                    placeholder="Ex: Temperatura 36.5°C, FC 72 bpm"
+                    fullWidth
+                    multiline
+                    rows={2}
+                    required
+                    InputProps={{
+                      sx: { borderRadius: 2.5 }
+                    }}
+                  />
+                </Box>
 
                 <Divider />
 
-                {/* Botão Salvar */}
-                <Button
-                  type="submit"
-                  variant="contained"
-                  size="large"
-                  startIcon={<Save />}
-                  disabled={loading || registroSalvo}
-                >
-                  {loading ? 'Salvando...' : registroSalvo ? '✓ Registro Salvo' : 'Salvar Registro'}
-                </Button>
+                {/* Rotina e Cuidados */}
+                <Box>
+                  <Typography variant="subtitle1" color="primary" fontWeight={700} sx={{ mb: 2.5, display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                    <Medication />
+                    Rotina e Cuidados Diários
+                  </Typography>
 
-                {registroSalvo && (
+                  <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3} sx={{ mb: 3 }}>
+                    <TextField
+                      label="Medicamentos Administrados"
+                      name="medicamentosAdministrados"
+                      value={formData.medicamentosAdministrados}
+                      onChange={handleChange}
+                      placeholder="Descreva os medicamentos e horários (ou 'Nenhum')"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      required
+                      InputProps={{
+                        sx: { borderRadius: 2.5 }
+                      }}
+                    />
+                    <TextField
+                      label="Alimentação"
+                      name="alimentacao"
+                      value={formData.alimentacao}
+                      onChange={handleChange}
+                      placeholder="Ex: Café da manhã - aceitação boa, Almoço - aceitação regular"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      required
+                      InputProps={{
+                        sx: { borderRadius: 2.5 }
+                      }}
+                    />
+                  </Box>
+
+                  <Box display="grid" gridTemplateColumns={{ xs: '1fr', md: '1fr 1fr' }} gap={3}>
+                    <TextField
+                      label="Atividades Realizadas"
+                      name="atividadesRealizadas"
+                      value={formData.atividadesRealizadas}
+                      onChange={handleChange}
+                      placeholder="Ex: Caminhada de 15 minutos, Exercícios de memória, Leitura"
+                      fullWidth
+                      multiline
+                      rows={3}
+                      required
+                      InputProps={{
+                        sx: { borderRadius: 2.5 }
+                      }}
+                    />
+                    <TextField
+                      label="Humor e Estado Emocional"
+                      name="humorEstado"
+                      value={formData.humorEstado}
+                      onChange={handleChange}
+                      placeholder="Ex: Alegre e comunicativo, Sonolento mas tranquilo"
+                      fullWidth
+                      required
+                      InputProps={{
+                        startAdornment: <EmojiEmotions sx={{ color: '#d97706', mr: 1, fontSize: 20 }} />,
+                        sx: { borderRadius: 2.5 }
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                <Divider />
+
+                {/* Relatório e Notas */}
+                <Box>
+                  <Typography variant="subtitle1" color="primary" fontWeight={700} sx={{ mb: 2.5, display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                    <Description />
+                    Relatório e Intercorrências
+                  </Typography>
+
+                  <Stack spacing={3}>
+                    <TextField
+                      label="Intercorrências (Caso ocorra algo incomum)"
+                      name="intercorrencias"
+                      value={formData.intercorrencias}
+                      onChange={handleChange}
+                      placeholder="Ex: Nenhuma, ou descreva se houve quedas, mal-estar, recusa alimentar..."
+                      fullWidth
+                      multiline
+                      rows={3}
+                      required
+                      InputProps={{
+                        sx: { borderRadius: 2.5 }
+                      }}
+                    />
+                    <TextField
+                      label="Observações Gerais do Atendimento"
+                      name="observacoes"
+                      value={formData.observacoes}
+                      onChange={handleChange}
+                      placeholder="Ex: Paciente apresentou boa disposição durante todo o atendimento"
+                      fullWidth
+                      multiline
+                      rows={4}
+                      required
+                      InputProps={{
+                        sx: { borderRadius: 2.5 }
+                      }}
+                    />
+                  </Stack>
+                </Box>
+
+                <Divider />
+
+                {/* Botões de Ação */}
+                <Stack spacing={2} sx={{ mt: 2 }}>
                   <Button
+                    type="submit"
                     variant="contained"
-                    color="success"
                     size="large"
-                    startIcon={<Done />}
-                    onClick={() => setDialogFinalizarOpen(true)}
+                    startIcon={<Save />}
+                    disabled={loading || registroSalvo}
+                    sx={{
+                      borderRadius: 2.5,
+                      py: 1.5,
+                      fontWeight: 'bold',
+                      fontSize: '1rem',
+                      boxShadow: '0 4px 12px rgba(21, 101, 192, 0.15)',
+                      '&:hover': {
+                        boxShadow: '0 6px 20px rgba(21, 101, 192, 0.25)',
+                      }
+                    }}
                   >
-                    ✓ Finalizar Atendimento
+                    {loading ? 'Salvando Registro...' : registroSalvo ? '✓ Registro Salvo' : 'Salvar Registro do Acompanhamento'}
                   </Button>
-                )}
+
+                  {registroSalvo && (
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="large"
+                      startIcon={<Done />}
+                      onClick={() => setDialogFinalizarOpen(true)}
+                      sx={{
+                        borderRadius: 2.5,
+                        py: 1.5,
+                        fontWeight: 'bold',
+                        fontSize: '1rem',
+                        boxShadow: '0 4px 12px rgba(46, 125, 50, 0.15)',
+                        '&:hover': {
+                          boxShadow: '0 6px 20px rgba(46, 125, 50, 0.25)',
+                        }
+                      }}
+                    >
+                      ✓ Finalizar Atendimento e Concluir
+                    </Button>
+                  )}
+                </Stack>
               </Stack>
             </CardContent>
           </Card>
