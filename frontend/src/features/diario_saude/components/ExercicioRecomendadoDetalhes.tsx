@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { List, ListItemText, Typography } from "@mui/material";
 
-import { type ExercicioRecomendado, exercicioRecomendadoApi } from "../Medico/exercicioRecomendadoApi";
+import { type ExercicioRecomendado, exercicioRecomendadoApi } from "../api/exercicioRecomendadoApi";
 
 // Usando o padrão useEffect/useState
 function ExercicioRecomendadoDetalhes({ prescricaoId }: { prescricaoId: number }) {

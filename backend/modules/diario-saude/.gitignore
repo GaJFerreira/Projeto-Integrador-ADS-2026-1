@@ -34,3 +34,6 @@ build/
 
 # Documentos de análises locais
 docs/analyzes/
+
+# Configurações locais sensíveis
+application-local.properties

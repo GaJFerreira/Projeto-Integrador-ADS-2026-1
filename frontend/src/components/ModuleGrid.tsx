@@ -33,13 +33,13 @@ export function ModuleGrid() {
       icon: <MedicationIcon sx={{ fontSize: 40 }} />,
       title: 'Medicamentos',
       desc: 'Monitore horários e doses.',
-      to: '/grupo1/medicamentos',
+       to: '/dose-certa',
     },
     {
       icon: <SportsEsportsIcon sx={{ fontSize: 40 }} />,
       title: 'Jogos Interativos',
       desc: 'Exercícios de memória e atenção.',
-      to: '/grupo2/jogos',
+      to: '/jogos',
     },
     {
       icon: <ShoppingCartIcon sx={{ fontSize: 40 }} />,

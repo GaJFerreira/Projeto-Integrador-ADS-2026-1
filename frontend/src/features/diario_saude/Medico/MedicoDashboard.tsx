@@ -5,7 +5,25 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import { ModuleGridMedico } from "@/features/diario_saude/components/ModuleGridMedico";
 import { questionarioApi } from "../api/questionarioApi";
-import { usuarioApi } from "../api/usuarioApi";
+import http from "@/lib/http";
+
+function calcularIdade(dataNascimento: any): number | null {
+    if (!dataNascimento) return null;
+    try {
+        let nasc: Date;
+        if (Array.isArray(dataNascimento)) {
+            const [ano, mes, dia] = dataNascimento;
+            nasc = new Date(ano, mes - 1, dia);
+        } else {
+            nasc = new Date(dataNascimento);
+        }
+        const hoje = new Date();
+        let idade = hoje.getFullYear() - nasc.getFullYear();
+        const m = hoje.getMonth() - nasc.getMonth();
+        if (m < 0 || (m === 0 && hoje.getDate() < nasc.getDate())) idade--;
+        return isNaN(idade) ? null : idade;
+    } catch { return null; }
+}
 
 export default function DashboardMedico() {
     const location = useLocation();
@@ -18,6 +36,8 @@ export default function DashboardMedico() {
     const [dadosClinicos, setDadosClinicos] = useState<any>(null);
     const [ultimaAtualizacao, setUltimaAtualizacao] = useState("");
 
+    const token = localStorage.getItem("token");
+
     useEffect(() => {
         if (!paciente || !prescricao) navigate("/medico");
     }, [paciente, prescricao, navigate]);
@@ -28,12 +48,14 @@ export default function DashboardMedico() {
 
     useEffect(() => {
         if (!paciente) return;
-        const id = paciente.platformUserId ?? paciente.id_usuario ?? paciente.id;
-        if (!id) return;
-        usuarioApi.porUsuarioId(id)
-            .then(setDadosClinicos)
+        const idInterno = paciente.id_usuario ?? paciente.id;
+        if (!idInterno) return;
+        http.get(`/api/diario_saude/usuario/${idInterno}`, {
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then(({ data }) => setDadosClinicos(data))
             .catch(() => setDadosClinicos(null));
-    }, [paciente?.platformUserId, paciente?.id_usuario]); // ← dependências separadas
+    }, [paciente?.id_usuario]);
 
     useEffect(() => {
         if (!paciente) return;
@@ -41,27 +63,31 @@ export default function DashboardMedico() {
         if (!id) return;
         questionarioApi.obterRespostas(id).then((respostas) => {
             const total = respostas.reduce((acc: number, r: any) => acc + r.peso, 0);
+            console.log("respostas:", respostas);
+            console.log("pontuacao total:", total);
             setPontuacao(total);
         });
-    }, [paciente?.platformUserId, paciente?.id_usuario]); // ← dependências separadas
+    }, [paciente?.id_usuario]);
 
     if (!paciente || !prescricao) return null;
 
     const getStatus = () => {
         if (pontuacao === null) return { label: "—", color: "default" as const };
-        if (pontuacao <= 6) return { label: "Estável", color: "success" as const };
-        if (pontuacao <= 10) return { label: "Atenção", color: "warning" as const };
-        return { label: "Crítico", color: "error" as const };
+        if (pontuacao <= 6) return { label: "Robusto", color: "success" as const };
+        if (pontuacao <= 14) return { label: "Em risco", color: "warning" as const };
+        if (pontuacao <= 20) return { label: "Moderadamente frágil", color: "error" as const };
+        return { label: "Frágil", color: "error" as const };
     };
 
     const status = getStatus();
-
     const dados = dadosClinicos ?? paciente;
-    const dadosFormatados = [
-        dados?.idade != null && dados.idade > 0 && `${dados.idade} anos`,
-        dados?.peso != null && dados.peso > 0 && `${dados.peso} kg`,
-        dados?.altura != null && dados.altura > 0 && `${dados.altura} m`,
-    ].filter(Boolean).join(" • ") || "Dados clínicos não informados";
+
+    const idadeCalculada = calcularIdade(dados?.dataNascimento) ?? dados?.idade;
+    const idadeStr = idadeCalculada != null && idadeCalculada > 0 ? `${idadeCalculada} anos` : null;
+    const pesoStr = dados?.peso != null && dados.peso > 0 ? `${dados.peso} kg` : null;
+    const alturaStr = dados?.altura != null && dados.altura > 0 ? `${dados.altura} cm` : null;
+    const dadosFormatados = [idadeStr, pesoStr, alturaStr].filter(Boolean).join(" • ")
+        || "Dados clínicos não informados";
 
     return (
         <Container maxWidth="lg" sx={{ py: 5 }}>
@@ -99,20 +125,12 @@ export default function DashboardMedico() {
                         </Box>
                     </Box>
                 </Box>
-
-                <Button
-                    variant="outlined"
-                    size="small"
-                    onClick={() => navigate("/atendimento/historico-medico", { state: { paciente, prescricao } })}
-                >
-                    Ver Histórico
-                </Button>
             </Paper>
 
             {/* Cards de funcionalidades */}
             <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
                 <Typography variant="h5" fontWeight="bold" mb={3} textAlign="center">
-                    Funcionalidades do Sistema
+                    Painel de Atendimento
                 </Typography>
                 <ModuleGridMedico paciente={paciente} prescricao={prescricao} />
             </Paper>

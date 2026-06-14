@@ -1,7 +1,5 @@
 package br.pucgo.ads.projetointegrador.diario_saude.entity;
 
-import org.springframework.beans.BeanUtils;
-
 import br.pucgo.ads.projetointegrador.diario_saude.dto.PrescricaoMedicamentoDTO;
 import jakarta.persistence.*;
 
@@ -21,11 +19,16 @@ public class PrescricaoMedicamentoEntity {
 
     @Column(nullable = false)
     private String nome_medicamento;
+
     @Column(nullable = false)
     private String concentracao;
 
     @Column(nullable = false)
     private String via;
+
+    // Campo adicionado para salvar o princípio ativo digitado pelo médico
+    @Column
+    private String principio_ativo;
 
     @ManyToOne
     @JoinColumn(name = "id_medicamento")
@@ -35,38 +38,78 @@ public class PrescricaoMedicamentoEntity {
     @JoinColumn(name = "id_prescricao", nullable = false)
     private PrescricaoMedicaEntity prescricaoMedica;
 
-    public PrescricaoMedicamentoEntity() {}
-
-    public PrescricaoMedicamentoEntity(PrescricaoMedicamentoDTO dto) {
-        BeanUtils.copyProperties(dto, this);
-        this.nome_medicamento = dto.getNome_medicamento();
-        this.concentracao = dto.getConcentracao();
-        this.via = dto.getVia();
+    public PrescricaoMedicamentoEntity() {
     }
 
-    // getters e setters
-    public long getId_prescricao_medicamento() { return id_prescricao_medicamento; }
-    public void setId_prescricao_medicamento(long id_prescricao_medicamento) { this.id_prescricao_medicamento = id_prescricao_medicamento; }
+    public long getId_prescricao_medicamento() {
+        return id_prescricao_medicamento;
+    }
 
-    public String getDosagem() { return dosagem; }
-    public void setDosagem(String dosagem) { this.dosagem = dosagem; }
+    public void setId_prescricao_medicamento(long id) {
+        this.id_prescricao_medicamento = id;
+    }
 
-    public String getFrequencia() { return frequencia; }
-    public void setFrequencia(String frequencia) { this.frequencia = frequencia; }
+    public String getDosagem() {
+        return dosagem;
+    }
 
-    public String getNome_medicamento() { return nome_medicamento; }
-    public void setNome_medicamento(String nome_medicamento) { this.nome_medicamento = nome_medicamento; }
+    public void setDosagem(String dosagem) {
+        this.dosagem = dosagem;
+    }
 
-    public String getConcentracao() { return concentracao; }
-    public void setConcentracao(String concentracao) { this.concentracao = concentracao; }
+    public String getFrequencia() {
+        return frequencia;
+    }
 
-    public String getVia() { return via; }
-    public void setVia(String via) { this.via = via; }
+    public void setFrequencia(String frequencia) {
+        this.frequencia = frequencia;
+    }
 
-    public MedicamentoEntity getMedicamento() { return medicamento; }
-    public void setMedicamento(MedicamentoEntity medicamento) { this.medicamento = medicamento; }
+    public String getNome_medicamento() {
+        return nome_medicamento;
+    }
 
-    public PrescricaoMedicaEntity getPrescricaoMedica() { return prescricaoMedica; }
-    public void setPrescricaoMedica(PrescricaoMedicaEntity prescricaoMedica) { this.prescricaoMedica = prescricaoMedica; }
+    public void setNome_medicamento(String nome_medicamento) {
+        this.nome_medicamento = nome_medicamento;
+    }
+
+    public String getConcentracao() {
+        return concentracao;
+    }
+
+    public void setConcentracao(String concentracao) {
+        this.concentracao = concentracao;
+    }
+
+    public String getVia() {
+        return via;
+    }
+
+    public void setVia(String via) {
+        this.via = via;
+    }
+
+    public String getPrincipio_ativo() {
+        return principio_ativo;
+    }
+
+    public void setPrincipio_ativo(String principio_ativo) {
+        this.principio_ativo = principio_ativo;
+    }
+
+    public MedicamentoEntity getMedicamento() {
+        return medicamento;
+    }
+
+    public void setMedicamento(MedicamentoEntity medicamento) {
+        this.medicamento = medicamento;
+    }
+
+    public PrescricaoMedicaEntity getPrescricaoMedica() {
+        return prescricaoMedica;
+    }
+
+    public void setPrescricaoMedica(PrescricaoMedicaEntity prescricaoMedica) {
+        this.prescricaoMedica = prescricaoMedica;
+    }
 }
-

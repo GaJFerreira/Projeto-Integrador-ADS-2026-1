@@ -23,7 +23,7 @@ import BackButton from "../components/BackButton";
 
 import { prescricaoApi } from "../api/prescricaoApi";
 import type { Prescricao, PrescricaoMedicamento, PrescricaoExame } from "../api/types";
-import { type ExercicioRecomendado, exercicioRecomendadoApi } from "../Medico/exercicioRecomendadoApi";
+import { type ExercicioRecomendado, exercicioRecomendadoApi } from "../api/exercicioRecomendadoApi";
 
 // Função para formatar a frequência em horas
 function formatFrequencia(f: string | number | undefined) {

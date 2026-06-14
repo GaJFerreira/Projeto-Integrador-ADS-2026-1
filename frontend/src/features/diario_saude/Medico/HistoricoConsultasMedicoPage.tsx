@@ -1,97 +1,28 @@
 import { useState, useEffect } from "react";
 import {
-    Box,
-    Paper,
-    Typography,
-    List,
-    ListItemText,
-    ListItemButton,
-    Divider,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    Container,
+    Box, Paper, Typography, List, ListItemText,
+    ListItemButton, Divider, Dialog, DialogTitle,
+    DialogContent, DialogActions, Button, Container, Chip,
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import MedicationIcon from "@mui/icons-material/Medication";
+import ScienceIcon from "@mui/icons-material/Science";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { Prescricao, PrescricaoMedicamento, PrescricaoExame } from "../api/types";
 import { prescricaoApi } from "../api/prescricaoApi";
-import { type ExercicioRecomendado, exercicioRecomendadoApi } from "./exercicioRecomendadoApi";
 
-
-// Componentes de Layout
-function PageContainer({ children }: { children: React.ReactNode }) {
-    return <Container maxWidth="xl" sx={{ py: 5 }}>{children}</Container>;
-}
-
-function PageTitle({ children }: { children: React.ReactNode }) {
-    return (
-        <Typography variant="h4" fontWeight="bold" mb={4} align="center">
-            {children}
-        </Typography>
-    );
-}
-
-// Função para formatar a frequência em horas
 function formatFrequencia(f: string | number | undefined) {
     if (!f) return "-";
     const num = typeof f === "string" ? parseInt(f) : f;
-    return isNaN(num) ? f : `${num}h`;
+    return isNaN(num) ? String(f) : `${num}h`;
 }
 
-function ExercicioRecomendadoDetalhes({ prescricaoId }: { prescricaoId: number }) {
-    const [exercicios, setExercicios] = useState<ExercicioRecomendado[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(false);
-
-    useEffect(() => {
-        if (!prescricaoId) return;
-
-        setLoading(true);
-        setError(false);
-
-        exercicioRecomendadoApi.listar(prescricaoId)
-            .then((res) => {
-                setExercicios(res);
-                setLoading(false);
-            })
-            .catch((err) => {
-                console.error("Erro ao carregar exercícios:", err);
-                setError(true);
-                setLoading(false);
-            });
-    }, [prescricaoId]);
-
-    if (loading) {
-        return <Typography>Carregando exercícios...</Typography>;
-    }
-    if (error) {
-        return <Typography color="error">Erro ao carregar exercícios.</Typography>;
-    }
-
-    return (
-        <>
-            <Typography variant="subtitle1" fontWeight="bold" mt={2} mb={1}>
-                Exercícios Recomendados:
-            </Typography>
-            <List dense>
-                {exercicios.length > 0 ? (
-                    exercicios.map((e) => (
-                        <ListItemText
-                            key={e.id}
-                            primary={e.descricao}
-                        />
-                    ))
-                ) : (
-                    <Typography color="text.secondary">- Nenhuma recomendação de exercício.</Typography>
-                )}
-            </List>
-        </>
-    );
+function formatarData(data: string) {
+    if (!data) return "—";
+    return new Date(data).toLocaleDateString("pt-BR");
 }
-
 
 export default function HistoricoConsultasMedicoPage() {
     const location = useLocation();
@@ -103,33 +34,30 @@ export default function HistoricoConsultasMedicoPage() {
         return null;
     }
 
+    const idUsuario: number = location.state?.prescricao?.id_usuario ?? paciente?.id_usuario;
+
     const [consultas, setConsultas] = useState<Prescricao[]>([]);
     const [loading, setLoading] = useState(true);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [consultaSelecionada, setConsultaSelecionada] = useState<Prescricao | null>(null);
 
     useEffect(() => {
-        if (!paciente?.id_usuario) return;
+        if (!idUsuario) return;
 
-        prescricaoApi.porUsuario(paciente.id_usuario)
+        prescricaoApi.porUsuario(idUsuario)
             .then((res) => {
-                const filtradas = res
-                    .filter(c =>
-                        ((c.medicamentos ?? []).length > 0) ||
-                        ((c.exames ?? []).length > 0) ||
-                        // Garantindo que a filtragem por exerciciosRecomendados continua funcionando
-                        ((c.exerciciosRecomendados ?? []).length > 0)
-                    )
-                    .sort((a, b) => new Date(b.data_prescricao).getTime() - new Date(a.data_prescricao).getTime());
-
-                setConsultas(filtradas);
+                // Mostra todas as consultas, sem filtrar por itens
+                const ordenadas = [...res].sort((a, b) =>
+                    new Date(b.data_prescricao).getTime() - new Date(a.data_prescricao).getTime()
+                );
+                setConsultas(ordenadas);
                 setLoading(false);
             })
             .catch((err) => {
                 console.error(err);
                 setLoading(false);
             });
-    }, [paciente?.id_usuario]);
+    }, [idUsuario]);
 
     const handleClickConsulta = (consulta: Prescricao) => {
         setConsultaSelecionada(consulta);
@@ -141,8 +69,13 @@ export default function HistoricoConsultasMedicoPage() {
         setConsultaSelecionada(null);
     };
 
+    const totalItens = (c: Prescricao) =>
+        (c.medicamentos?.length ?? 0) +
+        (c.exames?.length ?? 0) +
+        (c.exerciciosRecomendados?.length ?? 0);
+
     return (
-        <PageContainer>
+        <Container maxWidth="md" sx={{ py: 4 }}>
             <Button
                 startIcon={<ArrowBackIcon />}
                 onClick={() => navigate(-1)}
@@ -151,29 +84,59 @@ export default function HistoricoConsultasMedicoPage() {
                 Voltar
             </Button>
 
-            <PageTitle>Histórico de Consultas — {paciente.nome}</PageTitle>
+            <Paper elevation={2} sx={{ p: 3, mb: 3, borderRadius: 3, borderTop: "4px solid #1565c0" }}>
+                <Typography variant="h5" fontWeight={700} color="#1565c0">
+                    Histórico de Consultas
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                    {paciente.nome}
+                </Typography>
+            </Paper>
 
             {loading ? (
-                <Typography color="text.secondary" align="center" mt={2}>
-                    Carregando…
-                </Typography>
+                <Typography color="text.secondary" align="center" mt={2}>Carregando…</Typography>
             ) : consultas.length === 0 ? (
-                <Typography color="text.secondary" align="center" mt={2}>
-                    Nenhuma consulta encontrada.
-                </Typography>
+                <Paper sx={{ p: 4, textAlign: "center", borderRadius: 3 }}>
+                    <Typography color="text.secondary">Nenhuma consulta encontrada.</Typography>
+                </Paper>
             ) : (
-                <List>
+                <List disablePadding sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                     {consultas.map(c => (
-                        <ListItemButton
+                        <Paper
                             key={c.id_prescricao}
-                            onClick={() => handleClickConsulta(c)}
-                            sx={{ mb: 1, borderRadius: 2, bgcolor: "#f5f5f5", "&:hover": { bgcolor: "#e0e0e0" }, py: 2, px: 2 }}
+                            elevation={0}
+                            sx={{ borderRadius: 2, border: "1px solid #e0e0e0", borderLeft: "4px solid #1565c0" }}
                         >
-                            <ListItemText
-                                primary={c.nomeMedico}
-                                secondary={`Data: ${c.data_prescricao}`}
-                            />
-                        </ListItemButton>
+                            <ListItemButton
+                                onClick={() => handleClickConsulta(c)}
+                                sx={{ borderRadius: 2, py: 2, px: 2 }}
+                            >
+                                <Box display="flex" justifyContent="space-between" alignItems="center" width="100%">
+                                    <Box display="flex" alignItems="center" gap={1.5}>
+                                        <CalendarTodayIcon fontSize="small" color="primary" />
+                                        <Box>
+                                            <Typography fontWeight={600}>
+                                                Consulta — {formatarData(c.data_prescricao)}
+                                            </Typography>
+                                            <Box display="flex" gap={0.5} mt={0.5} flexWrap="wrap">
+                                                {(c.medicamentos?.length ?? 0) > 0 && (
+                                                    <Chip icon={<MedicationIcon />} label={`${c.medicamentos!.length} med.`} size="small" color="error" variant="outlined" />
+                                                )}
+                                                {(c.exames?.length ?? 0) > 0 && (
+                                                    <Chip icon={<ScienceIcon />} label={`${c.exames!.length} exame(s)`} size="small" color="warning" variant="outlined" />
+                                                )}
+                                                {(c.exerciciosRecomendados?.length ?? 0) > 0 && (
+                                                    <Chip icon={<FitnessCenterIcon />} label={`${c.exerciciosRecomendados!.length} exerc.`} size="small" color="success" variant="outlined" />
+                                                )}
+                                                {totalItens(c) === 0 && (
+                                                    <Chip label="Sem itens" size="small" variant="outlined" />
+                                                )}
+                                            </Box>
+                                        </Box>
+                                    </Box>
+                                </Box>
+                            </ListItemButton>
+                        </Paper>
                     ))}
                 </List>
             )}
@@ -181,71 +144,93 @@ export default function HistoricoConsultasMedicoPage() {
             {/* Dialog detalhado */}
             <Dialog open={dialogOpen} onClose={handleClose} fullWidth maxWidth="sm">
                 <DialogTitle>
-                    {consultaSelecionada?.nomeMedico} — {consultaSelecionada?.data_prescricao}
+                    <Box display="flex" alignItems="center" gap={1}>
+                        <CalendarTodayIcon color="primary" />
+                        Consulta — {consultaSelecionada && formatarData(consultaSelecionada.data_prescricao)}
+                    </Box>
                 </DialogTitle>
                 <DialogContent dividers>
+
                     {/* Medicamentos */}
-                    <Typography variant="subtitle1" fontWeight="bold" mb={1}>
-                        Medicamentos:
-                    </Typography>
-                    <List dense>
-                        {consultaSelecionada?.medicamentos?.map((m: PrescricaoMedicamento, i) => (
-                            <Paper key={i} sx={{ p: 2, mb: 1 }}>
-                                <Box display="flex" flexDirection="column" gap={0.5}>
-                                    <Typography fontWeight="bold">{m.nome_medicamento || "-"}</Typography>
-                                    <Box display="flex" gap={2} flexWrap="wrap">
-                                        <Typography>Princípio ativo: {m.principio_ativo || "-"}</Typography>
-                                        <Typography>Concentração: {m.concentracao || "-"}</Typography>
-                                        <Typography>Via: {m.via || "-"}</Typography>
+                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <MedicationIcon color="error" fontSize="small" />
+                        <Typography variant="subtitle1" fontWeight="bold">Medicamentos</Typography>
+                    </Box>
+                    {(consultaSelecionada?.medicamentos?.length ?? 0) === 0 ? (
+                        <Typography color="text.secondary" mb={2}>Nenhum medicamento prescrito.</Typography>
+                    ) : (
+                        <List dense disablePadding sx={{ mb: 2 }}>
+                            {consultaSelecionada?.medicamentos?.map((m: PrescricaoMedicamento, i) => (
+                                <Paper key={i} elevation={0} sx={{ p: 2, mb: 1, border: "1px solid #eee", borderRadius: 2 }}>
+                                    <Typography fontWeight={700}>{m.nome_medicamento || "-"}</Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {[m.principio_ativo, m.concentracao, m.via].filter(Boolean).join(" • ")}
+                                    </Typography>
+                                    <Box display="flex" gap={1} mt={0.5} flexWrap="wrap">
+                                        {m.dosagem && <Chip label={`Dosagem: ${m.dosagem}`} size="small" variant="outlined" />}
+                                        {m.frequencia && <Chip label={`Frequência: ${formatFrequencia(m.frequencia)}`} size="small" variant="outlined" />}
                                     </Box>
-                                    <Box display="flex" gap={2} flexWrap="wrap">
-                                        <Typography>Dosagem: {m.dosagem || "-"}</Typography>
-                                        <Typography>Frequência: {formatFrequencia(m.frequencia)}</Typography>
-                                    </Box>
-                                </Box>
-                            </Paper>
-                        )) ?? <Typography>-</Typography>}
-                    </List>
+                                </Paper>
+                            ))}
+                        </List>
+                    )}
 
                     <Divider sx={{ my: 2 }} />
 
                     {/* Exames */}
-                    <Typography variant="subtitle1" fontWeight="bold">
-                        Exames:
-                    </Typography>
-                    <List dense>
-                        {consultaSelecionada?.exames?.map((e: PrescricaoExame, i) => (
-                            <ListItemText
-                                key={i}
-                                primary={e.nome_exame || "Exame desconhecido"}
-                                secondary={e.observacao || ""}
-                            />
-                        )) ?? <Typography>-</Typography>}
-                    </List>
+                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <ScienceIcon color="warning" fontSize="small" />
+                        <Typography variant="subtitle1" fontWeight="bold">Exames</Typography>
+                    </Box>
+                    {(consultaSelecionada?.exames?.length ?? 0) === 0 ? (
+                        <Typography color="text.secondary" mb={2}>Nenhum exame solicitado.</Typography>
+                    ) : (
+                        <List dense disablePadding sx={{ mb: 2 }}>
+                            {consultaSelecionada?.exames?.map((e: PrescricaoExame, i) => (
+                                <Paper key={i} elevation={0} sx={{ p: 1.5, mb: 1, border: "1px solid #eee", borderRadius: 2 }}>
+                                    <Typography fontWeight={600}>{e.nome_exame || "Exame desconhecido"}</Typography>
+                                    {e.resultado && (
+                                        <Typography variant="body2" color="text.secondary">
+                                            Resultado: {e.resultado}
+                                        </Typography>
+                                    )}
+                                </Paper>
+                            ))}
+                        </List>
+                    )}
 
-                    {consultaSelecionada?.id_prescricao && (
-                        <>
-                            <Divider sx={{ my: 2 }} />
-                            <ExercicioRecomendadoDetalhes prescricaoId={consultaSelecionada.id_prescricao} />
-                        </>
+                    <Divider sx={{ my: 2 }} />
+
+                    {/* Exercícios */}
+                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                        <FitnessCenterIcon sx={{ color: "#008000" }} fontSize="small" />
+                        <Typography variant="subtitle1" fontWeight="bold">Exercícios Recomendados</Typography>
+                    </Box>
+                    {(consultaSelecionada?.exerciciosRecomendados?.length ?? 0) === 0 ? (
+                        <Typography color="text.secondary">Nenhuma recomendação de exercício.</Typography>
+                    ) : (
+                        <List dense disablePadding>
+                            {consultaSelecionada?.exerciciosRecomendados?.map((e: any, i: number) => (
+                                <Paper key={i} elevation={0} sx={{ p: 1.5, mb: 1, border: "1px solid #eee", borderRadius: 2 }}>
+                                    <Typography>{e.descricao}</Typography>
+                                </Paper>
+                            ))}
+                        </List>
                     )}
 
                     {/* Observações */}
                     {consultaSelecionada?.observacoes && (
                         <>
                             <Divider sx={{ my: 2 }} />
-                            <Typography variant="subtitle1" fontWeight="bold">
-                                Observações:
-                            </Typography>
+                            <Typography variant="subtitle1" fontWeight="bold">Observações</Typography>
                             <Typography>{consultaSelecionada.observacoes}</Typography>
                         </>
                     )}
                 </DialogContent>
-
                 <DialogActions>
                     <Button onClick={handleClose}>Fechar</Button>
                 </DialogActions>
             </Dialog>
-        </PageContainer>
+        </Container>
     );
 }

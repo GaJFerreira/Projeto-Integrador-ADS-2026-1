@@ -24,7 +24,7 @@ import QuestionarioEldenCare from '@/features/eldercare/QuestionarioDemo';
 import { CareHubRoutes } from '@/features/carehub/routes/CareHubRoutes';
 
 //Diário Saúde
-        
+
 import InformacoesSaude from '@/features/diario_saude/Idoso/InformacoesSaude';
 import QuestionarioPage from '@/features/diario_saude/Idoso/QuestionarioPage';
 import HistoricoConsultasPage from '@/features/diario_saude/Idoso/HistoricoConsultasPage';
@@ -43,9 +43,12 @@ import MedicoRespostasQuestionarioPage from '@/features/diario_saude/Medico/Medi
 import RegistrarResultadoExamePage from '@/features/diario_saude/Medico/RegistrarResultadoExamePage';
 import GerenciarQuestionarioPage from '@/features/diario_saude/Admin/GerenciarQuestionarioPage';
 import CadastroAlergiaDoencaPage from '@/features/diario_saude/Admin/CadastroAlergiaDoencaPage';
-        
+import AdminVinculoCuidadorPage from '@/features/diario_saude/Admin/AdminVinculoCuidadorPage';
+import CuidadorPacientesPage from '@/features/diario_saude/Cuidador/CuidadorPacientesPage';
+import CuidadorDadosBiometricosPage from '@/features/diario_saude/Cuidador/CuidadorDadosBiometricosPage';
+
 //Lista Compras     
-        
+
 import ListaComprasPage from '@/features/lista-compras/pages/ListaComprasPage';
 import CreateListaPage from '@/features/lista-compras/pages/CreateListaPage';
 import EditListaPage from '@/features/lista-compras/pages/EditListaPage';
@@ -65,6 +68,16 @@ import AdminFaqPage from '@/features/duvidas/pages/AdminFaqPage';
 
 // ✅ Perfil do usuário
 import ProfilePage from '@/features/auth/pages/ProfilePage';
+
+// Jogos
+import JogosPage from "@/features/jogos/pages/JogosPage.tsx";
+
+// Dose Certa
+import CadastroMedicamento from '@/features/medicamentos/components/CadastroMedicamento';
+import HistoricoMedicamentosPage from '@/features/medicamentos/pages/HistoricoMedicamentosPage';
+import ListaMedicamentosPage from '@/features/medicamentos/pages/ListaMedicamentosPage';
+import InitialPage from '@/features/medicamentos/pages/InicialPage';
+import EditarMedicamentoPage from "@/features/medicamentos/pages/EditarMedicamentoPage";
 
 //Sabor Familia
 
@@ -154,15 +167,15 @@ export function AppRoutes() {
         {/* Elden Care */}
         <Route path="elden-care/questionario" element={<QuestionarioEldenCare />} />
 
-         {/* CareHub */}
+        {/* CareHub */}
         <Route path="carehub/*" element={<CareHubRoutes />} />
 
-        {/* Rota fallback */}
-        <Route path="*" element={<Navigate to="/home" replace />} />
+
 
         {/* ── diario-saude: Admin */}
         <Route path="admin/questionario" element={<GerenciarQuestionarioPage />} />
         <Route path="admin/cadastro-alergia-doenca" element={<CadastroAlergiaDoencaPage />} />
+        <Route path="admin/vinculos-cuidador" element={<AdminVinculoCuidadorPage />} />
 
         {/* ── diario-saude: Idoso */}
         <Route path="saude" element={<SaudeMenuPage />} />
@@ -170,6 +183,10 @@ export function AppRoutes() {
         <Route path="informacoes_saude" element={<InformacoesSaude />} />
         <Route path="questionario_saude" element={<QuestionarioPage />} />
         <Route path="dados_biometricos" element={<DadosBiometricosPage />} />
+
+        {/* ── diario-saude: Cuidador */}
+        <Route path="cuidador/pacientes" element={<CuidadorPacientesPage />} />
+        <Route path="cuidador/biometricos" element={<CuidadorDadosBiometricosPage />} />
 
 
         {/* Diário Cognitivo (Remember) */}
@@ -187,6 +204,20 @@ export function AppRoutes() {
         {/* Dúvidas e Sugestões */}
         <Route path="duvidas" element={<DuvidasPage />} />
 
+              {/* Jogos */}
+        <Route path="jogos" element={<JogosPage/>}/>
+
+        {/* Rotas de Medicamentos */}
+        <Route path="dose-certa">
+        <Route path="" element={<InitialPage />} />
+        <Route path="cadastro" element={<CadastroMedicamento />} />
+        <Route path="editar/:id" element={<EditarMedicamentoPage />} />
+        <Route path="historico" element={<HistoricoMedicamentosPage />} />
+        <Route path="listagem" element={<ListaMedicamentosPage />} />
+        <Route path="lista" element={<ListaMedicamentosPage />} />
+        </Route>
+
+  
         {/* Rotas Modulo Sabor_Familia */}
         <Route
           path="sabor-familia"
@@ -212,6 +243,9 @@ export function AppRoutes() {
           <Route path="error" element={<ErrorSaborFamilia />} />
           <Route path="*" element={<ErrorSaborFamilia />} />
         </Route>
+
+        {/* Rota fallback */}
+        <Route path="*" element={<Navigate to="/home" replace />} />
 
       </Route>
     </Routes>

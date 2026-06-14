@@ -3,16 +3,17 @@ package br.pucgo.ads.projetointegrador.diario_saude.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ds_exercicio_recomendado", schema = "diario_saude")
+@Table(name = "ds_exercicios_recomendados", schema = "diario_saude")
 public class ExercicioRecomendadoEntity {
-    @Id @GeneratedValue
+    @Id
+    @GeneratedValue
     private long id;
 
     @Column(columnDefinition = "TEXT")
     private String descricao;
 
     @ManyToOne
-    @JoinColumn(name="id_prescricao")
+    @JoinColumn(name = "id_prescricao")
     private PrescricaoMedicaEntity prescricaoMedica;
 
     public long getId() {
@@ -39,4 +40,3 @@ public class ExercicioRecomendadoEntity {
         this.prescricaoMedica = prescricaoMedica;
     }
 }
-
