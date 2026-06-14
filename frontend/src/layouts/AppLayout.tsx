@@ -116,7 +116,9 @@ export default function AppLayout() {
               </Badge>
             </IconButton>
           )}
-
+          
+         {/* Botão para area de administrador — visível apenas para admin */}
+         {isAdmin &&(
           <Button
             variant="outlined"
             color="primary"
@@ -126,6 +128,7 @@ export default function AppLayout() {
           >
             Área do administrador
           </Button>
+         )}
 
           <Avatar
             sx={{
