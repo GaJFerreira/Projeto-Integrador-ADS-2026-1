@@ -63,6 +63,14 @@ export function ModuleGrid() {
     //  to: '/atendimento',
     // },
 
+    // Legado - Não funcional
+    //{
+    //  icon: <EscalatorWarningIcon sx={{ fontSize: 40 }} />,
+    //  title: 'Cuidador',
+    //  desc: 'Dicas rápidas e ajuda no dia a dia.',
+    //  to: '/grupo5/ajudador',
+    //},
+
     // Elden Care — Plano de Exercícios
     {
       icon: <DirectionsRunIcon sx={{ fontSize: 40 }} color="primary" />,
@@ -77,13 +85,6 @@ export function ModuleGrid() {
       title: 'CareHub',
       desc: 'Sistema de acompanhamento de idosos.',
       to: '/carehub',
-    },
-
-    {
-      icon: <EscalatorWarningIcon sx={{ fontSize: 40 }} />,
-      title: 'Cuidador',
-      desc: 'Dicas rápidas e ajuda no dia a dia.',
-      to: '/grupo5/ajudador',
     },
 
     {

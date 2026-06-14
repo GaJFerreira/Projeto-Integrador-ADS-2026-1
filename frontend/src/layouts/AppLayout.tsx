@@ -19,6 +19,7 @@ import { setAuthToken } from '@/lib/http';
 import { GlobalAlertListener, GlobalMessageListener } from '@/features/carehub';
 import { useQuery } from '@tanstack/react-query';
 import { sugestoesApi } from '@/features/duvidas/api/sugestoes';
+import { adminUsersApi } from '@/features/admin/api/users';
 
 export default function AppLayout() {
   const navigate = useNavigate();
@@ -61,6 +62,14 @@ export default function AppLayout() {
     queryFn: sugestoesApi.contarNaoLidas,
     enabled: isAdmin,
     refetchInterval: 60_000,
+  });
+
+  // Busca as informações do perfil (incluindo foto) do usuário logado
+  const { data: userProfile } = useQuery({
+    queryKey: ['user-profile', userInfo.id],
+    queryFn: () => adminUsersApi.porId(userInfo.id as number),
+    enabled: !!userInfo.id,
+    staleTime: 5 * 60 * 1000,
   });
 
   function handleOpenMenu(e: React.MouseEvent<HTMLElement>) {
@@ -131,6 +140,7 @@ export default function AppLayout() {
          )}
 
           <Avatar
+            src={userProfile?.photoUrl || undefined}
             sx={{
               bgcolor: deepPurple[500],
               cursor: 'pointer',
