@@ -25,7 +25,8 @@ import { listaViewService, type ListaDTO } from "../api/service/listaViewService
 import { patologiasService } from "../api/service/patologiaService";
 import { listaComprasService } from "../api/service/listaComprasService";
 import type { Patologia } from "../types";
-import { isIdoso } from "../utils/userRole";
+import { isIdoso, isAdmin } from "../utils/userRole";
+import { adminUsersApi, type AdminUser } from "@/features/admin/api/users";
 import { EmptyState, ShoppingHeader, ShoppingPage } from "@/features/lista-compras/components/ShoppingUi.tsx";
 
 const STATUS_TABS: { value: "abertas" | "arquivadas" | "todas"; label: string; tip: string }[] = [
@@ -50,7 +51,10 @@ export default function TemplatesPage() {
     const [modalCriarOpen, setModalCriarOpen] = useState(false);
     const [novoTemplateTitulo, setNovoTemplateTitulo] = useState("");
     const [novoTemplatePatologia, setNovoTemplatePatologia] = useState<number | "">("");
+    const [novoTemplateUsuarioAlvo, setNovoTemplateUsuarioAlvo] = useState<number | "">("");
+    const [idosos, setIdosos] = useState<AdminUser[]>([]);
     const [criandoTemplate, setCriandoTemplate] = useState(false);
+    const ehAdmin = isAdmin();
 
     const carregarDados = useCallback(
         async (isReload = false) => {
@@ -58,7 +62,7 @@ export default function TemplatesPage() {
             try {
                 const [tpls, pats] = await Promise.all([
                     listaViewService.listarTemplates(),
-                    patologiasService.getPatologiasDoUsuario(),
+                    patologiasService.getTodasPatologias(),
                 ]);
                 setTemplates(tpls);
                 setPatologias(pats);
@@ -79,6 +83,16 @@ export default function TemplatesPage() {
     useEffect(() => {
         carregarDados();
     }, [carregarDados]);
+
+    // Carrega a lista de idosos para o admin associar um template personalizado.
+    useEffect(() => {
+        if (!ehAdmin) return;
+        adminUsersApi.listar()
+            .then((users) => setIdosos(
+                users.filter((u) => (u.role?.code || u.role?.name || "").toUpperCase().includes("IDOSO"))
+            ))
+            .catch(() => { /* dropdown opcional: silencioso em caso de falha */ });
+    }, [ehAdmin]);
 
     const templatesFiltrados = useMemo(() => {
         let lista = [...templates];
@@ -114,6 +128,7 @@ export default function TemplatesPage() {
                 titulo,
                 isTemplate: true,
                 patologiaId: novoTemplatePatologia || undefined,
+                usuarioAlvoId: novoTemplateUsuarioAlvo || undefined,
                 itens: [] as { produtoId: number; qtd: number }[],
             };
             const resposta = await listaComprasService.criarLista(payload);
@@ -121,6 +136,7 @@ export default function TemplatesPage() {
             setModalCriarOpen(false);
             setNovoTemplateTitulo("");
             setNovoTemplatePatologia("");
+            setNovoTemplateUsuarioAlvo("");
             await carregarDados(true);
             const query = new URLSearchParams();
             query.set("isTemplate", "1");
@@ -562,6 +578,23 @@ export default function TemplatesPage() {
                             </Select>
                             <FormHelperText>Associar uma condição de saúde ajuda a organizar os templates e facilita a busca para quem gerencia usuários com restrições alimentares.</FormHelperText>
                         </FormControl>
+
+                        {ehAdmin && (
+                            <FormControl fullWidth disabled={criandoTemplate}>
+                                <InputLabel>Personalizar para (idoso) — opcional</InputLabel>
+                                <Select
+                                    value={novoTemplateUsuarioAlvo}
+                                    label="Personalizar para (idoso) — opcional"
+                                    onChange={(e) => setNovoTemplateUsuarioAlvo(e.target.value as number | "")}
+                                >
+                                    <MenuItem value=""><em>Nenhum (template geral)</em></MenuItem>
+                                    {idosos.map((u) => (
+                                        <MenuItem key={u.id} value={u.id}>{u.name}</MenuItem>
+                                    ))}
+                                </Select>
+                                <FormHelperText>Se escolher um idoso, o template será criado como personalizado e ficará disponível para ele.</FormHelperText>
+                            </FormControl>
+                        )}
                     </Stack>
                 </DialogContent>
 

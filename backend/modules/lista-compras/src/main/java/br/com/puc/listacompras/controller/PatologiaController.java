@@ -34,6 +34,15 @@ public class PatologiaController {
     return ResponseEntity.ok(patologiaService.listarPorUsuario(usuarioId));
   }
 
+  @Operation(
+      summary = "Listar todas as patologias cadastradas",
+      description = "Retorna todas as patologias do sistema (usado, por exemplo, ao criar templates)."
+  )
+  @GetMapping("/todas")
+  public ResponseEntity<List<PatologiaResponseDTO>> listarTodas() {
+    return ResponseEntity.ok(patologiaService.listarTodas());
+  }
+
   @Operation(summary = "Buscar patologia por ID")
   @GetMapping("/{id}")
   public ResponseEntity<PatologiaResponseDTO> buscarPorId(@PathVariable Long id) {

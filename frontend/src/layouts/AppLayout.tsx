@@ -126,8 +126,8 @@ export default function AppLayout() {
             </IconButton>
           )}
           
-         {/* Botão para area de administrador — visível apenas para admin */}
-         {isAdmin &&(
+         {/* Botão para area de administrador — liberado para todos os usuários (demo) */}
+         {(
           <Button
             variant="outlined"
             color="primary"

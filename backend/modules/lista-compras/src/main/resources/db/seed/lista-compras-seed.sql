@@ -344,3 +344,86 @@ AND EXISTS (
   WHERE l.titulo = 'Dieta Diabetes Mellitus' AND l.is_template = TRUE
 )
 ON CONFLICT DO NOTHING;
+
+-- ----------------------------------------------------------------------------
+-- 7) LISTAS REAIS DO USUARIO 'idoso' (nao-template) - demonstra o CRUD com dados
+--    Resolve o usuario por username. Idempotente (NOT EXISTS / ON CONFLICT).
+-- ----------------------------------------------------------------------------
+
+-- 7.1) Compras da Semana (ABERTA)
+INSERT INTO lista_compras.lista (usuario_id, titulo, is_template, status, created_at)
+SELECT u.id, 'Compras da Semana', FALSE, 'ABERTA', NOW()
+FROM (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u
+WHERE NOT EXISTS (
+  SELECT 1 FROM lista_compras.lista l
+  WHERE l.usuario_id = u.id AND l.titulo = 'Compras da Semana' AND l.is_template = FALSE
+);
+
+INSERT INTO lista_compras.lista_item (lista_id, produto_id, qtd, created_at)
+SELECT l.id, p.id, 2, NOW()
+FROM lista_compras.lista l
+JOIN (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u ON u.id = l.usuario_id
+JOIN lista_compras.produto p
+  ON p.nome IN ('Leite','Pao Integral','Banana','Arroz','Feijao Carioca','Tomate','Cafe')
+WHERE l.titulo = 'Compras da Semana' AND l.is_template = FALSE
+ON CONFLICT DO NOTHING;
+
+-- 7.2) Feira do Mes (ABERTA)
+INSERT INTO lista_compras.lista (usuario_id, titulo, is_template, status, created_at)
+SELECT u.id, 'Feira do Mes', FALSE, 'ABERTA', NOW()
+FROM (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u
+WHERE NOT EXISTS (
+  SELECT 1 FROM lista_compras.lista l
+  WHERE l.usuario_id = u.id AND l.titulo = 'Feira do Mes' AND l.is_template = FALSE
+);
+
+INSERT INTO lista_compras.lista_item (lista_id, produto_id, qtd, created_at)
+SELECT l.id, p.id, 1, NOW()
+FROM lista_compras.lista l
+JOIN (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u ON u.id = l.usuario_id
+JOIN lista_compras.produto p
+  ON p.nome IN ('Maca','Laranja','Cenoura','Batata','Brocolis','Mamao','Abobrinha')
+WHERE l.titulo = 'Feira do Mes' AND l.is_template = FALSE
+ON CONFLICT DO NOTHING;
+
+-- 7.3) Compras Anteriores (FINALIZADA)
+INSERT INTO lista_compras.lista (usuario_id, titulo, is_template, status, created_at)
+SELECT u.id, 'Compras Anteriores', FALSE, 'FINALIZADA', NOW()
+FROM (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u
+WHERE NOT EXISTS (
+  SELECT 1 FROM lista_compras.lista l
+  WHERE l.usuario_id = u.id AND l.titulo = 'Compras Anteriores' AND l.is_template = FALSE
+);
+
+INSERT INTO lista_compras.lista_item (lista_id, produto_id, qtd, created_at)
+SELECT l.id, p.id, 1, NOW()
+FROM lista_compras.lista l
+JOIN (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u ON u.id = l.usuario_id
+JOIN lista_compras.produto p
+  ON p.nome IN ('Arroz Integral','Peito de Frango','File de Peixe','Aveia em Flocos','Iogurte')
+WHERE l.titulo = 'Compras Anteriores' AND l.is_template = FALSE
+ON CONFLICT DO NOTHING;
+
+-- ----------------------------------------------------------------------------
+-- 8) TEMPLATE PERSONALIZADO do idoso (is_template=TRUE, dono = idoso)
+--    Demonstra a feature "admin cria template personalizado para um usuario".
+--    O idoso ve este template em "Modelos rapidos" ao criar uma lista.
+-- ----------------------------------------------------------------------------
+INSERT INTO lista_compras.lista (usuario_id, titulo, is_template, status, patologia_id, created_at)
+SELECT u.id, 'Dieta Personalizada do Joao', TRUE, 'ABERTA',
+       (SELECT id FROM lista_compras.patologias WHERE nome = 'Intolerancia a Lactose'),
+       NOW()
+FROM (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u
+WHERE NOT EXISTS (
+  SELECT 1 FROM lista_compras.lista l
+  WHERE l.usuario_id = u.id AND l.titulo = 'Dieta Personalizada do Joao' AND l.is_template = TRUE
+);
+
+INSERT INTO lista_compras.lista_item (lista_id, produto_id, qtd, created_at)
+SELECT l.id, p.id, 1, NOW()
+FROM lista_compras.lista l
+JOIN (SELECT id FROM plataforma.users WHERE username = 'idoso' LIMIT 1) AS u ON u.id = l.usuario_id
+JOIN lista_compras.produto p
+  ON p.nome IN ('Leite Sem Lactose Integral','Iogurte Sem Lactose','Queijo Minas Sem Lactose','Banana','Arroz Integral')
+WHERE l.titulo = 'Dieta Personalizada do Joao' AND l.is_template = TRUE
+ON CONFLICT DO NOTHING;

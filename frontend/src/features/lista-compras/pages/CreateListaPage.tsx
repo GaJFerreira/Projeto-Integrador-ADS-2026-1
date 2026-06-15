@@ -28,7 +28,7 @@ import { listaViewService, type ListaDTO } from '@/features/lista-compras/api/se
 import { patologiasService } from '@/features/lista-compras/api/service/patologiaService.ts';
 import { produtoService } from '@/features/lista-compras/api/service/produtoService.ts';
 import { EmptyState, SectionTitle, ShoppingHeader, ShoppingPage } from '@/features/lista-compras/components/ShoppingUi.tsx';
-import { isIdoso } from '../utils/userRole';
+import { isIdoso, getUserId } from '../utils/userRole';
 
 const normalize = (s: string) => s.trim().toLowerCase();
 
@@ -57,6 +57,18 @@ export default function CreateListaPage() {
 
     const templatesForDisplay = useMemo(() => templates.filter((t) => t.status !== 'FINALIZADA'), [templates]);
 
+    const meuId = getUserId();
+    // Modelos personalizados do proprio usuario (vinculados pelo admin ou criados por ele).
+    const meusTemplates = useMemo(
+        () => templatesForDisplay.filter((t) => meuId != null && t.usuarioId === meuId),
+        [templatesForDisplay, meuId]
+    );
+    // Modelos gerais (sugeridos pela condicao de saude, nao personalizados para o usuario).
+    const templatesGerais = useMemo(
+        () => templatesForDisplay.filter((t) => meuId == null || t.usuarioId !== meuId),
+        [templatesForDisplay, meuId]
+    );
+
     const carregouRef = useRef(false);
 
     useEffect(() => {
@@ -68,10 +80,10 @@ export default function CreateListaPage() {
                 const pats = await patologiasService.getPatologiasDoUsuario();
                 setPatologias(pats);
                 setLoadingPats(false);
-                if (!isIdoso()) {
-                    const tpls = await listaViewService.listarTemplates();
-                    setTemplates(tpls);
-                }
+                // Templates sao carregados para todos: o idoso ve os modelos
+                // personalizados (vinculados a ele) e os modelos gerais.
+                const tpls = await listaViewService.listarTemplates();
+                setTemplates(tpls);
             } catch (e) {
                 showError('Erro ao carregar dados iniciais da lista de compras');
                 console.error('Erro ao carregar dados iniciais da lista de compras', e);
@@ -121,6 +133,19 @@ export default function CreateListaPage() {
         const titulo = tituloLista.trim();
         if (!titulo) { showError('Informe um título para a lista.'); return; }
         if (listaItens.length === 0) { showError('Adicione ao menos um item na lista.'); return; }
+
+        // Bloqueio: a lista nao pode conter produtos restritos para as condicoes de saude do usuario.
+        const itensRestritos = listaItens.filter((li) => (riscosPorProduto[li.produto.id] ?? []).length > 0);
+        if (itensRestritos.length > 0) {
+            const nomes = itensRestritos.map((li) => `"${li.produto.nome}"`).join(', ');
+            setWarnMsg(
+                `Não é possível salvar: ${nomes} não é recomendado para a sua condição de saúde. ` +
+                `Toque no botão de sugestão (estrela) ao lado do item para trocar por uma opção mais saudável, ou remova o item da lista.`
+            );
+            setWarnOpen(true);
+            return;
+        }
+
         const itensValidos = listaItens.filter((li) => li.produto.id > 0);
         if (itensValidos.length === 0) { showError('Não há itens válidos para salvar (apenas personalizados locais).'); return; }
         const payload = { titulo, itens: itensValidos.map((li) => ({ produtoId: li.produto.id, qtd: li.qtd })) };
@@ -196,6 +221,55 @@ export default function CreateListaPage() {
     const incQtd = (id: number) => setListaItens((prev) => prev.map((li) => li.produto.id === id ? { ...li, qtd: li.qtd + 1 } : li));
     const decQtd = (id: number) => setListaItens((prev) => prev.map((li) => li.produto.id === id ? { ...li, qtd: Math.max(1, li.qtd - 1) } : li));
     const remover = (id: number) => setListaItens((prev) => prev.filter((li) => li.produto.id !== id));
+
+    const renderModeloCard = (t: ListaDTO, destaque = false) => (
+        <Card
+            key={t.id}
+            elevation={0}
+            sx={(theme) => ({
+                flex: '0 0 210px', maxWidth: 210, borderRadius: 2.5,
+                border: '1px solid',
+                borderColor: destaque ? theme.palette.primary.main : alpha(theme.palette.primary.main, 0.15),
+                overflow: 'hidden',
+                transition: 'transform 0.16s ease, box-shadow 0.16s ease',
+                '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 8px 20px ${alpha(theme.palette.primary.main, 0.14)}`,
+                    borderColor: theme.palette.primary.main,
+                },
+            })}
+        >
+            <Box sx={(theme) => ({
+                height: 3,
+                background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${alpha(theme.palette.primary.light, 0.6)})`,
+            })} />
+            <Tooltip arrow placement="top" title={`Toque para copiar os itens de "${t.titulo}" para a sua lista atual.`}>
+                <CardActionArea onClick={() => copiarTemplate(t)} sx={{ px: 1.5, py: 1.2 }}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <Box sx={(theme) => ({
+                            width: 34, height: 34, borderRadius: 1.5, flexShrink: 0,
+                            bgcolor: alpha(theme.palette.primary.main, 0.1), color: 'primary.main',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        })}>
+                            <ContentCopyIcon sx={{ fontSize: 17 }} />
+                        </Box>
+                        <Box sx={{ minWidth: 0 }}>
+                            <Typography fontWeight={800} variant="body2" noWrap sx={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {t.titulo}
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                {t.itens?.length ?? 0} itens
+                            </Typography>
+                            {destaque && (
+                                <Chip size="small" label="Personalizado" color="primary" variant="outlined"
+                                    sx={{ ml: 0, mt: 0.4, height: 18, fontSize: '0.6rem', display: 'flex', width: 'fit-content' }} />
+                            )}
+                        </Box>
+                    </Stack>
+                </CardActionArea>
+            </Tooltip>
+        </Card>
+    );
 
     const totalProdutos = listaItens.length;
     const totalUnidades = listaItens.reduce((acc, li) => acc + li.qtd, 0);
@@ -285,6 +359,53 @@ export default function CreateListaPage() {
                     </Stack>
                 </Box>
             </Box>
+
+            {/* Seção 1.5: Modelos do idoso — personalizados (vinculados a ele) + gerais */}
+            {isIdoso() && (meusTemplates.length > 0 || templatesGerais.length > 0) && (
+                <Box sx={(theme) => ({
+                    mb: 2.5, borderRadius: 3, overflow: 'hidden',
+                    border: '1px solid', borderColor: alpha(theme.palette.primary.main, 0.12),
+                    boxShadow: `0 2px 8px ${alpha(theme.palette.primary.main, 0.05)}, 0 1px 2px ${alpha('#000', 0.04)}`,
+                    bgcolor: '#fff',
+                })}>
+                    <Box sx={(theme) => ({
+                        px: { xs: 2, sm: 2.5 }, py: 1.5,
+                        background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 100%)`,
+                    })}>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                            <AutoAwesomeIcon sx={{ color: 'rgba(255,255,255,0.9)', fontSize: 18 }} />
+                            <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#fff' }}>
+                                Modelos prontos para você
+                            </Typography>
+                        </Stack>
+                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.82)' }}>
+                            Toque em um modelo para preencher sua lista automaticamente.
+                        </Typography>
+                    </Box>
+                    <Box sx={{ p: { xs: 1.5, sm: 2 } }}>
+                        {meusTemplates.length > 0 && (
+                            <Box sx={{ mb: templatesGerais.length > 0 ? 2 : 0 }}>
+                                <Typography variant="subtitle2" fontWeight={800} sx={{ mb: 1, color: 'primary.main' }}>
+                                    Personalizados para você
+                                </Typography>
+                                <Stack direction="row" spacing={1.25} sx={{ overflowX: 'auto', pb: 0.5 }}>
+                                    {meusTemplates.map((t) => renderModeloCard(t, true))}
+                                </Stack>
+                            </Box>
+                        )}
+                        {templatesGerais.length > 0 && (
+                            <Box>
+                                <Typography variant="subtitle2" fontWeight={800} sx={{ mb: 1, color: 'text.secondary' }}>
+                                    Modelos gerais
+                                </Typography>
+                                <Stack direction="row" spacing={1.25} sx={{ overflowX: 'auto', pb: 0.5 }}>
+                                    {templatesGerais.map((t) => renderModeloCard(t))}
+                                </Stack>
+                            </Box>
+                        )}
+                    </Box>
+                </Box>
+            )}
 
             {/* Seção 2: Modelos rápidos (admin/cuidador only) */}
             {!isIdoso() && <Box sx={(theme) => ({
@@ -628,6 +749,23 @@ export default function CreateListaPage() {
                 </Box>
             </Box>
 
+            {/* Aviso de restrição — bloqueia o salvamento até trocar/remover os itens */}
+            {totalAlertas > 0 && (
+                <Alert
+                    severity="warning"
+                    variant="outlined"
+                    icon={<WarningAmberIcon />}
+                    sx={(theme) => ({
+                        mb: 2, borderRadius: 3, fontWeight: 600, alignItems: 'center',
+                        borderColor: theme.palette.warning.main,
+                        bgcolor: alpha(theme.palette.warning.light, 0.12),
+                    })}
+                >
+                    Sua lista tem {totalAlertas} produto{totalAlertas === 1 ? '' : 's'} não recomendado{totalAlertas === 1 ? '' : 's'} para a sua condição de saúde.
+                    Para salvar, toque no botão de sugestão (estrela) ao lado do item e troque por uma opção mais saudável, ou remova o item.
+                </Alert>
+            )}
+
             {/* Footer */}
             <Stack
                 direction={{ xs: 'column-reverse', sm: 'row' }}
@@ -670,7 +808,7 @@ export default function CreateListaPage() {
                         variant="contained"
                         onClick={handleFinalizarLista}
                         startIcon={saving ? undefined : <CheckCircleIcon />}
-                        disabled={saving || listaItens.length === 0}
+                        disabled={saving || listaItens.length === 0 || totalAlertas > 0}
                         sx={(theme) => ({
                             width: { xs: '100%', sm: 'auto' },
                             textTransform: 'none', fontWeight: 700,
