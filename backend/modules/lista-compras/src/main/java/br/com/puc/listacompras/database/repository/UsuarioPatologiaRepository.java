@@ -16,4 +16,15 @@ public interface UsuarioPatologiaRepository extends JpaRepository<UsuarioPatolog
       where up.usuarioId = :usuarioId
   """)
   List<Long> findPatologiaIdsByUsuarioId(@Param("usuarioId") Long usuarioId);
+
+  @Query("""
+      select up.usuarioId
+      from UsuarioPatologia up
+      where up.patologia.id = :patologiaId
+  """)
+  List<Long> findUsuarioIdsByPatologiaId(@Param("patologiaId") Long patologiaId);
+
+  boolean existsByUsuarioIdAndPatologiaId(Long usuarioId, Long patologiaId);
+
+  void deleteByUsuarioIdAndPatologiaId(Long usuarioId, Long patologiaId);
 }

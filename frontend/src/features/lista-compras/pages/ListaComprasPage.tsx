@@ -14,19 +14,19 @@ export default function ListaComprasPage() {
         {
             icon: <AddCircleOutlineIcon sx={{ fontSize: 40 }} />,
             title: 'Criar nova lista',
-            desc: 'Comece do zero e adicione itens.',
+            desc: 'Monte uma lista de compras com alertas automáticos para suas condições de saúde e sugestões de produtos alternativos.',
             to: '/lista-compras/nova',
         },
         {
             icon: <ListAltIcon sx={{ fontSize: 40 }} />,
             title: 'Minhas listas',
-            desc: 'Veja, edite e compartilhe suas listas.',
+            desc: 'Acesse suas listas salvas, marque itens no modo compras e arquive compras concluídas.',
             to: '/lista-compras/listas',
         },
         {
             icon: <FileCopyIcon sx={{ fontSize: 40 }} />,
             title: 'Templates',
-            desc: 'Crie Templates de listas.',
+            desc: 'Gerencie modelos de listas pré-configurados para reutilizar em compras recorrentes ou dietas específicas.',
             to: '/lista-compras/templates',
         },
     ];

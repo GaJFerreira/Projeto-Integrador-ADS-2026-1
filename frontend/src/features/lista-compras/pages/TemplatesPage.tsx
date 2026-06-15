@@ -3,6 +3,7 @@ import {
     Box, Typography, Card, CardActionArea, Stack, Chip, Button, Skeleton,
     Dialog, DialogContent, DialogActions, MenuItem, TextField, List, ListItem,
     ListItemText, IconButton, FormControl, InputLabel, Select, CircularProgress,
+    Tooltip, FormHelperText,
 } from "@mui/material";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import AddIcon from "@mui/icons-material/Add";
@@ -27,10 +28,10 @@ import type { Patologia } from "../types";
 import { isIdoso } from "../utils/userRole";
 import { EmptyState, ShoppingHeader, ShoppingPage } from "@/features/lista-compras/components/ShoppingUi.tsx";
 
-const STATUS_TABS: { value: "abertas" | "arquivadas" | "todas"; label: string }[] = [
-    { value: "abertas", label: "Ativos" },
-    { value: "arquivadas", label: "Arquivados" },
-    { value: "todas", label: "Todos" },
+const STATUS_TABS: { value: "abertas" | "arquivadas" | "todas"; label: string; tip: string }[] = [
+    { value: "abertas", label: "Ativos", tip: "Exibe apenas os templates disponíveis para uso imediato." },
+    { value: "arquivadas", label: "Arquivados", tip: "Exibe templates desativados, mantidos apenas para consulta." },
+    { value: "todas", label: "Todos", tip: "Exibe todos os templates, ativos e arquivados juntos." },
 ];
 
 export default function TemplatesPage() {
@@ -149,9 +150,11 @@ export default function TemplatesPage() {
                 icon={<ContentCopyIcon />}
                 onBack={() => navigate("/lista-compras", { replace: true })}
                 actions={
+                    <Tooltip arrow placement="left" title="Crie um modelo de lista de compras para reutilizar em situações recorrentes, como compras semanais ou dietas específicas.">
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => setModalCriarOpen(true)}>
                         Novo template
                     </Button>
+                    </Tooltip>
                 }
                 metrics={[
                     { label: "Ativos", value: totalAtivos, tone: "success" },
@@ -172,8 +175,8 @@ export default function TemplatesPage() {
                     {/* Pill tabs por status */}
                     <Stack direction="row" spacing={0.75}>
                         {STATUS_TABS.map((tab) => (
+                            <Tooltip key={tab.value} arrow placement="top" title={tab.tip}>
                             <Chip
-                                key={tab.value}
                                 label={tab.label}
                                 onClick={() => setFiltroStatus(tab.value)}
                                 variant={filtroStatus === tab.value ? "filled" : "outlined"}
@@ -188,10 +191,12 @@ export default function TemplatesPage() {
                                     }),
                                 })}
                             />
+                            </Tooltip>
                         ))}
                     </Stack>
 
                     {/* Filtro por patologia */}
+                    <Tooltip arrow placement="top" title="Filtra os templates por condição de saúde associada. Templates vinculados a uma patologia foram criados com produtos adequados para aquela condição.">
                     <FormControl size="small" sx={{ width: { xs: '100%', sm: 220 }, ml: { sm: 'auto !important' } }}>
                         <InputLabel>Patologia</InputLabel>
                         <Select
@@ -205,6 +210,7 @@ export default function TemplatesPage() {
                             ))}
                         </Select>
                     </FormControl>
+                    </Tooltip>
 
                     {filtersActive && (
                         <Chip
@@ -288,6 +294,7 @@ export default function TemplatesPage() {
                                     )}
                                 </Box>
 
+                                <Tooltip arrow placement="top" title="Clique para ver os detalhes deste template e usar, editar ou arquivar.">
                                 <CardActionArea onClick={() => handleAbrirDetalhes(tpl)} sx={{ px: 2, py: 1.6 }}>
                                     <Stack spacing={1.4}>
                                         <Stack direction="row" spacing={0.8} alignItems="center">
@@ -341,6 +348,7 @@ export default function TemplatesPage() {
                                         )}
                                     </Stack>
                                 </CardActionArea>
+                                </Tooltip>
                             </Card>
                         );
                     })}
@@ -441,14 +449,20 @@ export default function TemplatesPage() {
                 </DialogContent>
 
                 <DialogActions sx={(theme) => ({ px: 2.5, py: 2, borderTop: `1px solid ${alpha(theme.palette.divider, 0.8)}`, gap: 1, flexWrap: 'wrap' })}>
+                    <Tooltip arrow placement="top" title="Abre a tela de edição para adicionar ou remover produtos deste template.">
+                    <Box component="span">
                     <Button variant="outlined" startIcon={<EditIcon />}
                         disabled={!templateSelecionado}
                         onClick={() => templateSelecionado && handleIrParaEdicaoTemplate(templateSelecionado)}
                         sx={{ textTransform: 'none' }}>
                         Editar
                     </Button>
+                    </Box>
+                    </Tooltip>
 
                     {templateSelecionado?.status !== "FINALIZADA" ? (
+                        <Tooltip arrow placement="top" title="Desativa este template para que não apareça mais nos modelos disponíveis. Você ainda poderá consultá-lo em 'Arquivados'.">
+                        <Box component="span">
                         <Button color="error" variant="outlined" startIcon={<ArchiveOutlinedIcon />}
                             disabled={!templateSelecionado}
                             onClick={async () => {
@@ -461,7 +475,11 @@ export default function TemplatesPage() {
                             sx={{ textTransform: 'none' }}>
                             Arquivar
                         </Button>
+                        </Box>
+                        </Tooltip>
                     ) : (
+                        <Tooltip arrow placement="top" title="Reativa este template e o torna disponível novamente nos modelos da seção de criação de listas.">
+                        <Box component="span">
                         <Button color="primary" variant="outlined" startIcon={<UnarchiveOutlinedIcon />}
                             disabled={!templateSelecionado}
                             onClick={async () => {
@@ -474,8 +492,11 @@ export default function TemplatesPage() {
                             sx={{ textTransform: 'none' }}>
                             Reabrir
                         </Button>
+                        </Box>
+                        </Tooltip>
                     )}
 
+                    <Tooltip arrow placement="top" title="Vai para a tela de criação de lista, onde você pode selecionar este e outros modelos para montar sua compra rapidamente.">
                     <Button variant="contained" startIcon={<LocalGroceryStoreIcon />}
                         onClick={() => navigate("/lista-compras/nova")}
                         sx={(theme) => ({
@@ -485,6 +506,7 @@ export default function TemplatesPage() {
                         })}>
                         Usar template
                     </Button>
+                    </Tooltip>
                 </DialogActions>
             </Dialog>
 
@@ -538,6 +560,7 @@ export default function TemplatesPage() {
                                     <MenuItem key={p.id} value={p.id}>{p.nome}</MenuItem>
                                 ))}
                             </Select>
+                            <FormHelperText>Associar uma condição de saúde ajuda a organizar os templates e facilita a busca para quem gerencia usuários com restrições alimentares.</FormHelperText>
                         </FormControl>
                     </Stack>
                 </DialogContent>

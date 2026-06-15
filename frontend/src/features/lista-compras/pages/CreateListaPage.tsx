@@ -18,6 +18,7 @@ import ViewListIcon from '@mui/icons-material/ViewList';
 import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { useNavigate } from 'react-router-dom';
 import { alpha } from '@mui/material/styles';
 
@@ -239,6 +240,7 @@ export default function CreateListaPage() {
                             placeholder="Ex: Compras da semana"
                             value={tituloLista}
                             onChange={(e) => setTituloLista(e.target.value)}
+                            helperText="Dê um nome para identificar esta lista mais tarde. Exemplo: 'Compras de outubro' ou 'Feira semanal'."
                             sx={(theme) => ({
                                 '& .MuiOutlinedInput-root': {
                                     '&.Mui-focused fieldset': { borderColor: theme.palette.primary.main, borderWidth: 2 },
@@ -250,6 +252,9 @@ export default function CreateListaPage() {
                             <Typography variant="subtitle2" fontWeight={700} color="text.secondary" sx={{ mb: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <FavoriteIcon sx={{ fontSize: 15, color: 'warning.main' }} />
                                 Condições de saúde consideradas
+                                <Tooltip arrow placement="top" title="Essas são as condições de saúde registradas no seu perfil. Ao adicionar um produto que seja restrito para alguma dessas condições, você receberá um alerta automático com a sugestão de um produto alternativo mais saudável.">
+                                    <InfoOutlinedIcon sx={{ fontSize: 15, color: 'text.disabled', cursor: 'help' }} />
+                                </Tooltip>
                             </Typography>
                             {loadingPats ? (
                                 <Chip label="Carregando..." variant="outlined" size="small" />
@@ -297,6 +302,9 @@ export default function CreateListaPage() {
                         <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#fff' }}>
                             Modelos rápidos
                         </Typography>
+                        <Tooltip arrow placement="top" title="Modelos são listas pré-criadas que você pode copiar com um clique. Selecione um modelo abaixo para adicionar automaticamente todos os seus produtos à lista atual.">
+                            <InfoOutlinedIcon sx={{ fontSize: 15, color: 'rgba(255,255,255,0.7)', cursor: 'help' }} />
+                        </Tooltip>
                         <Chip
                             size="small"
                             label={`${templatesForDisplay.length} disponíveis`}
@@ -348,7 +356,8 @@ export default function CreateListaPage() {
                                             height: 3,
                                             background: `linear-gradient(90deg, ${theme.palette.primary.main}, ${alpha(theme.palette.primary.light, 0.6)})`,
                                         })} />
-                                        <CardActionArea onClick={() => copiarTemplate(t)} sx={{ px: 1.5, py: 1.2 }}>
+                                        <Tooltip arrow placement="top" title={`Clique para copiar os itens de "${t.titulo}" para a sua lista atual. Os produtos já adicionados serão mantidos.`}>
+                        <CardActionArea onClick={() => copiarTemplate(t)} sx={{ px: 1.5, py: 1.2 }}>
                                             <Stack direction="row" spacing={1} alignItems="center">
                                                 <Box sx={(theme) => ({
                                                     width: 34, height: 34, borderRadius: 1.5, flexShrink: 0,
@@ -368,10 +377,13 @@ export default function CreateListaPage() {
                                                 </Box>
                                             </Stack>
                                         </CardActionArea>
+                                        </Tooltip>
                                     </Card>
                                 ))
                             )}
                         </Box>
+                        <Tooltip arrow placement="top" title="Remove todos os produtos da lista para que você possa recomeçar do zero.">
+                        <Box component="span">
                         <Button
                             variant="outlined" color="error" startIcon={<RestartAltIcon />}
                             sx={{ height: 44, whiteSpace: 'nowrap', flexShrink: 0, width: { xs: '100%', sm: 'auto' }, textTransform: 'none' }}
@@ -380,6 +392,8 @@ export default function CreateListaPage() {
                         >
                             Limpar lista
                         </Button>
+                        </Box>
+                        </Tooltip>
                     </Stack>
                 </Box>
             </Box>}
@@ -423,9 +437,11 @@ export default function CreateListaPage() {
                                     label="Buscar produto"
                                     placeholder="Digite ao menos 3 letras..."
                                     size="medium"
+                                    helperText="Digite pelo menos 3 letras para pesquisar no catálogo. Caso não encontre, você pode digitar o nome manualmente."
                                 />
                             )}
                         />
+                        <Tooltip arrow placement="top" title="Toque aqui para incluir o produto pesquisado na sua lista de compras.">
                         <Button
                             onClick={handleAdicionar}
                             variant="contained"
@@ -443,6 +459,7 @@ export default function CreateListaPage() {
                         >
                             Adicionar
                         </Button>
+                        </Tooltip>
                     </Stack>
                 </Box>
 
@@ -459,10 +476,12 @@ export default function CreateListaPage() {
                             </Typography>
                         </Box>
                         {isIdoso() && listaItens.length > 0 && (
+                            <Tooltip arrow title="Remove todos os produtos da lista para começar de novo.">
                             <Button size="small" variant="outlined" color="error" startIcon={<RestartAltIcon />}
                                 sx={{ textTransform: 'none', fontSize: '0.78rem' }} onClick={handleLimparLista}>
                                 Limpar
                             </Button>
+                            </Tooltip>
                         )}
                     </Stack>
 
@@ -482,7 +501,7 @@ export default function CreateListaPage() {
                                 const actionButtons = (
                                     <Stack direction="row" spacing={0.5} alignItems="center" flexShrink={0}>
                                         {hasRisk && primeiraSugestao && (
-                                            <Tooltip title={`Trocar por ${primeiraSugestao.nome}`}>
+                                            <Tooltip arrow placement="top" title={`Este produto pode ser inadequado para sua condição de saúde. Toque aqui para substituir por "${primeiraSugestao.nome}", uma opção mais indicada.`}>
                                                 <IconButton
                                                     size="small"
                                                     sx={(theme) => ({
@@ -507,25 +526,34 @@ export default function CreateListaPage() {
                                                 borderRadius: 2, overflow: 'hidden',
                                             })}
                                         >
+                                            <Tooltip arrow title="Diminuir a quantidade deste produto">
                                             <IconButton size="small" onClick={() => decQtd(li.produto.id)} sx={{ borderRadius: 0, width: 30, height: 30 }}>
                                                 <RemoveIcon sx={{ fontSize: 14 }} />
                                             </IconButton>
+                                            </Tooltip>
+                                            <Tooltip arrow title="Quantidade atual deste produto na lista">
                                             <Typography variant="body2" sx={(theme) => ({
                                                 minWidth: 32, textAlign: 'center', fontWeight: 900,
                                                 fontSize: '0.875rem', px: 0.5,
                                                 bgcolor: alpha(theme.palette.primary.main, 0.07),
                                                 color: 'primary.main',
+                                                cursor: 'default',
                                             })}>
                                                 {li.qtd}
                                             </Typography>
+                                            </Tooltip>
+                                            <Tooltip arrow title="Aumentar a quantidade deste produto">
                                             <IconButton size="small" onClick={() => incQtd(li.produto.id)} sx={{ borderRadius: 0, width: 30, height: 30 }}>
                                                 <AddIcon sx={{ fontSize: 14 }} />
                                             </IconButton>
+                                            </Tooltip>
                                         </Stack>
+                                        <Tooltip arrow title="Remover este produto da lista">
                                         <IconButton size="small" color="error" onClick={() => remover(li.produto.id)}
                                             sx={(theme) => ({ '&:hover': { bgcolor: alpha(theme.palette.error.light, 0.15) } })}>
                                             <DeleteOutlineIcon fontSize="small" />
                                         </IconButton>
+                                        </Tooltip>
                                     </Stack>
                                 );
 
@@ -626,6 +654,7 @@ export default function CreateListaPage() {
                 </Typography>
 
                 <Stack direction={{ xs: 'column-reverse', sm: 'row' }} spacing={1}>
+                    <Tooltip arrow title="Descarta as alterações e volta à tela anterior sem salvar a lista.">
                     <Button
                         variant="outlined" color="error"
                         onClick={() => navigate('/lista-compras')}
@@ -634,6 +663,9 @@ export default function CreateListaPage() {
                     >
                         Cancelar
                     </Button>
+                    </Tooltip>
+                    <Tooltip arrow placement="top" title="Salva sua lista com todos os produtos adicionados. Você poderá acessá-la depois em 'Minhas listas'.">
+                    <Box component="span">
                     <Button
                         variant="contained"
                         onClick={handleFinalizarLista}
@@ -648,6 +680,8 @@ export default function CreateListaPage() {
                     >
                         {saving ? 'Salvando...' : 'Finalizar lista'}
                     </Button>
+                    </Box>
+                    </Tooltip>
                 </Stack>
             </Stack>
 

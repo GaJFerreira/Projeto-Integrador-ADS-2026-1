@@ -2,6 +2,7 @@ import { Box, Container, Grid, Typography } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import SecurityIcon from '@mui/icons-material/Security';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
+import BiotechIcon from '@mui/icons-material/Biotech';
 import AdminModuleCard from '../components/AdminModuleCard';
 
 export default function AdminPage() {
@@ -39,6 +40,14 @@ export default function AdminPage() {
             description="Cadastrar produtos da lista de compras (nutricao e custo medio)"
             to="/admin/produtos"
             icon={<Inventory2Icon color="primary" fontSize="large" />}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <AdminModuleCard
+            title="Patologias"
+            description="Cadastrar condicoes de saude, vincular usuarios e configurar restricoes de produtos"
+            to="/admin/patologias"
+            icon={<BiotechIcon color="primary" fontSize="large" />}
           />
         </Grid>
       </Grid>

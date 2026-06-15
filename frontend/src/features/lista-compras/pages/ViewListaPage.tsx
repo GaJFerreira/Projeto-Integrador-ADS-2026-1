@@ -3,7 +3,7 @@ import {
     Box, Typography, Card, CardActionArea, CardContent,
     Stack, Chip, Button, Skeleton, Dialog, DialogContent,
     DialogActions, Snackbar, Alert, List, ListItem,
-    ListItemText, ListItemIcon, IconButton, Checkbox, LinearProgress,
+    ListItemText, ListItemIcon, IconButton, Checkbox, LinearProgress, Tooltip,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
@@ -208,6 +208,7 @@ export default function ViewListaPage() {
                         display: "flex", justifyContent: "flex-end",
                         bgcolor: alpha(theme.palette.primary.main, 0.025),
                     })}>
+                        <Tooltip arrow placement="top" title="Abre a lista no modo compras: marque os itens conforme você os coloca no carrinho e acompanhe o progresso.">
                         <Button
                             size="small" variant="contained" startIcon={<ShoppingBagOutlinedIcon />}
                             sx={{ textTransform: "none", fontWeight: 700, fontSize: "0.78rem" }}
@@ -215,6 +216,7 @@ export default function ViewListaPage() {
                         >
                             Ir às compras
                         </Button>
+                        </Tooltip>
                     </Box>
                 )}
             </Card>
@@ -237,9 +239,11 @@ export default function ViewListaPage() {
                 icon={<ShoppingCartIcon />}
                 onBack={() => navigate("/lista-compras", { replace: true })}
                 actions={
+                    <Tooltip arrow placement="left" title="Crie uma nova lista de compras do zero ou a partir de um modelo.">
                     <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/lista-compras/nova")}>
                         Nova lista
                     </Button>
+                    </Tooltip>
                 }
                 metrics={[
                     { label: "Abertas", value: totalAbertas, tone: "success" },
@@ -264,12 +268,12 @@ export default function ViewListaPage() {
 
                 <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap sx={{ mb: 2.5 }}>
                     {([
-                        { key: "abertas", label: `Abertas (${totalAbertas})`, color: "primary" },
-                        { key: "finalizadas", label: `Finalizadas (${totalFinalizadas})`, color: "info" },
-                        { key: "todas", label: "Todas", color: "primary" },
-                    ] as const).map(({ key, label, color }) => (
+                        { key: "abertas", label: `Abertas (${totalAbertas})`, color: "primary", tip: "Mostra apenas as listas que ainda estão em uso e não foram arquivadas." },
+                        { key: "finalizadas", label: `Finalizadas (${totalFinalizadas})`, color: "info", tip: "Mostra as listas que já foram arquivadas — compras que você deu como concluídas." },
+                        { key: "todas", label: "Todas", color: "primary", tip: "Mostra todas as suas listas, abertas e arquivadas juntas." },
+                    ] as const).map(({ key, label, color, tip }) => (
+                        <Tooltip key={key} arrow placement="top" title={tip}>
                         <Chip
-                            key={key}
                             label={label}
                             clickable
                             color={filtroStatus === key ? color : "default"}
@@ -277,6 +281,7 @@ export default function ViewListaPage() {
                             onClick={() => setFiltroStatus(key)}
                             sx={{ fontWeight: filtroStatus === key ? 700 : 400, transition: "all .15s" }}
                         />
+                        </Tooltip>
                     ))}
                 </Stack>
 
@@ -357,9 +362,11 @@ export default function ViewListaPage() {
                     {totalItensModal > 0 && listaSelecionada?.status !== "FINALIZADA" && (
                         <Box sx={{ mt: 2 }}>
                             <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.6 }}>
-                                <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>
+                                <Tooltip arrow placement="top" title="Marque os itens conforme você os coloca no carrinho. A barra mostra seu progresso. Quando todos estiverem marcados, sua compra está completa!">
+                                <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)", fontWeight: 600, cursor: 'help' }}>
                                     Modo compras
                                 </Typography>
+                                </Tooltip>
                                 <Typography variant="caption" fontWeight={900} sx={{ color: "#fff" }}>
                                     {marcadosCount} / {totalItensModal}
                                 </Typography>
@@ -414,6 +421,7 @@ export default function ViewListaPage() {
                                     >
                                         {listaSelecionada?.status !== "FINALIZADA" && (
                                             <ListItemIcon sx={{ minWidth: 48 }}>
+                                                <Tooltip arrow placement="right" title="Marque quando colocar este item no carrinho.">
                                                 <Checkbox
                                                     edge="start"
                                                     checked={checked}
@@ -428,6 +436,7 @@ export default function ViewListaPage() {
                                                         });
                                                     }}
                                                 />
+                                                </Tooltip>
                                             </ListItemIcon>
                                         )}
                                         <ListItemText
@@ -462,6 +471,7 @@ export default function ViewListaPage() {
                     gap: 1, flexWrap: "wrap",
                 })}>
                     {listaSelecionada && listaSelecionada.status !== "FINALIZADA" && (
+                        <Tooltip arrow placement="top" title="Arquiva a lista, indicando que a compra foi concluída. Você ainda poderá visualizá-la depois em 'Finalizadas'.">
                         <Button
                             color="error" variant="outlined" startIcon={<ArchiveOutlinedIcon />}
                             sx={{ textTransform: "none" }}
@@ -478,8 +488,10 @@ export default function ViewListaPage() {
                         >
                             Arquivar
                         </Button>
+                        </Tooltip>
                     )}
                     {listaSelecionada && listaSelecionada.status === "FINALIZADA" && (
+                        <Tooltip arrow placement="top" title="Retorna esta lista ao status de aberta para que você possa editá-la ou utilizá-la novamente no modo compras.">
                         <Button
                             color="primary" variant="outlined"
                             sx={{ textTransform: "none" }}
@@ -496,8 +508,10 @@ export default function ViewListaPage() {
                         >
                             Reabrir lista
                         </Button>
+                        </Tooltip>
                     )}
                     {listaSelecionada?.status !== "FINALIZADA" && (
+                        <Tooltip arrow placement="top" title="Abre a tela de edição onde você pode adicionar ou remover produtos desta lista.">
                         <Button
                             variant="contained" startIcon={<EditIcon />}
                             sx={{ textTransform: "none", ml: "auto" }}
@@ -507,6 +521,7 @@ export default function ViewListaPage() {
                         >
                             Editar itens
                         </Button>
+                        </Tooltip>
                     )}
                 </DialogActions>
             </Dialog>

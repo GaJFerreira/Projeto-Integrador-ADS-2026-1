@@ -11,9 +11,11 @@ import {
   MenuItem,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   adminProdutosApi,
   type AdminCategoria,
@@ -143,7 +145,12 @@ export default function AdminProdutoCreatePage() {
       <Box component="form" onSubmit={handleSubmit} noValidate>
         <Stack spacing={3} maxWidth={960}>
           <Stack spacing={2}>
-            <Typography variant="h5">Dados gerais</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.75}>
+              <Typography variant="h5">Dados gerais</Typography>
+              <Tooltip arrow placement="right" title="Informações básicas de identificação do produto no catálogo. Nome e categoria são obrigatórios.">
+                <InfoOutlinedIcon sx={{ fontSize: 17, color: 'text.disabled', cursor: 'help' }} />
+              </Tooltip>
+            </Stack>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 8 }}>
                 <TextField
@@ -183,6 +190,7 @@ export default function AdminProdutoCreatePage() {
                   value={form.unidadeMedida}
                   onChange={(e) => handle('unidadeMedida', e.target.value)}
                   fullWidth
+                  helperText="Formato de venda do produto (ex: kg, g, L, unidade). Exibida junto à quantidade na lista do usuário."
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
@@ -193,6 +201,7 @@ export default function AdminProdutoCreatePage() {
                   value={form.custoMedio}
                   onChange={(e) => handle('custoMedio', e.target.value)}
                   fullWidth
+                  helperText="Preço médio de mercado. Utilizado para estimar o custo total da lista de compras do usuário."
                 />
               </Grid>
             </Grid>
@@ -201,9 +210,14 @@ export default function AdminProdutoCreatePage() {
           <Divider />
 
           <Stack spacing={2}>
-            <Typography variant="h5">Tabela nutricional</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.75}>
+              <Typography variant="h5">Tabela nutricional</Typography>
+              <Tooltip arrow placement="right" title="Estes dados são usados pelo sistema para identificar automaticamente produtos inadequados para determinadas condições de saúde (ex: sódio alto para hipertensos). Preencha com os valores do rótulo do produto.">
+                <InfoOutlinedIcon sx={{ fontSize: 17, color: 'text.disabled', cursor: 'help' }} />
+              </Tooltip>
+            </Stack>
             <Typography variant="body2" color="text.secondary">
-              Valores por porcao de referencia. Campos vazios serao tratados como nao informados.
+              Valores por porção de referência. Campos vazios serão tratados como não informados.
             </Typography>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 4 }}>
@@ -214,6 +228,7 @@ export default function AdminProdutoCreatePage() {
                   value={form.porcaoReferenciaGramas}
                   onChange={(e) => handle('porcaoReferenciaGramas', e.target.value)}
                   fullWidth
+                  helperText="Tamanho da porção em que os valores abaixo são baseados. Ex.: se o rótulo diz '30g', preencha 30."
                 />
               </Grid>
               <Grid size={{ xs: 6, md: 4 }}>
@@ -294,6 +309,7 @@ export default function AdminProdutoCreatePage() {
                   value={form.sodio}
                   onChange={(e) => handle('sodio', e.target.value)}
                   fullWidth
+                  helperText="Crítico para usuários com hipertensão ou doenças renais. Acima de 400 mg por porção é considerado alto."
                 />
               </Grid>
             </Grid>
@@ -302,15 +318,21 @@ export default function AdminProdutoCreatePage() {
           <Divider />
 
           <Stack spacing={2}>
-            <Typography variant="h5">Tags</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.75}>
+              <Typography variant="h5">Tags</Typography>
+              <Tooltip arrow placement="right" title="Palavras-chave que facilitam a busca e filtragem de produtos. Use termos que descrevem características importantes, como restrições alimentares ou tipo de alimento.">
+                <InfoOutlinedIcon sx={{ fontSize: 17, color: 'text.disabled', cursor: 'help' }} />
+              </Tooltip>
+            </Stack>
             <TextField
-              label="Tags (separadas por virgula)"
+              label="Tags (separadas por vírgula)"
               placeholder="ex: integral, sem gluten, organico"
               value={form.tags}
               onChange={(e) => handle('tags', e.target.value)}
               fullWidth
               multiline
               minRows={2}
+              helperText="Palavras-chave separadas por vírgula. Ex.: 'integral, sem lactose, vegetariano'. Facilitam a busca e categorização do produto."
             />
           </Stack>
 
