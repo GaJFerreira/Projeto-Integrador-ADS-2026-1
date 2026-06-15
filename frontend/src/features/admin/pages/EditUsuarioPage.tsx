@@ -11,8 +11,6 @@ import {
   TextField,
   Typography,
   Switch,
-  Autocomplete,
-  Chip,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Visibility from '@mui/icons-material/Visibility';
@@ -20,7 +18,6 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import { useSnackbar } from 'notistack';
 import http from '@/lib/http';
 import { adminUsersApi, type AdminUser, type UpdateUserPayload } from '../api/users';
-import { adminPermissionsApi, type Permission } from '../api/permissions';
 
 type RoleOption = { id: number; name: string; code?: string };
 
@@ -41,9 +38,6 @@ export default function EditUsuarioPage() {
   const userId = useMemo(() => Number(id), [id]);
   const [loading, setLoading] = useState(false);
   const [roles, setRoles] = useState<RoleOption[]>([]);
-  const [permissionsOptions, setPermissionsOptions] = useState<Permission[]>([]);
-  const [selectedPermissions, setSelectedPermissions] = useState<Permission[]>([]);
-  const [userPermissionIds, setUserPermissionIds] = useState<number[]>([]);
   const [form, setForm] = useState<UpdateUserPayload>({
     name: '',
     email: '',
@@ -62,7 +56,6 @@ export default function EditUsuarioPage() {
   useEffect(() => {
     if (!userId) return;
     loadRoles();
-    loadPermissions();
     loadUser();
   }, [userId]);
 
@@ -75,15 +68,6 @@ export default function EditUsuarioPage() {
     }
   }
 
-  async function loadPermissions() {
-    try {
-      const data = await adminPermissionsApi.listar();
-      setPermissionsOptions(data);
-    } catch (err: any) {
-      const msg = err?.response?.data?.message || 'Erro ao carregar permissoes.';
-      enqueueSnackbar(msg, { variant: 'warning' });
-    }
-  }
 
   async function loadUser() {
     setLoading(true);
@@ -98,14 +82,6 @@ export default function EditUsuarioPage() {
         certificacao: data.certificacao || '',
         experiencia: data.experiencia || '',
       });
-      if (data.permissions?.length) {
-        const ids = data.permissions.map((p) => p.id);
-        setUserPermissionIds(ids);
-        setSelectedPermissions((prev) => (prev.length ? prev : permissionsOptions.filter((opt) => ids.includes(opt.id))));
-      } else {
-        setUserPermissionIds([]);
-        setSelectedPermissions([]);
-      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || 'Erro ao carregar usuario.';
       enqueueSnackbar(msg, { variant: 'error' });
@@ -118,13 +94,6 @@ export default function EditUsuarioPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  useEffect(() => {
-    if (!userPermissionIds.length) {
-      setSelectedPermissions([]);
-      return;
-    }
-    setSelectedPermissions(permissionsOptions.filter((opt) => userPermissionIds.includes(opt.id)));
-  }, [permissionsOptions, userPermissionIds]);
 
   const selectedRole = roles.find((role) => role.id === form.roleId);
   const roleCode = (selectedRole?.code || selectedRole?.name || '').toUpperCase();
@@ -163,7 +132,6 @@ export default function EditUsuarioPage() {
         crm: isMedico ? form.crm : undefined,
         certificacao: isCuidador ? form.certificacao : undefined,
         experiencia: isCuidador ? form.experiencia : undefined,
-        permissionIds: selectedPermissions.map((p) => p.id),
       };
       if (changePassword) {
         payload.password = password;
@@ -307,35 +275,6 @@ export default function EditUsuarioPage() {
             </>
           )}
 
-          <Autocomplete
-            multiple
-            options={permissionsOptions}
-            getOptionLabel={(option) => option.name || `Permissao ${option.id}`}
-            value={selectedPermissions}
-            onChange={(_, value) => {
-              setSelectedPermissions(value);
-              setUserPermissionIds(value.map((v) => v.id));
-            }}
-            isOptionEqualToValue={(option, value) => option.id === value.id}
-            loading={loading}
-            disableCloseOnSelect
-            renderTags={(value, getTagProps) => value.map((option, index) => (
-              <Chip
-                {...getTagProps({ index })}
-                key={option.id}
-                label={option.name || `Permissao ${option.id}`}
-                size="small"
-              />
-            ))}
-            renderInput={(params) => (
-              <TextField
-                {...params}
-                label="Permissoes (multi-selecao)"
-                placeholder="Selecione permissoes"
-                helperText="Atribua permissoes especificas alem do perfil."
-              />
-            )}
-          />
           {isCuidador && (
             <>
               <TextField

@@ -16,6 +16,9 @@ export interface AdminUser {
   crm?: string;
   certificacao?: string;
   experiencia?: string;
+  phone?: string;
+  birthDate?: string;
+  photoUrl?: string;
   permissions?: Array<{ id: number; name: string; moduleId?: number; moduleName?: string }>;
 }
 
@@ -39,6 +42,9 @@ export interface UpdateUserPayload {
   certificacao?: string;
   experiencia?: string;
   password?: string;
+  phone?: string;
+  birthDate?: string;
+  photoUrl?: string;
   permissionIds?: number[];
 }
 

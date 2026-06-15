@@ -6,8 +6,8 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import HistoryIcon from '@mui/icons-material/History';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import EscalatorWarningIcon from '@mui/icons-material/EscalatorWarning';
-import LocalHospitalIcon from '@mui/icons-material/LocalHospital'; // ✅ Novo ícone
-import FavoriteIcon from '@mui/icons-material/Favorite'; // ✅ CareHub
+import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu';
 import { useNavigate } from 'react-router-dom';
 import NoteAltOutlinedIcon from '@mui/icons-material/NoteAltOutlined';
@@ -47,20 +47,29 @@ export function ModuleGrid() {
       desc: 'Gerencie suas listas com recomendações mais saudáveis.',
       to: '/lista-compras',
     },
-    {
-      icon: <HistoryIcon sx={{ fontSize: 40 }} />,
-      title: 'Histórico de Consultas',
-      desc: 'Acompanhe suas consultas médicas.',
-      to: '/grupo4/consultas',
-    },
+    // Legado - Não funcional
+    //   {
+    //     icon: <HistoryIcon sx={{ fontSize: 40 }} />,
+    //     title: 'Histórico de Consultas',
+    //     desc: 'Acompanhe suas consultas médicas.',
+    //     to: '/grupo4/consultas',
+    // },
 
-    // ✅ Novo módulo: Atendimento Médico
-    {
-      icon: <LocalHospitalIcon sx={{ fontSize: 40 }} color="error" />,
-      title: 'Atendimento Médico',
-      desc: 'Registre informações de consultas e diagnósticos.',
-      to: '/atendimento',
-    },
+    // Legado - Não funcional
+    // {
+    //   icon: <LocalHospitalIcon sx={{ fontSize: 40 }} color="error" />,
+    //  title: 'Atendimento Médico',
+    //  desc: 'Registre informações de consultas e diagnósticos.',
+    //  to: '/atendimento',
+    // },
+
+    // Legado - Não funcional
+    //{
+    //  icon: <EscalatorWarningIcon sx={{ fontSize: 40 }} />,
+    //  title: 'Cuidador',
+    //  desc: 'Dicas rápidas e ajuda no dia a dia.',
+    //  to: '/grupo5/ajudador',
+    //},
 
     // Elden Care — Plano de Exercícios
     {
@@ -79,13 +88,6 @@ export function ModuleGrid() {
     },
 
     {
-      icon: <EscalatorWarningIcon sx={{ fontSize: 40 }} />,
-      title: 'Cuidador',
-      desc: 'Dicas rápidas e ajuda no dia a dia.',
-      to: '/grupo5/ajudador',
-    },
-
-    {
       icon: <NoteAltOutlinedIcon sx={{ fontSize: 40 }} />,
       title: 'Remember',
       desc: 'Diário Cognitivo e Gamificação',
@@ -96,8 +98,8 @@ export function ModuleGrid() {
     {
       icon: <HelpOutlineIcon sx={{ fontSize: 40 }} />,
       title: 'Dúvidas',
-      desc: 'Dúvidas e sugestões.',
-      to: '/grupo6/ajudador',
+      desc: 'Perguntas frequentes, sugestões e contato com o suporte.',
+      to: '/duvidas',
     },
   ];
 

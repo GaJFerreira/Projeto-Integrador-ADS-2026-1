@@ -61,6 +61,15 @@ import AdminConquistasPage from '@/features/remember/pages/AdminConquistasPage';
 import AdminCreateConquistaPage from '@/features/remember/pages/AdminCreateConquistaPage';
 import AdminEditConquistaPage from '@/features/remember/pages/AdminEditConquistaPage';
 
+// ✅ Dúvidas e Sugestões
+import DuvidasPage from '@/features/duvidas/pages/DuvidasPage';
+import AdminDuvidasPage from '@/features/duvidas/pages/AdminDuvidasPage';
+import AdminFaqPage from '@/features/duvidas/pages/AdminFaqPage';
+
+import AdminRoute from '@/components/AdminRoute';
+
+// ✅ Perfil do usuário
+import ProfilePage from '@/features/auth/pages/ProfilePage';
 
 // Jogos
 import JogosPage from "@/features/jogos/pages/JogosPage.tsx";
@@ -71,7 +80,6 @@ import HistoricoMedicamentosPage from '@/features/medicamentos/pages/HistoricoMe
 import ListaMedicamentosPage from '@/features/medicamentos/pages/ListaMedicamentosPage';
 import InitialPage from '@/features/medicamentos/pages/InicialPage';
 import EditarMedicamentoPage from "@/features/medicamentos/pages/EditarMedicamentoPage";
-
 
 //Sabor Familia
 
@@ -115,21 +123,26 @@ export function AppRoutes() {
       <Route element={<AppLayout />}>
         <Route path="/home" element={<Home />} />
 
-        {/* Rotas administrativas */}
-        <Route path="admin" element={<AdminPage />} />
-        <Route path="admin/usuarios" element={<AdminUsuariosPage />} />
-        <Route path="admin/usuarios/novo" element={<AdminUsuarioCreatePage />} />
-        <Route path="admin/permissoes" element={<AdminPermissoesPage />} />
-        <Route path="admin/medicos" element={<AdminMedicosPage />} />
-        <Route path="admin/cuidadores" element={<AdminCuidadoresPage />} />
-        <Route path="admin/usuarios/:id/edit" element={<EditUsuarioPage />} />
-        <Route path="admin/medicos/:id/edit" element={<EditMedicoPage />} />
-        <Route path="admin/cuidadores/:id/edit" element={<EditCuidadorPage />} />
+        {/* Perfil do usuário logado */}
+        <Route path="perfil" element={<ProfilePage />} />
 
-        {/* Admin: Produtos da Lista de Compras */}
-        <Route path="admin/produtos" element={<AdminProdutosPage />} />
-        <Route path="admin/produtos/novo" element={<AdminProdutoCreatePage />} />
-        <Route path="admin/produtos/:id/edit" element={<AdminProdutoEditPage />} />
+        {/* Rotas administrativas globais protegidas */}
+        <Route element={<AdminRoute />}>
+          <Route path="admin" element={<AdminPage />} />
+          <Route path="admin/usuarios" element={<AdminUsuariosPage />} />
+          <Route path="admin/usuarios/novo" element={<AdminUsuarioCreatePage />} />
+          <Route path="admin/permissoes" element={<AdminPermissoesPage />} />
+          <Route path="admin/medicos" element={<AdminMedicosPage />} />
+          <Route path="admin/cuidadores" element={<AdminCuidadoresPage />} />
+          <Route path="admin/usuarios/:id/edit" element={<EditUsuarioPage />} />
+          <Route path="admin/medicos/:id/edit" element={<EditMedicoPage />} />
+          <Route path="admin/cuidadores/:id/edit" element={<EditCuidadorPage />} />
+
+          {/* Admin: Produtos da Lista de Compras */}
+          <Route path="admin/produtos" element={<AdminProdutosPage />} />
+          <Route path="admin/produtos/novo" element={<AdminProdutoCreatePage />} />
+          <Route path="admin/produtos/:id/edit" element={<AdminProdutoEditPage />} />
+        </Route>
 
         {/* Rotas gerais */}
         <Route path="usuarios" element={<UsuariosPage />} />
@@ -164,9 +177,11 @@ export function AppRoutes() {
 
 
         {/* ── diario-saude: Admin */}
-        <Route path="admin/questionario" element={<GerenciarQuestionarioPage />} />
-        <Route path="admin/cadastro-alergia-doenca" element={<CadastroAlergiaDoencaPage />} />
-        <Route path="admin/vinculos-cuidador" element={<AdminVinculoCuidadorPage />} />
+        <Route element={<AdminRoute />}>
+          <Route path="admin/questionario" element={<GerenciarQuestionarioPage />} />
+          <Route path="admin/cadastro-alergia-doenca" element={<CadastroAlergiaDoencaPage />} />
+          <Route path="admin/vinculos-cuidador" element={<AdminVinculoCuidadorPage />} />
+        </Route>
 
         {/* ── diario-saude: Idoso */}
         <Route path="saude" element={<SaudeMenuPage />} />
@@ -182,14 +197,23 @@ export function AppRoutes() {
 
         {/* Diário Cognitivo (Remember) */}
         <Route path="remember" element={<RememberPage />} />
-
-        {/* Admin: Gestão de Conquistas do Remember */}
         <Route path="admin/conquistas" element={<AdminConquistasPage />} />
         <Route path="admin/conquistas/novo" element={<AdminCreateConquistaPage />} />
         <Route path="admin/conquistas/:id/edit" element={<AdminEditConquistaPage />} />
 
 
-        {/* Jogos */}
+        {/* Admin: Gestão de Conquistas do Remember */}
+        <Route element={<AdminRoute />}>
+
+          {/* Admin: Dúvidas e Sugestões */}
+          <Route path="admin/duvidas" element={<AdminDuvidasPage />} />
+          <Route path="admin/faqs" element={<AdminFaqPage />} />
+        </Route>
+
+        {/* Dúvidas e Sugestões */}
+        <Route path="duvidas" element={<DuvidasPage />} />
+
+              {/* Jogos */}
         <Route path="jogos" element={<JogosPage/>}/>
 
         {/* Rotas de Medicamentos */}
@@ -202,7 +226,7 @@ export function AppRoutes() {
         <Route path="lista" element={<ListaMedicamentosPage />} />
         </Route>
 
-
+  
         {/* Rotas Modulo Sabor_Familia */}
         <Route
           path="sabor-familia"
