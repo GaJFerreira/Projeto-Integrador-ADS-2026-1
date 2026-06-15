@@ -1,6 +1,7 @@
 import { Box, Container, Grid, Typography } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
+import BiotechIcon from '@mui/icons-material/Biotech';
 import InboxIcon from '@mui/icons-material/Inbox';
 import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import AdminModuleCard from '../components/AdminModuleCard';

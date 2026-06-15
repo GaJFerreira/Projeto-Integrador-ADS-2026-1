@@ -1,26 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-    Box,
-    Typography,
-    Card,
-    CardActionArea,
-    CardContent,
-    Stack,
-    Chip,
-    Button,
-    Skeleton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Snackbar,
-    Alert,
-    List,
-    ListItem,
-    ListItemText,
-    IconButton,
+    Box, Typography, Card, CardActionArea, CardContent,
+    Stack, Chip, Button, Skeleton, Dialog, DialogContent,
+    DialogActions, Snackbar, Alert, List, ListItem,
+    ListItemText, ListItemIcon, IconButton, Checkbox, LinearProgress, Tooltip,
 } from "@mui/material";
-import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddIcon from "@mui/icons-material/Add";
@@ -29,18 +13,15 @@ import CloseIcon from "@mui/icons-material/Close";
 import ArchiveOutlinedIcon from "@mui/icons-material/ArchiveOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import CalendarMonthOutlinedIcon from "@mui/icons-material/CalendarMonthOutlined";
+import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+import TaskAltIcon from "@mui/icons-material/TaskAlt";
 import { alpha } from "@mui/material/styles";
 import { useNavigate } from "react-router-dom";
 import { useSnackbar } from "notistack";
 
 import { listaViewService, type ListaDTO } from "../api/service/listaViewService.ts";
 import { listaComprasService } from "../api/service/listaComprasService.ts";
-import {
-    EmptyState,
-    SectionTitle,
-    ShoppingHeader,
-    ShoppingPage,
-} from "@/features/lista-compras/components/ShoppingUi.tsx";
+import { EmptyState, SectionTitle, ShoppingHeader, ShoppingPage } from "@/features/lista-compras/components/ShoppingUi.tsx";
 
 export default function ViewListaPage() {
     const navigate = useNavigate();
@@ -48,19 +29,16 @@ export default function ViewListaPage() {
 
     const [listasUsuario, setListasUsuario] = useState<ListaDTO[]>([]);
     const [loading, setLoading] = useState(true);
-
-    // filtro de status: abertas | finalizadas | todas
     const [filtroStatus, setFiltroStatus] = useState<"abertas" | "finalizadas" | "todas">("abertas");
-
-    // snackbar genérico de erro
     const [snackErroOpen, setSnackErroOpen] = useState(false);
     const [snackErroMsg, setSnackErroMsg] = useState("Erro ao carregar listas.");
-
     const [listaSelecionada, setListaSelecionada] = useState<ListaDTO | null>(null);
     const [modalOpen, setModalOpen] = useState(false);
+    const [marcados, setMarcados] = useState<Set<number>>(new Set());
 
     const handleAbrirLista = (lista: ListaDTO) => {
         setListaSelecionada(lista);
+        setMarcados(new Set());
         setModalOpen(true);
     };
 
@@ -82,193 +60,175 @@ export default function ViewListaPage() {
         }
     };
 
-    useEffect(() => {
-        carregarListas();
-    }, []);
+    useEffect(() => { carregarListas(); }, []);
 
-    // aplica o filtro de status em cima de todas as listas do usuário
     const listasFiltradas = useMemo(() => {
         let base = [...listasUsuario];
-
-        if (filtroStatus === "abertas") {
-            base = base.filter((l) => l.status !== "FINALIZADA");
-        } else if (filtroStatus === "finalizadas") {
-            base = base.filter((l) => l.status === "FINALIZADA");
-        }
-        // "todas" => não filtra
-
+        if (filtroStatus === "abertas") base = base.filter((l) => l.status !== "FINALIZADA");
+        else if (filtroStatus === "finalizadas") base = base.filter((l) => l.status === "FINALIZADA");
         return base;
     }, [listasUsuario, filtroStatus]);
 
     const totalAbertas = listasUsuario.filter((l) => l.status !== "FINALIZADA").length;
     const totalFinalizadas = listasUsuario.filter((l) => l.status === "FINALIZADA").length;
-    const totalItens = listasUsuario.reduce((acc, lista) => acc + (lista.itens?.length ?? 0), 0);
+    const totalItens = listasUsuario.reduce((acc, l) => acc + (l.itens?.length ?? 0), 0);
 
     const formatDate = (iso: string) => {
-        try {
-            const d = new Date(iso);
-            return d.toLocaleDateString("pt-BR");
-        } catch {
-            return iso;
-        }
+        try { return new Date(iso).toLocaleDateString("pt-BR"); }
+        catch { return iso; }
     };
 
     const ListaCard = ({
-                           lista,
-                           variant,
-                           onClick,
-                           onEditLista,
-                       }: {
+        lista, variant, onClick, onEditLista,
+    }: {
         lista: ListaDTO;
         variant: "template" | "user" | "finalizada";
-        onClick?: (lista: ListaDTO) => void;
-        onEditLista?: (lista: ListaDTO) => void;
+        onClick?: (l: ListaDTO) => void;
+        onEditLista?: (l: ListaDTO) => void;
     }) => {
-        const isTemplate = variant === "template";
         const isFinalizada = variant === "finalizada";
         const isAberta = variant === "user" && lista.status !== "FINALIZADA";
         const itemCount = lista.itens?.length ?? 0;
-        const previewItems = lista.itens
-            ?.slice(0, 3)
-            .map((item) => item.produto?.nome ?? `Produto #${item.produtoId}`)
-            .join(", ");
+        const itensPreview = lista.itens?.slice(0, 3) ?? [];
+        const itensRestantes = (lista.itens?.length ?? 0) - itensPreview.length;
 
         return (
             <Card
                 elevation={0}
                 sx={(theme) => ({
                     height: "100%",
+                    display: "flex",
+                    flexDirection: "column",
                     borderRadius: 3,
                     border: "1px solid",
                     borderColor: isFinalizada
-                        ? alpha(theme.palette.grey[400], 0.78)
-                        : alpha(theme.palette.primary.main, 0.14),
-                    background: isFinalizada
-                        ? alpha(theme.palette.grey[100], 0.84)
-                        : isTemplate
-                            ? alpha(theme.palette.primary.light, 0.08)
-                            : "#fff",
+                        ? alpha(theme.palette.grey[300], 0.9)
+                        : alpha(theme.palette.primary.main, 0.13),
                     overflow: "hidden",
                     transition: "transform .18s ease, box-shadow .18s ease, border-color .18s ease",
+                    boxShadow: isFinalizada
+                        ? "none"
+                        : `0 2px 8px ${alpha(theme.palette.primary.main, 0.06)}, 0 1px 2px ${alpha("#000", 0.04)}`,
                     "&:hover": {
-                        transform: "translateY(-4px)",
-                        boxShadow: `0 18px 36px ${alpha(theme.palette.primary.main, 0.12)}`,
+                        transform: "translateY(-3px)",
+                        boxShadow: isFinalizada
+                            ? `0 4px 16px ${alpha("#000", 0.08)}`
+                            : `0 10px 28px ${alpha(theme.palette.primary.main, 0.14)}`,
                         borderColor: isFinalizada
-                            ? alpha(theme.palette.grey[500], 0.9)
-                            : isTemplate
-                                ? theme.palette.primary.light
-                                : theme.palette.grey[300],
+                            ? alpha(theme.palette.grey[400], 0.9)
+                            : alpha(theme.palette.primary.main, 0.3),
                     },
                 })}
             >
-                <CardActionArea onClick={() => onClick?.(lista)} sx={{ p: 0 }}>
-                    <CardContent sx={{ p: 2.2, height: "100%" }}>
-                        <Stack spacing={1.5} sx={{ height: "100%" }}>
-                            <Stack direction="row" spacing={1.2} alignItems="flex-start">
-                                <Box
-                                    sx={(theme) => ({
-                                        width: 42,
-                                        height: 42,
-                                        borderRadius: 2,
-                                        display: "grid",
-                                        placeItems: "center",
-                                        backgroundColor: isTemplate
-                                            ? theme.palette.primary.main
-                                            : isFinalizada
-                                                ? theme.palette.grey[500]
-                                                : theme.palette.success.main,
-                                        boxShadow: `0 10px 18px ${alpha(
-                                            isFinalizada ? theme.palette.grey[500] : theme.palette.success.main,
-                                            0.18
-                                        )}`,
-                                    })}
-                                >
-                                    {isTemplate ? (
-                                        <ContentCopyIcon sx={{ color: "#fff", fontSize: 21 }} />
-                                    ) : (
-                                        <ShoppingCartIcon sx={{ color: "#fff", fontSize: 21 }} />
-                                    )}
-                                </Box>
+                <Box sx={(theme) => ({
+                    height: 4,
+                    flexShrink: 0,
+                    background: isFinalizada
+                        ? theme.palette.grey[400]
+                        : `linear-gradient(90deg, ${theme.palette.primary.main} 0%, ${alpha(theme.palette.primary.light, 0.7)} 100%)`,
+                })} />
 
+                <CardActionArea
+                    onClick={() => isFinalizada ? onClick?.(lista) : onEditLista?.(lista)}
+                    sx={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "stretch", p: 0 }}
+                >
+                    <CardContent sx={{ p: 2.2, flex: 1 }}>
+                        <Stack spacing={1.5}>
+                            <Stack direction="row" spacing={1.2} alignItems="flex-start">
+                                <Box sx={(theme) => ({
+                                    width: 40, height: 40, borderRadius: 2,
+                                    display: "grid", placeItems: "center", flexShrink: 0,
+                                    bgcolor: isFinalizada
+                                        ? alpha(theme.palette.grey[500], 0.1)
+                                        : alpha(theme.palette.primary.main, 0.1),
+                                    color: isFinalizada ? theme.palette.grey[600] : theme.palette.primary.main,
+                                })}>
+                                    <ShoppingCartIcon sx={{ fontSize: 20 }} />
+                                </Box>
                                 <Box sx={{ minWidth: 0, flex: 1 }}>
-                                    <Typography fontWeight={900} noWrap title={lista.titulo}>
+                                    <Typography fontWeight={900} noWrap title={lista.titulo} sx={{ lineHeight: 1.3 }}>
                                         {lista.titulo}
                                     </Typography>
-                                    <Typography variant="caption" color="text.secondary">
-                                        Criada em {formatDate(lista.createdAt)}
-                                    </Typography>
+                                    <Stack direction="row" spacing={0.4} alignItems="center" sx={{ mt: 0.3 }}>
+                                        <CalendarMonthOutlinedIcon sx={{ fontSize: 12, color: "text.disabled" }} />
+                                        <Typography variant="caption" color="text.disabled">{formatDate(lista.createdAt)}</Typography>
+                                    </Stack>
                                 </Box>
                             </Stack>
 
                             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                 <Chip
                                     size="small"
-                                    label={lista.status === "FINALIZADA" ? "Finalizada" : "Aberta"}
-                                    icon={
-                                        lista.status === "FINALIZADA" ? (
-                                            <CheckCircleIcon />
-                                        ) : undefined
-                                    }
-                                    color={lista.status === "FINALIZADA" ? "info" : "success"}
-                                    variant="filled"
+                                    label={isFinalizada ? "Finalizada" : "Aberta"}
+                                    icon={isFinalizada ? <CheckCircleIcon /> : undefined}
+                                    color={isFinalizada ? "default" : "primary"}
+                                    variant={isFinalizada ? "outlined" : "filled"}
+                                    sx={{ fontWeight: 700 }}
                                 />
-
                                 <Chip
                                     size="small"
                                     label={`${itemCount} ${itemCount === 1 ? "item" : "itens"}`}
                                     variant="outlined"
+                                    sx={(theme) => ({ borderColor: alpha(theme.palette.divider, 0.8), color: "text.secondary" })}
                                 />
                             </Stack>
 
-                            <Typography
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{
-                                    minHeight: 40,
-                                    display: "-webkit-box",
-                                    WebkitLineClamp: 2,
-                                    WebkitBoxOrient: "vertical",
-                                    overflow: "hidden",
-                                }}
-                            >
-                                {previewItems || "Sem itens cadastrados."}
-                            </Typography>
-
-                            {isAberta && (
-                                <Box sx={{ display: "flex", justifyContent: "flex-end", mt: "auto" }}>
-                                    <Button
-                                        size="small"
-                                        variant="outlined"
-                                        startIcon={<EditIcon />}
-                                        sx={{
-                                            textTransform: "none",
-                                            fontWeight: 800,
-                                            fontSize: "0.82rem",
-                                            minWidth: "auto",
-                                            px: 1.2,
-                                            py: 0.55,
-                                        }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onEditLista?.(lista);
-                                        }}
-                                    >
-                                        Editar itens
-                                    </Button>
-                                </Box>
-                            )}
+                            <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5, minHeight: 28, alignContent: "flex-start" }}>
+                                {itensPreview.length === 0 ? (
+                                    <Typography variant="caption" color="text.disabled">Sem itens cadastrados.</Typography>
+                                ) : (
+                                    <>
+                                        {itensPreview.map((item) => (
+                                            <Chip
+                                                key={item.produtoId}
+                                                size="small"
+                                                label={item.produto?.nome ?? `Produto #${item.produtoId}`}
+                                                variant="outlined"
+                                                sx={(theme) => ({
+                                                    fontSize: "0.7rem", height: 22,
+                                                    borderColor: alpha(theme.palette.primary.main, 0.2),
+                                                    color: "text.secondary",
+                                                })}
+                                            />
+                                        ))}
+                                        {itensRestantes > 0 && (
+                                            <Chip size="small" label={`+${itensRestantes} mais`} color="primary" variant="outlined" sx={{ fontSize: "0.7rem", height: 22 }} />
+                                        )}
+                                    </>
+                                )}
+                            </Box>
                         </Stack>
                     </CardContent>
                 </CardActionArea>
+
+                {isAberta && (
+                    <Box sx={(theme) => ({
+                        px: 2, py: 1.2,
+                        borderTop: `1px solid ${alpha(theme.palette.divider, 0.7)}`,
+                        display: "flex", justifyContent: "flex-end",
+                        bgcolor: alpha(theme.palette.primary.main, 0.025),
+                    })}>
+                        <Tooltip arrow placement="top" title="Abre a lista no modo compras: marque os itens conforme você os coloca no carrinho e acompanhe o progresso.">
+                        <Button
+                            size="small" variant="contained" startIcon={<ShoppingBagOutlinedIcon />}
+                            sx={{ textTransform: "none", fontWeight: 700, fontSize: "0.78rem" }}
+                            onClick={(e) => { e.stopPropagation(); onClick?.(lista); }}
+                        >
+                            Ir às compras
+                        </Button>
+                        </Tooltip>
+                    </Box>
+                )}
             </Card>
         );
     };
 
-    const handleIrParaEdicao = (lista: ListaDTO) => {
-        navigate(`/lista-compras/${lista.id}/editar`);
-    };
+    const handleIrParaEdicao = (lista: ListaDTO) => navigate(`/lista-compras/${lista.id}/editar`);
 
     const itensDaListaSelecionada = listaSelecionada?.itens ?? [];
+    const totalItensModal = itensDaListaSelecionada.length;
+    const marcadosCount = marcados.size;
+    const progresso = totalItensModal > 0 ? (marcadosCount / totalItensModal) * 100 : 0;
 
     return (
         <ShoppingPage maxWidth={1120}>
@@ -279,13 +239,11 @@ export default function ViewListaPage() {
                 icon={<ShoppingCartIcon />}
                 onBack={() => navigate("/lista-compras", { replace: true })}
                 actions={
-                    <Button
-                        variant="contained"
-                        startIcon={<AddIcon />}
-                        onClick={() => navigate("/lista-compras/nova")}
-                    >
+                    <Tooltip arrow placement="left" title="Crie uma nova lista de compras do zero ou a partir de um modelo.">
+                    <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/lista-compras/nova")}>
                         Nova lista
                     </Button>
+                    </Tooltip>
                 }
                 metrics={[
                     { label: "Abertas", value: totalAbertas, tone: "success" },
@@ -295,59 +253,42 @@ export default function ViewListaPage() {
                 ]}
             />
 
-            <Box
-                sx={(theme) => ({
-                    p: { xs: 2, sm: 2.5 },
-                    borderRadius: 3,
-                    border: "1px solid",
-                    borderColor: alpha(theme.palette.divider, 0.95),
-                    backgroundColor: "#fff",
-                    boxShadow: `0 18px 48px ${alpha(theme.palette.common.black, 0.07)}`,
-                })}
-            >
+            <Box sx={(theme) => ({
+                p: { xs: 2, sm: 2.5 },
+                borderRadius: 3,
+                border: "1px solid",
+                borderColor: alpha(theme.palette.divider, 0.9),
+                backgroundColor: "#fff",
+                boxShadow: `0 2px 8px ${alpha("#000", 0.04)}, 0 16px 40px ${alpha(theme.palette.primary.main, 0.04)}`,
+            })}>
                 <SectionTitle
                     title="Listas salvas"
                     description={`${listasFiltradas.length} resultado${listasFiltradas.length === 1 ? "" : "s"} no filtro atual.`}
                 />
 
-                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2.2 }}>
-                    <Chip
-                        label={`Abertas (${totalAbertas})`}
-                        clickable
-                        color={filtroStatus === "abertas" ? "success" : "default"}
-                        variant={filtroStatus === "abertas" ? "filled" : "outlined"}
-                        onClick={() => setFiltroStatus("abertas")}
-                    />
-                    <Chip
-                        label={`Finalizadas (${totalFinalizadas})`}
-                        clickable
-                        color={filtroStatus === "finalizadas" ? "info" : "default"}
-                        variant={filtroStatus === "finalizadas" ? "filled" : "outlined"}
-                        onClick={() => setFiltroStatus("finalizadas")}
-                    />
-                    <Chip
-                        label="Todas"
-                        clickable
-                        color={filtroStatus === "todas" ? "primary" : "default"}
-                        variant={filtroStatus === "todas" ? "filled" : "outlined"}
-                        onClick={() => setFiltroStatus("todas")}
-                    />
+                <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap sx={{ mb: 2.5 }}>
+                    {([
+                        { key: "abertas", label: `Abertas (${totalAbertas})`, color: "primary", tip: "Mostra apenas as listas que ainda estão em uso e não foram arquivadas." },
+                        { key: "finalizadas", label: `Finalizadas (${totalFinalizadas})`, color: "info", tip: "Mostra as listas que já foram arquivadas — compras que você deu como concluídas." },
+                        { key: "todas", label: "Todas", color: "primary", tip: "Mostra todas as suas listas, abertas e arquivadas juntas." },
+                    ] as const).map(({ key, label, color, tip }) => (
+                        <Tooltip key={key} arrow placement="top" title={tip}>
+                        <Chip
+                            label={label}
+                            clickable
+                            color={filtroStatus === key ? color : "default"}
+                            variant={filtroStatus === key ? "filled" : "outlined"}
+                            onClick={() => setFiltroStatus(key)}
+                            sx={{ fontWeight: filtroStatus === key ? 700 : 400, transition: "all .15s" }}
+                        />
+                        </Tooltip>
+                    ))}
                 </Stack>
 
                 {loading ? (
-                    <Box
-                        sx={{
-                            display: "grid",
-                            gridTemplateColumns: {
-                                xs: "1fr",
-                                sm: "repeat(2, 1fr)",
-                                md: "repeat(3, 1fr)",
-                            },
-                            gap: 2,
-                        }}
-                    >
+                    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }, gap: 2 }}>
                         {Array.from({ length: 3 }).map((_, i) => (
-                            <Skeleton key={i} height={176} sx={{ borderRadius: 3, transform: "none" }} />
+                            <Skeleton key={i} height={230} sx={{ borderRadius: 3, transform: "none" }} />
                         ))}
                     </Box>
                 ) : listasFiltradas.length === 0 ? (
@@ -356,28 +297,13 @@ export default function ViewListaPage() {
                         title="Nenhuma lista encontrada"
                         description="Crie uma nova lista ou altere o filtro para ver outros registros."
                         action={
-                            <Button
-                                variant="contained"
-                                startIcon={<AddIcon />}
-                                onClick={() => navigate("/lista-compras/nova")}
-                            >
+                            <Button variant="contained" startIcon={<AddIcon />} onClick={() => navigate("/lista-compras/nova")}>
                                 Nova lista
                             </Button>
                         }
                     />
                 ) : (
-                    <Box
-                        sx={{
-                            mt: 1,
-                            display: "grid",
-                            gridTemplateColumns: {
-                                xs: "1fr",
-                                sm: "repeat(2, 1fr)",
-                                md: "repeat(3, 1fr)",
-                            },
-                            gap: 2,
-                        }}
-                    >
+                    <Box sx={{ mt: 1, display: "grid", gridTemplateColumns: { xs: "1fr", sm: "repeat(2, 1fr)", md: "repeat(3, 1fr)" }, gap: 2 }}>
                         {listasFiltradas.map((l) => (
                             <ListaCard
                                 key={l.id}
@@ -391,139 +317,211 @@ export default function ViewListaPage() {
                 )}
             </Box>
 
-            <Dialog open={modalOpen} onClose={handleFecharModal} fullWidth maxWidth="sm">
-                <DialogTitle
-                    sx={{
-                        display: "flex",
-                        alignItems: "flex-start",
-                        justifyContent: "space-between",
-                        gap: 2,
-                        pb: 1.5,
-                    }}
-                >
-                    <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="h6" fontWeight={900} noWrap>
-                            {listaSelecionada?.titulo ?? "Itens da lista"}
-                        </Typography>
-                        {listaSelecionada && (
-                            <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap sx={{ mt: 1 }}>
+            <Dialog
+                open={modalOpen}
+                onClose={handleFecharModal}
+                fullWidth
+                maxWidth="sm"
+                PaperProps={{ sx: { borderRadius: 3, overflow: "hidden" } }}
+            >
+                <Box sx={(theme) => ({
+                    background: `linear-gradient(135deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 60%, ${alpha(theme.palette.primary.light, 0.9)} 100%)`,
+                    px: 3, pt: 2.5,
+                    pb: totalItensModal > 0 && listaSelecionada?.status !== "FINALIZADA" ? 2 : 2.5,
+                })}>
+                    <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+                        <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography variant="h6" fontWeight={900} sx={{ color: "#fff" }} noWrap>
+                                {listaSelecionada?.titulo ?? "Itens da lista"}
+                            </Typography>
+                            <Stack direction="row" spacing={0.8} flexWrap="wrap" useFlexGap sx={{ mt: 0.8 }}>
                                 <Chip
                                     size="small"
-                                    label={listaSelecionada.status === "FINALIZADA" ? "Finalizada" : "Aberta"}
-                                    color={listaSelecionada.status === "FINALIZADA" ? "info" : "success"}
+                                    label={listaSelecionada?.status === "FINALIZADA" ? "Finalizada" : "Aberta"}
+                                    sx={{ bgcolor: "rgba(255,255,255,0.18)", color: "#fff", fontWeight: 700, border: "1px solid rgba(255,255,255,0.3)" }}
                                 />
-                                <Chip
-                                    size="small"
-                                    icon={<CalendarMonthOutlinedIcon />}
-                                    label={formatDate(listaSelecionada.createdAt)}
-                                    variant="outlined"
-                                />
+                                {listaSelecionada && (
+                                    <Chip
+                                        size="small"
+                                        icon={<CalendarMonthOutlinedIcon style={{ color: "rgba(255,255,255,0.75)", fontSize: 13 }} />}
+                                        label={formatDate(listaSelecionada.createdAt)}
+                                        sx={{ bgcolor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.85)", border: "1px solid rgba(255,255,255,0.2)" }}
+                                    />
+                                )}
                             </Stack>
-                        )}
-                    </Box>
-                    <IconButton onClick={handleFecharModal} size="small" aria-label="Fechar detalhes da lista">
-                        <CloseIcon />
-                    </IconButton>
-                </DialogTitle>
+                        </Box>
+                        <IconButton
+                            onClick={handleFecharModal}
+                            size="small"
+                            sx={{ color: "rgba(255,255,255,0.8)", ml: 1, "&:hover": { bgcolor: "rgba(255,255,255,0.15)" } }}
+                        >
+                            <CloseIcon />
+                        </IconButton>
+                    </Stack>
 
-                <DialogContent dividers>
+                    {totalItensModal > 0 && listaSelecionada?.status !== "FINALIZADA" && (
+                        <Box sx={{ mt: 2 }}>
+                            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 0.6 }}>
+                                <Tooltip arrow placement="top" title="Marque os itens conforme você os coloca no carrinho. A barra mostra seu progresso. Quando todos estiverem marcados, sua compra está completa!">
+                                <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.7)", fontWeight: 600, cursor: 'help' }}>
+                                    Modo compras
+                                </Typography>
+                                </Tooltip>
+                                <Typography variant="caption" fontWeight={900} sx={{ color: "#fff" }}>
+                                    {marcadosCount} / {totalItensModal}
+                                </Typography>
+                            </Stack>
+                            <LinearProgress
+                                variant="determinate"
+                                value={progresso}
+                                sx={{
+                                    borderRadius: 4, height: 7,
+                                    bgcolor: "rgba(255,255,255,0.2)",
+                                    "& .MuiLinearProgress-bar": {
+                                        bgcolor: progresso === 100 ? "#69f0ae" : "#fff",
+                                        borderRadius: 4,
+                                    },
+                                }}
+                            />
+                            {progresso === 100 && (
+                                <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 0.8 }}>
+                                    <TaskAltIcon sx={{ fontSize: 15, color: "#69f0ae" }} />
+                                    <Typography variant="caption" sx={{ color: "#69f0ae", fontWeight: 700 }}>
+                                        Todos os itens marcados!
+                                    </Typography>
+                                </Stack>
+                            )}
+                        </Box>
+                    )}
+                </Box>
+
+                <DialogContent sx={{ p: 0 }}>
                     {itensDaListaSelecionada.length === 0 ? (
-                        <EmptyState
-                            icon={<Inventory2OutlinedIcon />}
-                            title="Lista sem itens"
-                            description="Esta lista ainda não possui produtos cadastrados."
-                        />
+                        <Box sx={{ p: 3 }}>
+                            <EmptyState
+                                icon={<Inventory2OutlinedIcon />}
+                                title="Lista sem itens"
+                                description="Esta lista ainda não possui produtos cadastrados."
+                            />
+                        </Box>
                     ) : (
                         <List disablePadding>
-                            {itensDaListaSelecionada.map((it, idx) => (
-                                <ListItem
-                                    key={`${it.produtoId}-${idx}`}
-                                    divider={idx < itensDaListaSelecionada.length - 1}
-                                    sx={{ px: 0, py: 1.2 }}
-                                >
-                                    <ListItemText
-                                        primary={
-                                            <Typography fontWeight={800}>
-                                                {it.produto?.nome ?? `Produto #${it.produtoId}`}
-                                            </Typography>
-                                        }
-                                        secondary={
-                                            <Typography component="span" variant="body2" color="text.secondary">
-                                                Quantidade: {it.qtd}
-                                            </Typography>
-                                        }
-                                    />
-                                </ListItem>
-                            ))}
+                            {itensDaListaSelecionada.map((it, idx) => {
+                                const checked = marcados.has(it.produtoId);
+                                return (
+                                    <ListItem
+                                        key={`${it.produtoId}-${idx}`}
+                                        divider={idx < itensDaListaSelecionada.length - 1}
+                                        sx={(theme) => ({
+                                            px: 3, py: 1.5,
+                                            transition: "background-color .15s, opacity .15s",
+                                            opacity: checked ? 0.45 : 1,
+                                            bgcolor: checked ? alpha(theme.palette.success.light, 0.07) : "transparent",
+                                        })}
+                                    >
+                                        {listaSelecionada?.status !== "FINALIZADA" && (
+                                            <ListItemIcon sx={{ minWidth: 48 }}>
+                                                <Tooltip arrow placement="right" title="Marque quando colocar este item no carrinho.">
+                                                <Checkbox
+                                                    edge="start"
+                                                    checked={checked}
+                                                    size="medium"
+                                                    color="success"
+                                                    onChange={(e) => {
+                                                        setMarcados((prev) => {
+                                                            const next = new Set(prev);
+                                                            if (e.target.checked) next.add(it.produtoId);
+                                                            else next.delete(it.produtoId);
+                                                            return next;
+                                                        });
+                                                    }}
+                                                />
+                                                </Tooltip>
+                                            </ListItemIcon>
+                                        )}
+                                        <ListItemText
+                                            primary={
+                                                <Typography
+                                                    fontWeight={700}
+                                                    sx={{
+                                                        textDecoration: checked ? "line-through" : "none",
+                                                        fontSize: "1rem",
+                                                        color: checked ? "text.disabled" : "text.primary",
+                                                    }}
+                                                >
+                                                    {it.produto?.nome ?? `Produto #${it.produtoId}`}
+                                                </Typography>
+                                            }
+                                            secondary={
+                                                <Typography component="span" variant="body2" color="text.secondary">
+                                                    Qtd: {it.qtd}
+                                                </Typography>
+                                            }
+                                        />
+                                    </ListItem>
+                                );
+                            })}
                         </List>
                     )}
                 </DialogContent>
 
-                <DialogActions sx={{ px: 3, py: 2, gap: 1, flexWrap: "wrap" }}>
+                <DialogActions sx={(theme) => ({
+                    px: 3, py: 2,
+                    borderTop: `1px solid ${alpha(theme.palette.divider, 0.8)}`,
+                    gap: 1, flexWrap: "wrap",
+                })}>
                     {listaSelecionada && listaSelecionada.status !== "FINALIZADA" && (
+                        <Tooltip arrow placement="top" title="Arquiva a lista, indicando que a compra foi concluída. Você ainda poderá visualizá-la depois em 'Finalizadas'.">
                         <Button
-                            color="error"
-                            variant="outlined"
-                            startIcon={<ArchiveOutlinedIcon />}
+                            color="error" variant="outlined" startIcon={<ArchiveOutlinedIcon />}
+                            sx={{ textTransform: "none" }}
                             onClick={async () => {
                                 try {
                                     await listaComprasService.finalizarLista(listaSelecionada.id);
-                                    enqueueSnackbar("Lista arquivada com sucesso.", {
-                                        variant: "success",
-                                    });
+                                    enqueueSnackbar("Lista arquivada com sucesso.", { variant: "success" });
                                     handleFecharModal();
                                     await carregarListas();
                                 } catch (e: any) {
-                                    console.error(e);
-                                    const msg =
-                                        e.response?.data?.erro ||
-                                        "Erro ao arquivar lista.";
-                                    enqueueSnackbar(msg, { variant: "error" });
+                                    enqueueSnackbar(e.response?.data?.erro || "Erro ao arquivar lista.", { variant: "error" });
                                 }
                             }}
                         >
-                            Arquivar lista
+                            Arquivar
                         </Button>
+                        </Tooltip>
                     )}
-
                     {listaSelecionada && listaSelecionada.status === "FINALIZADA" && (
+                        <Tooltip arrow placement="top" title="Retorna esta lista ao status de aberta para que você possa editá-la ou utilizá-la novamente no modo compras.">
                         <Button
-                            color="primary"
-                            variant="outlined"
+                            color="primary" variant="outlined"
+                            sx={{ textTransform: "none" }}
                             onClick={async () => {
                                 try {
                                     await listaComprasService.reabrirLista(listaSelecionada.id);
-                                    enqueueSnackbar("Lista reaberta com sucesso.", {
-                                        variant: "success",
-                                    });
+                                    enqueueSnackbar("Lista reaberta com sucesso.", { variant: "success" });
                                     handleFecharModal();
                                     await carregarListas();
                                 } catch (e: any) {
-                                    console.error(e);
-                                    const msg =
-                                        e.response?.data?.erro ||
-                                        "Erro ao reabrir lista.";
-                                    enqueueSnackbar(msg, { variant: "error" });
+                                    enqueueSnackbar(e.response?.data?.erro || "Erro ao reabrir lista.", { variant: "error" });
                                 }
                             }}
                         >
                             Reabrir lista
                         </Button>
+                        </Tooltip>
                     )}
-
                     {listaSelecionada?.status !== "FINALIZADA" && (
+                        <Tooltip arrow placement="top" title="Abre a tela de edição onde você pode adicionar ou remover produtos desta lista.">
                         <Button
-                            variant="contained"
-                            startIcon={<EditIcon />}
+                            variant="contained" startIcon={<EditIcon />}
+                            sx={{ textTransform: "none", ml: "auto" }}
                             onClick={() => {
-                                if (listaSelecionada) {
-                                    handleFecharModal();
-                                    handleIrParaEdicao(listaSelecionada);
-                                }
+                                if (listaSelecionada) { handleFecharModal(); handleIrParaEdicao(listaSelecionada); }
                             }}
                         >
                             Editar itens
                         </Button>
+                        </Tooltip>
                     )}
                 </DialogActions>
             </Dialog>
@@ -534,12 +532,7 @@ export default function ViewListaPage() {
                 onClose={() => setSnackErroOpen(false)}
                 anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             >
-                <Alert
-                    severity="error"
-                    variant="filled"
-                    onClose={() => setSnackErroOpen(false)}
-                    sx={{ width: "100%" }}
-                >
+                <Alert severity="error" variant="filled" onClose={() => setSnackErroOpen(false)} sx={{ width: "100%" }}>
                     {snackErroMsg}
                 </Alert>
             </Snackbar>

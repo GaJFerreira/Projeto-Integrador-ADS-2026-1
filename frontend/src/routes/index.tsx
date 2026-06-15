@@ -15,6 +15,7 @@ import AdminUsuarioCreatePage from '@/features/admin/pages/AdminUsuarioCreatePag
 import AdminProdutosPage from '@/features/admin/pages/AdminProdutosPage';
 import AdminProdutoCreatePage from '@/features/admin/pages/AdminProdutoCreatePage';
 import AdminProdutoEditPage from '@/features/admin/pages/AdminProdutoEditPage';
+import AdminPatologiasPage from '@/features/admin/pages/AdminPatologiasPage';
 import AtendimentoMedico from '@/features/atendimento/AtendimentoMedico';
 
 // Elden Care
@@ -143,6 +144,9 @@ export function AppRoutes() {
           <Route path="admin/produtos/novo" element={<AdminProdutoCreatePage />} />
           <Route path="admin/produtos/:id/edit" element={<AdminProdutoEditPage />} />
         </Route>
+
+        {/* Admin: Patologias */}
+        <Route path="admin/patologias" element={<AdminPatologiasPage />} />
 
         {/* Rotas gerais */}
         <Route path="usuarios" element={<UsuariosPage />} />

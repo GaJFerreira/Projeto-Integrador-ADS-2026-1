@@ -10,6 +10,8 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -26,6 +28,7 @@ public class PatologiaItemController {
   private final PatologiaItemService service;
 
   @Operation(summary = "Vincular produto a patologia (com sugestao opcional)")
+  @PreAuthorize("hasRole('ADMIN')")
   @PostMapping
   public ResponseEntity<PatologiaItemResponseDTO> vincular(@Valid @RequestBody PatologiaItemRequestDTO dto) {
     return ResponseEntity.status(HttpStatus.CREATED).body(service.vincular(dto));
@@ -35,5 +38,13 @@ public class PatologiaItemController {
   @GetMapping("/patologia/{patologiaId}")
   public ResponseEntity<List<PatologiaItemResponseDTO>> listarPorPatologia(@PathVariable Long patologiaId) {
     return ResponseEntity.ok(service.listarPorPatologia(patologiaId));
+  }
+
+  @Operation(summary = "Remover vinculo produto-patologia")
+  @PreAuthorize("hasRole('ADMIN')")
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> desvincular(@PathVariable Long id) {
+    service.desvincular(id);
+    return ResponseEntity.noContent().build();
   }
 }

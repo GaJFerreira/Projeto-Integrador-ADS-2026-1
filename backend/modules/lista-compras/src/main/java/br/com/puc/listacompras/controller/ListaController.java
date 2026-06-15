@@ -4,6 +4,7 @@ import br.com.puc.listacompras.dto.ListaCreateRequestDTO;
 import br.com.puc.listacompras.dto.ListaResponseDTO;
 import br.com.puc.listacompras.service.ListaService;
 import br.com.puc.listacompras.utils.JwtClaimsUtils;
+import org.springframework.security.access.AccessDeniedException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,6 +40,9 @@ public class ListaController {
       @Valid @RequestBody ListaCreateRequestDTO dto
   ) {
     Long usuarioId = JwtClaimsUtils.getUserId(authorization);
+    if (Boolean.TRUE.equals(dto.getIsTemplate()) && "ROLE_IDOSO".equals(JwtClaimsUtils.getRole(authorization))) {
+      throw new AccessDeniedException("Usuarios com perfil Idoso nao podem criar templates.");
+    }
     ListaResponseDTO resposta = listaService.criarComItens(usuarioId, dto);
     return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
   }
@@ -53,15 +57,6 @@ public class ListaController {
   ) {
     Long usuarioId = JwtClaimsUtils.getUserId(authorization);
     return ResponseEntity.ok(listaService.listarListasNormais(usuarioId));
-  }
-
-  @Operation(
-      summary = "Listar listas do usuario (rota legado)",
-      description = "Mantida por compatibilidade com chamadas /usuario/{userId}."
-  )
-  @GetMapping("/usuario/{userId}")
-  public ResponseEntity<List<ListaResponseDTO>> listarListasDoUsuarioLegado(@PathVariable Long userId) {
-    return ResponseEntity.ok(listaService.listarListasNormais(userId));
   }
 
   @Operation(

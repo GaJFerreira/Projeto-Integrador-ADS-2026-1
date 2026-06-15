@@ -13,9 +13,11 @@ import {
   Stack,
   Switch,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import {
   adminProdutosApi,
   type AdminCategoria,
@@ -186,6 +188,7 @@ export default function AdminProdutoEditPage() {
           <ArrowBackIcon />
         </IconButton>
         <Typography variant="h3" sx={{ flex: 1 }}>Editar produto</Typography>
+        <Tooltip arrow placement="left" title="Produtos inativos não aparecem na busca do autocomplete na tela de criação de listas.">
         <FormControlLabel
           control={
             <Switch
@@ -195,12 +198,18 @@ export default function AdminProdutoEditPage() {
           }
           label={form.ativo ? 'Ativo' : 'Inativo'}
         />
+        </Tooltip>
       </Box>
 
       <Box component="form" onSubmit={handleSubmit} noValidate>
         <Stack spacing={3} maxWidth={960}>
           <Stack spacing={2}>
-            <Typography variant="h5">Dados gerais</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.75}>
+              <Typography variant="h5">Dados gerais</Typography>
+              <Tooltip arrow placement="right" title="Informações básicas de identificação do produto no catálogo. Nome e categoria são obrigatórios.">
+                <InfoOutlinedIcon sx={{ fontSize: 17, color: 'text.disabled', cursor: 'help' }} />
+              </Tooltip>
+            </Stack>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 8 }}>
                 <TextField
@@ -240,6 +249,7 @@ export default function AdminProdutoEditPage() {
                   value={form.unidadeMedida}
                   onChange={(e) => handle('unidadeMedida', e.target.value)}
                   fullWidth
+                  helperText="Formato de venda do produto (ex: kg, g, L, unidade). Exibida junto à quantidade na lista do usuário."
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 3 }}>
@@ -249,7 +259,7 @@ export default function AdminProdutoEditPage() {
                   inputProps={{ step: '0.01', min: '0' }}
                   value={form.custoMedio}
                   onChange={(e) => handle('custoMedio', e.target.value)}
-                  helperText={custoMudou ? 'O carimbo de atualizacao sera renovado ao salvar.' : ' '}
+                  helperText={custoMudou ? 'O carimbo de atualização será renovado ao salvar.' : 'Preço médio de mercado. Utilizado para estimar o custo total da lista.'}
                   fullWidth
                 />
               </Grid>
@@ -259,14 +269,20 @@ export default function AdminProdutoEditPage() {
           <Divider />
 
           <Stack spacing={2}>
-            <Typography variant="h5">Tabela nutricional</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.75}>
+              <Typography variant="h5">Tabela nutricional</Typography>
+              <Tooltip arrow placement="right" title="Estes dados são usados para identificar automaticamente produtos inadequados para determinadas condições de saúde. Preencha com os valores do rótulo do produto.">
+                <InfoOutlinedIcon sx={{ fontSize: 17, color: 'text.disabled', cursor: 'help' }} />
+              </Tooltip>
+            </Stack>
             <Typography variant="body2" color="text.secondary">
-              Valores por porcao de referencia. Campos vazios serao tratados como nao informados.
+              Valores por porção de referência. Campos vazios serão tratados como não informados.
             </Typography>
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 4 }}>
                 <TextField label="Porcao (g ou ml)" type="number" inputProps={{ step: '0.01', min: '0' }}
-                  value={form.porcaoReferenciaGramas} onChange={(e) => handle('porcaoReferenciaGramas', e.target.value)} fullWidth />
+                  value={form.porcaoReferenciaGramas} onChange={(e) => handle('porcaoReferenciaGramas', e.target.value)} fullWidth
+                  helperText="Tamanho da porção base. Ex.: se o rótulo diz '30g', preencha 30." />
               </Grid>
               <Grid size={{ xs: 6, md: 4 }}>
                 <TextField label="Calorias (kcal)" type="number" inputProps={{ step: '0.01', min: '0' }}
@@ -298,7 +314,8 @@ export default function AdminProdutoEditPage() {
               </Grid>
               <Grid size={{ xs: 6, md: 4 }}>
                 <TextField label="Sodio (mg)" type="number" inputProps={{ step: '0.01', min: '0' }}
-                  value={form.sodio} onChange={(e) => handle('sodio', e.target.value)} fullWidth />
+                  value={form.sodio} onChange={(e) => handle('sodio', e.target.value)} fullWidth
+                  helperText="Crítico para hipertensos e renais. Acima de 400 mg por porção é alto." />
               </Grid>
             </Grid>
           </Stack>
@@ -306,15 +323,21 @@ export default function AdminProdutoEditPage() {
           <Divider />
 
           <Stack spacing={2}>
-            <Typography variant="h5">Tags</Typography>
+            <Stack direction="row" alignItems="center" spacing={0.75}>
+              <Typography variant="h5">Tags</Typography>
+              <Tooltip arrow placement="right" title="Palavras-chave que facilitam a busca e filtragem de produtos. Use termos que descrevem características importantes, como restrições alimentares ou tipo de alimento.">
+                <InfoOutlinedIcon sx={{ fontSize: 17, color: 'text.disabled', cursor: 'help' }} />
+              </Tooltip>
+            </Stack>
             <TextField
-              label="Tags (separadas por virgula)"
+              label="Tags (separadas por vírgula)"
               placeholder="ex: integral, sem gluten, organico"
               value={form.tags}
               onChange={(e) => handle('tags', e.target.value)}
               fullWidth
               multiline
               minRows={2}
+              helperText="Palavras-chave separadas por vírgula. Ex.: 'integral, sem lactose, vegetariano'. Facilitam a busca e categorização do produto."
             />
           </Stack>
 

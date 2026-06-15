@@ -4,32 +4,34 @@ import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import { useNavigate } from 'react-router-dom';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
+import { isIdoso } from '../utils/userRole';
 
 
 export default function ListaComprasPage() {
     const navigate = useNavigate();
 
-    const items = [
+    const allItems = [
         {
             icon: <AddCircleOutlineIcon sx={{ fontSize: 40 }} />,
             title: 'Criar nova lista',
-            desc: 'Comece do zero e adicione itens.',
+            desc: 'Monte uma lista de compras com alertas automáticos para suas condições de saúde e sugestões de produtos alternativos.',
             to: '/lista-compras/nova',
         },
         {
             icon: <ListAltIcon sx={{ fontSize: 40 }} />,
             title: 'Minhas listas',
-            desc: 'Veja, edite e compartilhe suas listas.',
+            desc: 'Acesse suas listas salvas, marque itens no modo compras e arquive compras concluídas.',
             to: '/lista-compras/listas',
         },
-
         {
             icon: <FileCopyIcon sx={{ fontSize: 40 }} />,
             title: 'Templates',
-            desc: 'Crie Templates de listas.',
+            desc: 'Gerencie modelos de listas pré-configurados para reutilizar em compras recorrentes ou dietas específicas.',
             to: '/lista-compras/templates',
         },
     ];
+
+    const items = isIdoso() ? allItems.slice(0, 2) : allItems;
 
     return (
         <Box sx={{ p: 3 }}>
