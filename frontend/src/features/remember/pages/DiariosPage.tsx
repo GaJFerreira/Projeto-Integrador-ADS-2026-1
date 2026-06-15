@@ -3,12 +3,14 @@ import {
     Box,
     Typography,
     CircularProgress,
+    Alert,
 } from '@mui/material';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { useSnackbar } from 'notistack';
 import { diariosApi, type Diario } from '../api/diarios';
 import DiarioCard from '../components/DiarioCard';
 import DiarioModal from '../components/DiarioModal';
+import { getMensagemErroRemember } from '../utils/errors';
 
 interface DiariosPageProps {
     usuarioId: number;
@@ -19,6 +21,7 @@ export default function DiariosPage({ usuarioId }: DiariosPageProps) {
 
     const [diarios, setDiarios] = useState<Diario[]>([]);
     const [loading, setLoading] = useState(true);
+    const [erroPagina, setErroPagina] = useState('');
 
     // Estados para controlar a EDIÇÃO
     const [modalOpen, setModalOpen] = useState(false);
@@ -32,11 +35,14 @@ export default function DiariosPage({ usuarioId }: DiariosPageProps) {
 
     async function carregarDiarios() {
         setLoading(true);
+        setErroPagina('');
         try {
             const dados = await diariosApi.listarPorUsuario(usuarioId);
             setDiarios(dados);
         } catch (error) {
-            enqueueSnackbar('Erro ao carregar diários.', { variant: 'error' });
+            const mensagem = getMensagemErroRemember(error, 'Erro ao carregar diarios.');
+            setErroPagina(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'error' });
         } finally {
             setLoading(false);
         }
@@ -53,13 +59,16 @@ export default function DiariosPage({ usuarioId }: DiariosPageProps) {
 
     // --- EXCLUIR DIÁRIO ---
     const handleDeleteDiario = async (id: number) => {
+        setErroPagina('');
         try {
             await diariosApi.remover(id);
             enqueueSnackbar('Diário excluído com sucesso!', { variant: 'success' });
             // Remove da lista localmente para não precisar recarregar tudo do servidor
             setDiarios((prev) => prev.filter(d => d.identificadorDiario !== id));
         } catch (error) {
-            enqueueSnackbar('Erro ao excluir diário.', { variant: 'error' });
+            const mensagem = getMensagemErroRemember(error, 'Erro ao excluir diario.');
+            setErroPagina(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'error' });
         }
     };
 
@@ -83,6 +92,12 @@ export default function DiariosPage({ usuarioId }: DiariosPageProps) {
 
     return (
         <>
+            {erroPagina && (
+                <Alert severity="error" onClose={() => setErroPagina('')} sx={{ mb: 3 }}>
+                    {erroPagina}
+                </Alert>
+            )}
+
             {diarios.length === 0 ? (
                 <Box textAlign="center" py={8} sx={{ opacity: 0.7 }}>
                     <MenuBookIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />

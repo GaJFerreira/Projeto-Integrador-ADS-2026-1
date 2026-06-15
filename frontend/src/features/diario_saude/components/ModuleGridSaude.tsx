@@ -1,6 +1,7 @@
 import { ModuleGridIdoso } from './ModuleGridIdoso';
 import { ModuleGridMedicoSaude } from './ModuleGridMedicoSaude';
 import { ModuleGridAdmin } from './ModuleGridAdmin';
+import { ModuleGridCuidador } from './ModuleGridCuidador';
 
 export function ModuleGridSaude() {
     const usuario = (() => {
@@ -18,5 +19,6 @@ export function ModuleGridSaude() {
 
     if (role === "ROLE_ADMIN") return <ModuleGridAdmin />;
     if (role === "ROLE_MEDICO") return <ModuleGridMedicoSaude />;
+    if (role === "ROLE_CUIDADOR") return <ModuleGridCuidador />;
     return <ModuleGridIdoso />;
 }

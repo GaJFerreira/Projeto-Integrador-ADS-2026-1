@@ -7,6 +7,7 @@ import {
   CardContent,
   Chip,
   Container,
+  InputAdornment,
   Stack,
   TextField,
   Typography
@@ -30,6 +31,13 @@ type PerfilResponse = {
   taxaHora?: number;
   especialidades?: string[];
 };
+
+function formatarTelefone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  if (digits.length <= 2) return digits.length ? `(${digits}` : '';
+  if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
 
 export default function CareHubPrimeiroAcessoPage() {
   const navigate = useNavigate();
@@ -63,8 +71,6 @@ export default function CareHubPrimeiroAcessoPage() {
         const cuidador = role.includes('CUIDADOR');
         setIsCuidador(cuidador);
 
-
-
         setForm({
           name: data.name || '',
           email: data.email || '',
@@ -88,18 +94,31 @@ export default function CareHubPrimeiroAcessoPage() {
     carregar();
   }, [navigate]);
 
+  const phoneDigits = (v: string) => v.replace(/\D/g, '');
+
   const formValido = useMemo(() => {
-    const base = form.name.trim().length > 1 && form.email.trim().length > 3 && form.phone.trim().length >= 8;
+    const base =
+      form.name.trim().length > 1 &&
+      form.email.trim().length > 3 &&
+      phoneDigits(form.phone).length === 11;
+
     if (!base) return false;
 
-    if (!isCuidador) return true;
+    if (isCuidador) {
+      return (
+        form.experiencia.trim().length >= 3 &&
+        form.cidade.trim().length >= 2 &&
+        form.estado.trim().length === 2 &&
+        Number(form.taxaHora) > 0 &&
+        form.especialidades.length > 0 &&
+        form.biografia.trim().length >= 3
+      );
+    }
 
     return (
-      form.experiencia.trim().length >= 3 &&
-      form.cidade.trim().length >= 2 &&
-      form.estado.trim().length === 2 &&
-      Number(form.taxaHora) > 0 &&
-      form.especialidades.length > 0
+      form.endereco.trim().length >= 3 &&
+      form.necessidades.trim().length >= 3 &&
+      form.contatoEmergencia.trim().length >= 3
     );
   }, [form, isCuidador]);
 
@@ -126,7 +145,7 @@ export default function CareHubPrimeiroAcessoPage() {
       await http.post('/api/carehub/perfil/completar', {
         name: form.name.trim(),
         email: form.email.trim(),
-        phone: form.phone.trim(),
+        phone: phoneDigits(form.phone),
         endereco: form.endereco.trim() || null,
         necessidades: form.necessidades.trim() || null,
         contatoEmergencia: form.contatoEmergencia.trim() || null,
@@ -170,25 +189,121 @@ export default function CareHubPrimeiroAcessoPage() {
 
             {erro && <Alert severity="error">{erro}</Alert>}
 
-            <TextField label="Nome completo" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} required />
-            <TextField label="Email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} required />
-            <TextField label="Telefone" value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} required />
+            {/* Campos comuns — nome e email mantidos como estavam (puxados da API) */}
+            <TextField
+              label="Nome completo"
+              value={form.name}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+              required
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))}
+              required
+            />
 
+            {/* Telefone com máscara (XX) XXXXX-XXXX */}
+            <TextField
+              label="Telefone"
+              value={form.phone}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, phone: formatarTelefone(e.target.value) }))
+              }
+              placeholder="(XX) XXXXX-XXXX"
+              inputProps={{ maxLength: 16 }}
+              helperText={phoneDigits(form.phone).length > 0 && phoneDigits(form.phone).length < 11 ? 'Digite os 11 dígitos com DDD' : ''}
+              required
+            />
+
+            {/* Campos do Cliente (não-cuidador) — todos obrigatórios */}
             {!isCuidador && (
               <>
-                <TextField label="Endereco (opcional)" value={form.endereco} onChange={(e) => setForm((p) => ({ ...p, endereco: e.target.value }))} />
-                <TextField label="Necessidades (opcional)" value={form.necessidades} onChange={(e) => setForm((p) => ({ ...p, necessidades: e.target.value }))} multiline minRows={2} />
-                <TextField label="Contato de emergencia (opcional)" value={form.contatoEmergencia} onChange={(e) => setForm((p) => ({ ...p, contatoEmergencia: e.target.value }))} />
+                <TextField
+                  label="Endereco"
+                  value={form.endereco}
+                  onChange={(e) => setForm((p) => ({ ...p, endereco: e.target.value }))}
+                  required
+                />
+                <TextField
+                  label="Necessidades"
+                  value={form.necessidades}
+                  onChange={(e) => setForm((p) => ({ ...p, necessidades: e.target.value }))}
+                  multiline
+                  minRows={2}
+                  required
+                />
+                <TextField
+                  label="Contato de emergencia"
+                  value={form.contatoEmergencia}
+                  onChange={(e) => setForm((p) => ({ ...p, contatoEmergencia: e.target.value }))}
+                  required
+                />
               </>
             )}
 
+            {/* Campos do Cuidador — todos obrigatórios */}
             {isCuidador && (
               <>
-                <TextField label="Cidade" value={form.cidade} onChange={(e) => setForm((p) => ({ ...p, cidade: e.target.value }))} required />
-                <TextField label="UF (2 letras)" value={form.estado} onChange={(e) => setForm((p) => ({ ...p, estado: e.target.value.slice(0, 2).toUpperCase() }))} required />
-                <TextField label="Experiencia" value={form.experiencia} onChange={(e) => setForm((p) => ({ ...p, experiencia: e.target.value }))} required multiline minRows={2} />
-                <TextField label="Valor por hora (R$)" type="number" value={form.taxaHora} onChange={(e) => setForm((p) => ({ ...p, taxaHora: e.target.value }))} required />
-                <TextField label="Biografia (opcional)" value={form.biografia} onChange={(e) => setForm((p) => ({ ...p, biografia: e.target.value }))} multiline minRows={2} />
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                  <TextField
+                    fullWidth
+                    label="Cidade"
+                    value={form.cidade}
+                    onChange={(e) => setForm((p) => ({ ...p, cidade: e.target.value }))}
+                    required
+                  />
+                  <TextField
+                    label="UF"
+                    value={form.estado}
+                    onChange={(e) =>
+                      setForm((p) => ({
+                        ...p,
+                        estado: e.target.value.replace(/[^a-zA-Z]/g, '').slice(0, 2).toUpperCase()
+                      }))
+                    }
+                    inputProps={{ maxLength: 2, style: { textTransform: 'uppercase', letterSpacing: '0.15em' } }}
+                    placeholder="GO"
+                    sx={{ width: { xs: '100%', sm: 120 } }}
+                    required
+                  />
+                </Stack>
+
+                <TextField
+                  label="Experiencia"
+                  value={form.experiencia}
+                  onChange={(e) => setForm((p) => ({ ...p, experiencia: e.target.value }))}
+                  multiline
+                  minRows={2}
+                  required
+                />
+
+                <TextField
+                  label="Valor por hora"
+                  type="number"
+                  value={form.taxaHora}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    if (val === '' || Number(val) >= 0) {
+                      setForm((p) => ({ ...p, taxaHora: val }));
+                    }
+                  }}
+                  InputProps={{
+                    startAdornment: <InputAdornment position="start">R$</InputAdornment>
+                  }}
+                  inputProps={{ min: 0, step: 0.01 }}
+                  required
+                />
+
+                <TextField
+                  label="Biografia"
+                  value={form.biografia}
+                  onChange={(e) => setForm((p) => ({ ...p, biografia: e.target.value }))}
+                  multiline
+                  minRows={2}
+                  required
+                />
 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1}>
                   <TextField
@@ -202,8 +317,11 @@ export default function CareHubPrimeiroAcessoPage() {
                         addEspecialidade();
                       }
                     }}
+                    helperText={form.especialidades.length === 0 ? 'Adicione ao menos uma especialidade' : ''}
                   />
-                  <Button variant="outlined" onClick={addEspecialidade}>Adicionar</Button>
+                  <Button variant="outlined" onClick={addEspecialidade} sx={{ height: 56, px: 3 }}>
+                    Adicionar
+                  </Button>
                 </Stack>
 
                 <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -214,9 +332,16 @@ export default function CareHubPrimeiroAcessoPage() {
               </>
             )}
 
-            {!formValido && <Alert severity="info">Preencha os campos obrigatorios para concluir.</Alert>}
+            {!formValido && (
+              <Alert severity="info">Preencha todos os campos obrigatorios para concluir.</Alert>
+            )}
 
-            <Button variant="contained" size="large" disabled={!formValido || saving} onClick={salvar}>
+            <Button
+              variant="contained"
+              size="large"
+              disabled={!formValido || saving}
+              onClick={salvar}
+            >
               {saving ? 'Salvando...' : 'Confirmar e entrar no CareHub'}
             </Button>
           </Stack>

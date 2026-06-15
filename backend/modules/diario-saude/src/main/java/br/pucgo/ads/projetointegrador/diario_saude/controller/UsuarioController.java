@@ -44,20 +44,51 @@ public class UsuarioController {
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * Busca (ou cria) o registro clínico de um usuário da plataforma.
-     * O nome vem do token JWT via Authentication.
-     */
     @GetMapping("/por-user/{platformUserId}")
     public ResponseEntity<UsuarioDTO> buscarPorPlatformUserId(
             @PathVariable Long platformUserId,
+            @RequestParam(required = false) String nome,
             Authentication authentication) {
 
-        String nome = authentication != null ? authentication.getName() : null;
-        UsuarioEntity entity = usuarioService.buscarOuCriarPaciente(platformUserId, nome);
+        // Prioridade: 1) nome vindo do frontend (query param)
+        // 2) getUsername() via reflexão — que na plataforma é o nome real
+        // 3) fallback para authentication.getName() (email)
+        String nomeReal = nome;
+
+        if (nomeReal == null || nomeReal.isBlank() || nomeReal.contains("@")) {
+            nomeReal = extrairNomeViaReflexao(authentication);
+        }
+
+        if (nomeReal == null || nomeReal.isBlank()) {
+            nomeReal = authentication != null ? authentication.getName() : null;
+        }
+
+        UsuarioEntity entity = usuarioService.buscarOuCriarPaciente(platformUserId, nomeReal);
         UsuarioDTO dto = new UsuarioDTO(entity);
         dto.setPlatformUserId(entity.getPlatformUserId());
 
         return ResponseEntity.ok(dto);
+    }
+
+    private String extrairNomeViaReflexao(Authentication authentication) {
+        if (authentication == null)
+            return null;
+        try {
+            Object principal = authentication.getPrincipal();
+            Object user = principal.getClass().getMethod("getUser").invoke(principal);
+            // Tenta getUsername() primeiro — na plataforma é o nome real
+            try {
+                String username = (String) user.getClass().getMethod("getUsername").invoke(user);
+                if (username != null && !username.isBlank() && !username.contains("@"))
+                    return username;
+            } catch (Exception ignored) {
+            }
+            // Tenta getName() como fallback
+            String name = (String) user.getClass().getMethod("getName").invoke(user);
+            if (name != null && !name.isBlank() && !name.contains("@"))
+                return name;
+        } catch (Exception ignored) {
+        }
+        return null;
     }
 }

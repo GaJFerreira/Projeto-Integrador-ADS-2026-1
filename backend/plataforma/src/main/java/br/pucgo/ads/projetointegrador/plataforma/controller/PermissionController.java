@@ -18,8 +18,14 @@ public class PermissionController {
 
     private final PermissionService permissionService;
 
+    /**
+     * Cria uma nova permissão.
+     * Requer a authority 'MANAGE_ROLES' — pode ser herdada do Role (ex: ROLE_ADMIN)
+     * ou atribuída individualmente a qualquer usuário pelo administrador.
+     * Este endpoint demonstra o sistema de permissões granulares em funcionamento.
+     */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('MANAGE_ROLES')")
     public ResponseEntity<PermissionResponseDto> createPermission(@RequestBody PermissionRequestDto permissionDto) {
         PermissionResponseDto createdPermission = permissionService.createPermission(permissionDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdPermission);

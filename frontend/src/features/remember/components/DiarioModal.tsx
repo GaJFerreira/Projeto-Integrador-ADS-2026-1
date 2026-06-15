@@ -1,29 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+    Alert,
+    Box,
+    Button,
     Dialog,
     DialogContent,
     DialogTitle,
     IconButton,
-    Box,
+    Stack,
     Typography,
-    Button,
-    Stack
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import MicIcon from '@mui/icons-material/Mic';
 import SaveIcon from '@mui/icons-material/Save';
 import { useSnackbar } from 'notistack';
-import { diariosApi, type CreateDiarioPayload, type UpdateDiarioPayload, type Diario } from '../api/diarios';
+import { diariosApi, type CreateDiarioPayload, type Diario, type UpdateDiarioPayload } from '../api/diarios';
 import type { ConquistaDetalhes } from '../api/conquistasUsuario';
-import {
-    iniciarReconhecimentoVoz,
-    type SpeechRecognitionInstance,
-    type SpeechRecognitionTextEvent
-} from '../utils/speech';
 import { getHojeLocalRemember } from '../utils/date';
-
-type SpeechRecognition = SpeechRecognitionInstance;
-type VozCampoState = { base: string; confirmado: string };
+import { getMensagemErroRemember } from '../utils/errors';
 
 interface DiarioModalProps {
     open: boolean;
@@ -31,114 +24,55 @@ interface DiarioModalProps {
     onSuccess: () => void;
     usuarioId: number;
     diarioParaEditar?: Diario | null;
-    // NOVO: Callback para avisar o pai sobre conquistas ganhas
     onConquistaGanhas?: (conquistas: ConquistaDetalhes[]) => void;
 }
 
-export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diarioParaEditar, onConquistaGanhas }: DiarioModalProps) {
+export default function DiarioModal({
+    open,
+    onClose,
+    onSuccess,
+    usuarioId,
+    diarioParaEditar,
+    onConquistaGanhas,
+}: DiarioModalProps) {
     const { enqueueSnackbar } = useSnackbar();
 
     const [titulo, setTitulo] = useState('');
     const [conteudo, setConteudo] = useState('');
     const [loading, setLoading] = useState(false);
+    const [erroFormulario, setErroFormulario] = useState('');
 
-    // Estados de gravação
-    const [gravandoTitulo, setGravandoTitulo] = useState(false);
-    const [gravandoConteudo, setGravandoConteudo] = useState(false);
-
-    const recognitionTituloRef = useRef<SpeechRecognition | null>(null);
-    const recognitionConteudoRef = useRef<SpeechRecognition | null>(null);
-    const vozTituloRef = useRef<VozCampoState>({ base: '', confirmado: '' });
-    const vozConteudoStateRef = useRef<VozCampoState>({ base: '', confirmado: '' });
-
-    // --- EFEITO: Preenche os dados se for Edição ---
     useEffect(() => {
-        if (open) {
-            if (diarioParaEditar) {
-                setTitulo(diarioParaEditar.titulo);
-                setConteudo(diarioParaEditar.conteudo);
-            } else {
-                setTitulo('');
-                setConteudo('');
-            }
+        if (!open) {
+            return;
         }
+
+        setErroFormulario('');
+
+        if (diarioParaEditar) {
+            setTitulo(diarioParaEditar.titulo);
+            setConteudo(diarioParaEditar.conteudo);
+            return;
+        }
+
+        setTitulo('');
+        setConteudo('');
     }, [open, diarioParaEditar]);
 
-    // --- LOGICA DE GRAVACAO ---
-    const handleGravar = (
-        gravandoAtual: boolean,
-        textoAtual: string,
-        setGravando: React.Dispatch<React.SetStateAction<boolean>>,
-        ref: React.MutableRefObject<SpeechRecognition | null>,
-        estadoVozRef: React.MutableRefObject<VozCampoState>,
-        setterTexto: React.Dispatch<React.SetStateAction<string>>
-    ) => {
-        if (gravandoAtual) {
-            try {
-                ref.current?.stop?.();
-                ref.current?.abort?.();
-            } catch {
-                // A captura pode ja ter sido encerrada pelo navegador.
-            }
-            ref.current = null;
-            setGravando(false);
-            return;
-        }
-
-        estadoVozRef.current = {
-            base: textoAtual.trim(),
-            confirmado: '',
-        };
-
-        ref.current = iniciarReconhecimentoVoz({
-            onText: (event) => atualizarTextoPorVoz(event, estadoVozRef, setterTexto),
-            onStart: () => setGravando(true),
-            onEnd: () => {
-                ref.current = null;
-                setGravando(false);
-            },
-            onUnsupported: () => enqueueSnackbar("Seu navegador nao suporta reconhecimento de voz.", { variant: 'error' }),
-            onError: (errorCode) => {
-                ref.current = null;
-                setGravando(false);
-                if (errorCode !== 'no-speech' && errorCode !== 'aborted') {
-                    enqueueSnackbar("Nao foi possivel capturar o audio. Verifique a permissao do microfone.", { variant: 'warning' });
-                }
-            },
-        }, () => {
-            ref.current = null;
-            setGravando(false);
-            enqueueSnackbar("Nao foi possivel iniciar o microfone agora.", { variant: 'warning' });
-        });
-    };
-
-    const atualizarTextoPorVoz = (
-        event: SpeechRecognitionTextEvent,
-        estadoVozRef: React.MutableRefObject<VozCampoState>,
-        setterTexto: React.Dispatch<React.SetStateAction<string>>
-    ) => {
-        if (event.final) {
-            estadoVozRef.current.confirmado = juntarTexto(estadoVozRef.current.confirmado, event.texto);
-            setterTexto(juntarTexto(estadoVozRef.current.base, estadoVozRef.current.confirmado));
-            return;
-        }
-
-        setterTexto(juntarTexto(
-            estadoVozRef.current.base,
-            estadoVozRef.current.confirmado,
-            event.texto
-        ));
-    };
-
-    const juntarTexto = (...partes: string[]) => partes
-        .map((parte) => parte.trim())
-        .filter(Boolean)
-        .join(' ');
-
-    // --- SALVAR (Criação ou Edição) ---
     const handleSalvar = async () => {
+        setErroFormulario('');
+
         if (!titulo.trim() || !conteudo.trim()) {
-            enqueueSnackbar('Escreva algo no título ou na história para salvar.', { variant: 'warning' });
+            const mensagem = 'Titulo e historia sao obrigatorios para salvar o diario.';
+            setErroFormulario(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'warning' });
+            return;
+        }
+
+        if (titulo.trim().length > 255) {
+            const mensagem = 'O titulo do diario deve ter no maximo 255 caracteres.';
+            setErroFormulario(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'warning' });
             return;
         }
 
@@ -147,84 +81,54 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
             let response: Diario;
 
             if (diarioParaEditar) {
-                // --- ATUALIZAR (PUT) ---
                 const payload: UpdateDiarioPayload = {
                     titulo,
-                    conteudo
+                    conteudo,
                 };
                 response = await diariosApi.atualizar(diarioParaEditar.identificadorDiario, payload);
-                enqueueSnackbar('Diário atualizado com sucesso!', { variant: 'success' });
+                enqueueSnackbar('Diario atualizado com sucesso!', { variant: 'success' });
             } else {
-                // --- CRIAR (POST) ---
                 const payload: CreateDiarioPayload = {
                     identificadorUsuario: usuarioId,
-                    titulo: titulo,
-                    conteudo: conteudo,
-                    dataEscrita: getHojeLocalRemember()
+                    titulo,
+                    conteudo,
+                    dataEscrita: getHojeLocalRemember(),
                 };
                 response = await diariosApi.criar(payload);
-                enqueueSnackbar('Diário criado com sucesso!', { variant: 'success' });
+                enqueueSnackbar('Diario criado com sucesso!', { variant: 'success' });
             }
 
-            // --- VERIFICAÇÃO DE CONQUISTA ---
-            if (response.conquistasDesbloqueadas && response.conquistasDesbloqueadas.length > 0 && onConquistaGanhas) {
-                // Chama a função do pai para exibir o modal de festa
+            if (response.conquistasDesbloqueadas?.length && onConquistaGanhas) {
                 onConquistaGanhas(response.conquistasDesbloqueadas);
             }
 
-            // Limpeza e Fechamento
             if (!diarioParaEditar) {
                 setTitulo('');
                 setConteudo('');
             }
+
             onSuccess();
             onClose();
-
         } catch (error) {
-            enqueueSnackbar('Erro ao salvar.', { variant: 'error' });
+            const mensagem = getMensagemErroRemember(error, 'Erro ao salvar diario.');
+            setErroFormulario(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'error' });
         } finally {
             setLoading(false);
         }
     };
 
-    // Estilo compartilhado de "Folha de Caderno"
     const cadernoStyle: React.CSSProperties = {
-        background: "#f9f7f3",
-        backgroundImage: "repeating-linear-gradient(to bottom, transparent, transparent 39px, #ccc 40px)",
-        lineHeight: "40px",
-        border: "1px solid #ccc",
-        outline: "none",
-        color: "#000",
-        fontSize: "18px",
-        fontFamily: "inherit",
-        resize: "none",
-        boxSizing: "border-box",
-    };
-
-    // Estilo BASE dos botões de áudio
-    const audioButtonStyle: React.CSSProperties = {
-        background: "#1976d2",
-        border: "none",
-        borderRadius: "50%",
-        width: 52,
-        height: 52,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        cursor: "pointer",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
-        transition: "all 0.2s",
-        color: "#fff",
-        zIndex: 2,
-        outline: "none"
-    };
-
-    // Estilo quando está GRAVANDO (Vermelho)
-    const audioButtonActiveStyle: React.CSSProperties = {
-        ...audioButtonStyle,
-        background: "#d32f2f",
-        boxShadow: "0 0 0 4px rgba(211, 47, 47, 0.3)",
-        transform: "scale(1.05)"
+        background: '#f9f7f3',
+        backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 39px, #ccc 40px)',
+        lineHeight: '40px',
+        border: '1px solid #ccc',
+        outline: 'none',
+        color: '#000',
+        fontSize: '18px',
+        fontFamily: 'inherit',
+        resize: 'none',
+        boxSizing: 'border-box',
     };
 
     return (
@@ -233,17 +137,11 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
             onClose={loading ? undefined : onClose}
             maxWidth="md"
             fullWidth
-            PaperProps={{
-                sx: {
-                    borderRadius: 4,
-                    p: 1
-                }
-            }}
+            PaperProps={{ sx: { borderRadius: 4, p: 1 } }}
         >
-            {/* Cabeçalho */}
             <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="h5" color="primary">
-                    {diarioParaEditar ? 'Editar Diário' : 'Novo Diário'}
+                    {diarioParaEditar ? 'Editar Diario' : 'Novo Diario'}
                 </Typography>
                 <IconButton onClick={onClose} disabled={loading} size="large">
                     <CloseIcon fontSize="large" />
@@ -251,76 +149,45 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
             </DialogTitle>
 
             <DialogContent sx={{ mt: 1 }}>
+                {erroFormulario && (
+                    <Alert severity="error" onClose={() => setErroFormulario('')} sx={{ mb: 3 }}>
+                        {erroFormulario}
+                    </Alert>
+                )}
 
-                {/* --- INPUT DE TÍTULO --- */}
                 <Box sx={{ position: 'relative', mb: 3, width: '100%' }}>
                     <input
                         type="text"
                         value={titulo}
-                        onChange={(e) => setTitulo(e.target.value)}
-                        placeholder="Título do dia..."
+                        onChange={(event) => setTitulo(event.target.value)}
+                        placeholder="Titulo do dia..."
                         disabled={loading}
                         style={{
                             ...cadernoStyle,
-                            width: "100%",
-                            height: "64px",
-                            padding: "10px 80px 10px 16px",
-                            borderRadius: "12px",
+                            width: '100%',
+                            height: '64px',
+                            padding: '10px 16px',
+                            borderRadius: '12px',
                         }}
                     />
-
-                    {/* Botão Mic Título */}
-                    <button
-                        type="button"
-                        onClick={() => handleGravar(gravandoTitulo, titulo, setGravandoTitulo, recognitionTituloRef, vozTituloRef, setTitulo)}
-                        disabled={loading}
-                        style={{
-                            ...(gravandoTitulo ? audioButtonActiveStyle : audioButtonStyle),
-                            position: "absolute",
-                            right: 12, // ALINHADO
-                            top: "50%",
-                            transform: gravandoTitulo ? "translateY(-50%) scale(1.05)" : "translateY(-50%)",
-                        }}
-                        title="Gravar título"
-                    >
-                        <MicIcon sx={{ fontSize: 28 }} />
-                    </button>
                 </Box>
 
-                {/* --- ÁREA DE TEXTO --- */}
                 <Box sx={{ position: 'relative', mb: 2, width: '100%' }}>
                     <textarea
                         value={conteudo}
-                        onChange={(e) => setConteudo(e.target.value)}
+                        onChange={(event) => setConteudo(event.target.value)}
                         disabled={loading}
                         placeholder="Escreva sobre o seu dia aqui..."
                         style={{
                             ...cadernoStyle,
-                            width: "100%",
-                            height: "400px",
-                            padding: "10px 16px 80px 16px",
-                            borderRadius: "16px",
+                            width: '100%',
+                            height: '400px',
+                            padding: '10px 16px',
+                            borderRadius: '16px',
                         }}
                     />
-
-                    {/* Botão Mic Conteúdo */}
-                    <button
-                        type="button"
-                        onClick={() => handleGravar(gravandoConteudo, conteudo, setGravandoConteudo, recognitionConteudoRef, vozConteudoStateRef, setConteudo)}
-                        disabled={loading}
-                        style={{
-                            ...(gravandoConteudo ? audioButtonActiveStyle : audioButtonStyle),
-                            position: "absolute",
-                            right: 12, // ALINHADO
-                            bottom: 16,
-                        }}
-                        title="Gravar história"
-                    >
-                        <MicIcon sx={{ fontSize: 28 }} />
-                    </button>
                 </Box>
 
-                {/* Botão de Salvar */}
                 <Stack direction="row" justifyContent="center" pb={2}>
                     <Button
                         onClick={handleSalvar}
@@ -334,15 +201,13 @@ export default function DiarioModal({ open, onClose, onSuccess, usuarioId, diari
                             py: 1.5,
                             borderRadius: 3,
                             fontSize: '1.2rem',
-                            boxShadow: '0 4px 10px rgba(46, 125, 50, 0.4)'
+                            boxShadow: '0 4px 10px rgba(46, 125, 50, 0.4)',
                         }}
                     >
                         {loading ? 'Salvando...' : 'Salvar'}
                     </Button>
                 </Stack>
-
             </DialogContent>
         </Dialog>
     );
 }
-

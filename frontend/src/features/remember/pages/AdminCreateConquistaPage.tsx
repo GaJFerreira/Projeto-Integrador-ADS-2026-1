@@ -18,6 +18,7 @@ import { useSnackbar } from 'notistack';
 // IMPORTANDO O PAYLOAD CORRETO
 import { adminConquistasApi, type CreateConquistaPayload } from '../api/conquistas';
 import { usuarioPodeGerenciarConquistas } from '../utils/auth';
+import { getMensagemErroRemember } from '../utils/errors';
 
 const toBase64 = (file: File) => new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
@@ -52,6 +53,7 @@ export default function NewConquistaPage() {
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string>('');
+    const [erroFormulario, setErroFormulario] = useState('');
 
     if (!podeGerenciar) {
         return (
@@ -68,6 +70,7 @@ export default function NewConquistaPage() {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
+        setErroFormulario('');
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
@@ -76,10 +79,13 @@ export default function NewConquistaPage() {
             const file = e.target.files[0];
 
             if (file.size > 2 * 1024 * 1024) {
-                enqueueSnackbar('A imagem deve ter no máximo 2MB.', { variant: 'warning' });
+                const mensagem = 'A imagem deve ter no maximo 2MB.';
+                setErroFormulario(mensagem);
+                enqueueSnackbar(mensagem, { variant: 'warning' });
                 return;
             }
 
+            setErroFormulario('');
             setSelectedFile(file);
             setPreviewUrl(URL.createObjectURL(file));
         }
@@ -87,14 +93,25 @@ export default function NewConquistaPage() {
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        setErroFormulario('');
 
         // Validações
-        if (!form.nome || !form.descricao || !form.pontos || !form.meta) {
-            enqueueSnackbar('Preencha todos os campos obrigatórios.', { variant: 'warning' });
+        if (!form.nome.trim() || !form.descricao.trim() || !form.pontos || !form.meta) {
+            const mensagem = 'Preencha todos os campos obrigatorios.';
+            setErroFormulario(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'warning' });
+            return;
+        }
+        if (Number(form.pontos) <= 0 || Number(form.meta) <= 0) {
+            const mensagem = 'Pontuacao e meta devem ser maiores que zero.';
+            setErroFormulario(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'warning' });
             return;
         }
         if (!selectedFile) {
-            enqueueSnackbar('O ícone é obrigatório.', { variant: 'warning' });
+            const mensagem = 'O icone e obrigatorio.';
+            setErroFormulario(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'warning' });
             return;
         }
 
@@ -117,8 +134,9 @@ export default function NewConquistaPage() {
             enqueueSnackbar('Conquista criada com sucesso!', { variant: 'success' });
             navigate('/admin/conquistas');
 
-        } catch (err: any) {
-            const msg = err?.response?.data?.message || 'Erro ao criar conquista.';
+        } catch (err: unknown) {
+            const msg = getMensagemErroRemember(err, 'Erro ao criar conquista.');
+            setErroFormulario(msg);
             enqueueSnackbar(msg, { variant: 'error' });
         } finally {
             setLoading(false);
@@ -141,6 +159,12 @@ export default function NewConquistaPage() {
                             <Typography variant="h5" color="primary">
                                 Dados da Conquista
                             </Typography>
+
+                            {erroFormulario && (
+                                <Alert severity="error" onClose={() => setErroFormulario('')}>
+                                    {erroFormulario}
+                                </Alert>
+                            )}
 
                             {/* UPLOAD IMAGEM */}
                             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 1 }}>

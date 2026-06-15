@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -25,4 +26,8 @@ public class UserResponseDto {
     private String status;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
+
+    // Permissões individuais do usuário (além das herdadas pelo Role)
+    private List<PermissionResponseDto> permissions;
 }
+

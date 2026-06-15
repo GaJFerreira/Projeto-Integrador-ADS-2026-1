@@ -20,10 +20,16 @@ interface LembrancaCardProps {
     onDelete: (id: number) => void; // Nova prop
 }
 
+type LembrancaComDatasAlternativas = Lembranca & {
+    data_acontecimento?: string;
+    data?: string;
+};
+
 export default function LembrancaCard({ lembranca, onClick, onDelete }: LembrancaCardProps) {
 
+    const lembrancaComDatas = lembranca as LembrancaComDatasAlternativas;
     const dataFormatada = formatarDataRemember(
-        lembranca.dataAcontecimento ?? (lembranca as any).data_acontecimento ?? (lembranca as any).data
+        lembranca.dataAcontecimento ?? lembrancaComDatas.data_acontecimento ?? lembrancaComDatas.data
     );
 
     const themeColor = '#ed6c02';

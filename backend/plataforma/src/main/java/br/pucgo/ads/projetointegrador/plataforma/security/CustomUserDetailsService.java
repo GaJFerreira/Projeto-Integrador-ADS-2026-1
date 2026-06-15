@@ -18,7 +18,9 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
-        User user = userRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
+        // Usa query com JOIN FETCH para carregar Role + permissões do Role + permissões do User
+        // de forma a evitar LazyInitializationException no CustomUserDetails.fromUser()
+        User user = userRepository.findByUsernameOrEmailWithPermissions(usernameOrEmail)
                 .orElseThrow(() -> 
                         new UsernameNotFoundException("User not found: " + usernameOrEmail));
 

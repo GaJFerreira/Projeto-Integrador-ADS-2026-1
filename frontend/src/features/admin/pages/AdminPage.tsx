@@ -1,9 +1,11 @@
 import { Box, Container, Grid, Typography } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
-import SecurityIcon from '@mui/icons-material/Security';
 import Inventory2Icon from '@mui/icons-material/Inventory2';
 import BiotechIcon from '@mui/icons-material/Biotech';
+import InboxIcon from '@mui/icons-material/Inbox';
+import LiveHelpIcon from '@mui/icons-material/LiveHelp';
 import AdminModuleCard from '../components/AdminModuleCard';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 export default function AdminPage() {
   return (
@@ -26,14 +28,7 @@ export default function AdminPage() {
             icon={<GroupIcon color="primary" fontSize="large" />}
           />
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-          <AdminModuleCard
-            title="Permissoes"
-            description="Listar permissoes cadastradas"
-            to="/admin/permissoes"
-            icon={<SecurityIcon color="primary" fontSize="large" />}
-          />
-        </Grid>
+
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <AdminModuleCard
             title="Produtos"
@@ -42,15 +37,35 @@ export default function AdminPage() {
             icon={<Inventory2Icon color="primary" fontSize="large" />}
           />
         </Grid>
+
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <AdminModuleCard
-            title="Patologias"
-            description="Cadastrar condicoes de saude, vincular usuarios e configurar restricoes de produtos"
-            to="/admin/patologias"
-            icon={<BiotechIcon color="primary" fontSize="large" />}
+            title="Conquistas"
+            description="Cadastrar conquistas do sistema para o modulo Remember"
+            to="/admin/conquistas"
+            icon={<EmojiEventsIcon color="primary" fontSize="large" />}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <AdminModuleCard
+            title="Mensagens e Sugestões"
+            description="Ver dúvidas e sugestões enviadas pelos usuários"
+            to="/admin/duvidas"
+            icon={<InboxIcon color="primary" fontSize="large" />}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <AdminModuleCard
+            title="Gerenciar FAQ"
+            description="Cadastrar perguntas frequentes por módulo"
+            to="/admin/faqs"
+            icon={<LiveHelpIcon color="primary" fontSize="large" />}
           />
         </Grid>
       </Grid>
     </Container>
   );
 }
+

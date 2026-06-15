@@ -71,7 +71,6 @@ export default function AtendimentoMedico() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    console.log('Dados do atendimento:', form);
 
     enqueueSnackbar('Atendimento salvo com sucesso!', {
       variant: 'success',
@@ -243,7 +242,7 @@ export default function AtendimentoMedico() {
                 size="large"
                 sx={{ borderRadius: 2 }}
               >
-                Salvar Atendimento  
+                Salvar Atendimento
               </Button>
             </Grid>
           </Grid>

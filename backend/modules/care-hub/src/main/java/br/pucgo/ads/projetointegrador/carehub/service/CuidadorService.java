@@ -254,6 +254,7 @@ public class CuidadorService {
     private CuidadorResponseDTO toResponseDTO(Cuidador cuidador, List<String> especialidades) {
         CuidadorResponseDTO dto = new CuidadorResponseDTO();
         dto.setId(cuidador.getId());
+        dto.setPlatformUserId(cuidador.getPlatformUserId());
         dto.setNome(cuidador.getName());
         dto.setEmail(cuidador.getEmail());
         dto.setTelefone(cuidador.getTelefone());
@@ -306,6 +307,7 @@ public class CuidadorService {
         List<CuidadorResponseDTO> dtos = content.stream().map(p -> {
             CuidadorResponseDTO dto = new CuidadorResponseDTO();
             dto.setId(p.getId());
+            dto.setPlatformUserId(p.getPlatformUserId());
             dto.setNome(p.getName());
             dto.setEmail(p.getEmail());
             dto.setTelefone(p.getPhone());

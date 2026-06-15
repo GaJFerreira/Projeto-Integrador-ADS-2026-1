@@ -25,79 +25,47 @@ public class RegistroAcompanhamentoController {
     @Autowired
     private br.pucgo.ads.projetointegrador.carehub.repository.ClienteRepository clienteRepository;
 
-    private Long obterCuidadorIdLocal(Long cuidadorId) {
-        if (cuidadorId == null) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "ID do cuidador é obrigatório");
-        }
-
-        return cuidadorRepository.findByPlatformUserId(cuidadorId)
-                .map(br.pucgo.ads.projetointegrador.carehub.entity.Cuidador::getId)
-                .or(() -> cuidadorRepository.findById(cuidadorId)
-                        .map(br.pucgo.ads.projetointegrador.carehub.entity.Cuidador::getId))
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.NOT_FOUND,
-                        "Cuidador local do CareHub não encontrado para o ID: " + cuidadorId));
-    }
-
-    private Long obterClienteIdLocal(Long clienteId) {
-        if (clienteId == null) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.BAD_REQUEST, "ID do cliente é obrigatório");
-        }
-
-        return clienteRepository.findByPlatformUserId(clienteId)
-                .map(br.pucgo.ads.projetointegrador.carehub.entity.Cliente::getId)
-                .or(() -> clienteRepository.findById(clienteId)
-                        .map(br.pucgo.ads.projetointegrador.carehub.entity.Cliente::getId))
-                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
-                        org.springframework.http.HttpStatus.NOT_FOUND,
-                        "Cliente local do CareHub não encontrado para o ID: " + clienteId));
-    }
-
-    private Long obterIdLocalAutenticado(Principal principal) {
+    private Long obterPlatformUserIdAutenticado(Principal principal) {
         if (principal == null || principal.getName() == null || principal.getName().isBlank()) {
-            throw new org.springframework.web.server.ResponseStatusException(
-                    org.springframework.http.HttpStatus.UNAUTHORIZED, "Usuário não autenticado");
+            return null;
         }
 
         String usernameOrEmail = principal.getName();
 
         var cuidador = cuidadorRepository.findByUsername(usernameOrEmail)
                 .or(() -> cuidadorRepository.findByEmail(usernameOrEmail));
-        if (cuidador.isPresent())
-            return cuidador.get().getId();
+        if (cuidador.isPresent() && cuidador.get().getPlatformUserId() != null) {
+            return cuidador.get().getPlatformUserId();
+        }
 
         var cliente = clienteRepository.findByUsername(usernameOrEmail)
                 .or(() -> clienteRepository.findByEmail(usernameOrEmail));
-        if (cliente.isPresent())
-            return cliente.get().getId();
+        if (cliente.isPresent() && cliente.get().getPlatformUserId() != null) {
+            return cliente.get().getPlatformUserId();
+        }
 
-        throw new org.springframework.web.server.ResponseStatusException(
-                org.springframework.http.HttpStatus.NOT_FOUND,
-                "Usuário local do CareHub não encontrado para o principal autenticado: " + usernameOrEmail);
+        return null;
     }
 
     @PostMapping
     public ResponseEntity<RegistroAcompanhamentoResponseDTO> criarRegistro(
             Principal principal,
             @Valid @RequestBody RegistroAcompanhamentoRequestDTO dto) {
-        Long localCuidadorId = obterIdLocalAutenticado(principal);
-        RegistroAcompanhamentoResponseDTO registro = registroService.criarRegistro(localCuidadorId, dto);
+        Long platformUserId = obterPlatformUserIdAutenticado(principal);
+        if (platformUserId == null) return ResponseEntity.badRequest().build();
+        RegistroAcompanhamentoResponseDTO registro = registroService.criarRegistro(platformUserId, dto);
         return ResponseEntity.ok(registro);
     }
 
     @GetMapping("/cliente/{clienteId}")
     public ResponseEntity<List<RegistroAcompanhamentoResponseDTO>> listarPorCliente(@PathVariable Long clienteId) {
-        Long localClienteId = obterClienteIdLocal(clienteId);
-        List<RegistroAcompanhamentoResponseDTO> registros = registroService.listarPorCliente(localClienteId);
+        List<RegistroAcompanhamentoResponseDTO> registros = registroService.listarPorCliente(clienteId);
         return ResponseEntity.ok(registros);
     }
 
     @GetMapping("/cuidador/{cuidadorId}")
     public ResponseEntity<List<RegistroAcompanhamentoResponseDTO>> listarPorCuidador(@PathVariable Long cuidadorId) {
-        Long localCuidadorId = obterCuidadorIdLocal(cuidadorId);
-        List<RegistroAcompanhamentoResponseDTO> registros = registroService.listarPorCuidador(localCuidadorId);
+        List<RegistroAcompanhamentoResponseDTO> registros = registroService.listarPorCuidador(cuidadorId);
         return ResponseEntity.ok(registros);
     }
 

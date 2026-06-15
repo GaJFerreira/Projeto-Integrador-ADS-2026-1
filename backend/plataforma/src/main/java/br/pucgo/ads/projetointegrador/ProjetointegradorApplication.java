@@ -12,7 +12,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		"br.pucgo.ads.projetointegrador.eldencare",
 		"br.pucgo.ads.projetointegrador.carehub",
 		"br.com.puc.listacompras",
-		"br.pucgo.ads.projetointegrador.remember"
+		"br.pucgo.ads.projetointegrador.remember",
+		"br.pucgo.ads.projetointegrador.dosecerta"
 })
 @EntityScan(basePackages = {
 		"br.pucgo.ads.projetointegrador.plataforma.entity",
@@ -21,7 +22,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		"br.pucgo.ads.projetointegrador.eldencare.domain",
 		"br.pucgo.ads.projetointegrador.carehub.entity",
 		"br.com.puc.listacompras.database.entity",
-		"br.pucgo.ads.projetointegrador.remember.entity"
+		"br.pucgo.ads.projetointegrador.remember.entity",
+		"br.pucgo.ads.projetointegrador.dosecerta.database.entity"
 })
 @EnableJpaRepositories(basePackages = {
 		"br.pucgo.ads.projetointegrador.plataforma.repository",
@@ -30,7 +32,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 		"br.pucgo.ads.projetointegrador.eldencare.repository",
 		"br.pucgo.ads.projetointegrador.carehub.repository",
 		"br.com.puc.listacompras.database.repository",
-		"br.pucgo.ads.projetointegrador.remember.repository"
+		"br.pucgo.ads.projetointegrador.remember.repository",
+		"br.pucgo.ads.projetointegrador.dosecerta.database.repository"
 })
 public class ProjetointegradorApplication {
 

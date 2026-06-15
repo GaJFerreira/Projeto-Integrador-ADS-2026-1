@@ -1,7 +1,7 @@
 import http from '@/lib/http';
 import type { UsuarioDTO, TipoUsuario } from '@/shared/types/usuario';
 
-const base = '/api/usuarios';
+const base = '/api/users';
 
 export const usuariosApi = {
   listar: async (): Promise<UsuarioDTO[]> => {

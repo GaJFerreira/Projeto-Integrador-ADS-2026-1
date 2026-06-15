@@ -3,6 +3,7 @@ import {
     Box,
     Typography,
     CircularProgress,
+    Alert,
     Stack,
     Paper
 } from '@mui/material';
@@ -12,6 +13,7 @@ import WorkspacePremiumIcon from '@mui/icons-material/WorkspacePremium'; // Íco
 import { useSnackbar } from 'notistack';
 import { conquistasUsuarioApi, type UsuarioConquistaDTO, type RankingItem } from '../api/conquistasUsuario';
 import ConquistaCard from '../components/ConquistaCard';
+import { getMensagemErroRemember } from '../utils/errors';
 
 interface ConquistasUsuarioPageProps {
     usuarioId: number;
@@ -23,6 +25,7 @@ export default function ConquistasUsuarioPage({ usuarioId }: ConquistasUsuarioPa
     const [items, setItems] = useState<UsuarioConquistaDTO[]>([]);
     const [ranking, setRanking] = useState<RankingItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [erroPagina, setErroPagina] = useState('');
 
     // Calcula total de pontos do usuário logado
     const totalPontos = items
@@ -39,6 +42,7 @@ export default function ConquistasUsuarioPage({ usuarioId }: ConquistasUsuarioPa
 
     async function carregarDados() {
         setLoading(true);
+        setErroPagina('');
         try {
             // Carrega em paralelo: Conquistas do usuário E o Ranking geral
             const [dadosConquistas, dadosRanking] = await Promise.all([
@@ -49,7 +53,9 @@ export default function ConquistasUsuarioPage({ usuarioId }: ConquistasUsuarioPa
             setItems(dadosConquistas);
             setRanking(dadosRanking);
         } catch (error) {
-            enqueueSnackbar('Erro ao carregar dados.', { variant: 'error' });
+            const mensagem = getMensagemErroRemember(error, 'Erro ao carregar conquistas.');
+            setErroPagina(mensagem);
+            enqueueSnackbar(mensagem, { variant: 'error' });
         } finally {
             setLoading(false);
         }
@@ -71,17 +77,30 @@ export default function ConquistasUsuarioPage({ usuarioId }: ConquistasUsuarioPa
 
     if (items.length === 0 && ranking.length === 0) {
         return (
-            <Box textAlign="center" py={8} sx={{ opacity: 0.7 }}>
+            <>
+                {erroPagina && (
+                    <Alert severity="error" onClose={() => setErroPagina('')} sx={{ mb: 3 }}>
+                        {erroPagina}
+                    </Alert>
+                )}
+                <Box textAlign="center" py={8} sx={{ opacity: 0.7 }}>
                 <EmojiEventsIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
                 <Typography variant="h6" color="text.secondary">
                     Nenhuma conquista disponível ainda.
                 </Typography>
             </Box>
+            </>
         );
     }
 
     return (
         <Box sx={{ mt: 1 }}>
+            {erroPagina && (
+                <Alert severity="error" onClose={() => setErroPagina('')} sx={{ mb: 3 }}>
+                    {erroPagina}
+                </Alert>
+            )}
+
 
             {/* DASHBOARD PRINCIPAL */}
             <Paper

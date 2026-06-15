@@ -603,79 +603,6 @@ export function HistoricoAtendimentosPage() {
                             </Paper>
                           )}
 
-                          {/* 🌟 Seção de Avaliação - apenas para clientes e atendimentos CONCLUÍDOS */}
-                          {!isCuidador && registro.agendamentoStatus === 'CONCLUIDO' && (
-                            <Paper
-                              elevation={0}
-                              sx={{
-                                p: 2.5,
-                                bgcolor: getAvaliacaoDoAgendamento(registro.agendamentoId) ? '#f0fdf4' : '#f8fafc',
-                                border: '1px solid',
-                                borderColor: getAvaliacaoDoAgendamento(registro.agendamentoId) ? '#bbf7d0' : '#e2e8f0',
-                                borderRadius: 3,
-                              }}
-                            >
-                              {(() => {
-                                const avaliacao = getAvaliacaoDoAgendamento(registro.agendamentoId);
-                                if (avaliacao) {
-                                  return (
-                                    <Stack spacing={1.5}>
-                                      <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#15803d', fontWeight: '700' }}>
-                                        <Star fontSize="small" sx={{ color: '#ffb300' }} />
-                                        Sua Avaliação do Atendimento
-                                      </Typography>
-                                      <Stack direction="row" alignItems="center" spacing={1}>
-                                        <Rating value={avaliacao.nota} readOnly size="small" />
-                                        <Typography variant="body2" fontWeight="700" sx={{ color: '#16a34a' }}>
-                                          {avaliacao.nota}/5.0
-                                        </Typography>
-                                      </Stack>
-                                      {avaliacao.comentario && (
-                                        <Typography variant="body2" sx={{ color: '#3f6212', fontStyle: 'italic', bgcolor: 'rgba(255, 255, 255, 0.5)', p: 1.5, borderRadius: 1.5, borderLeft: '3px solid #16a34a' }}>
-                                          "{avaliacao.comentario}"
-                                        </Typography>
-                                      )}
-                                    </Stack>
-                                  );
-                                } else {
-                                  return (
-                                    <Stack spacing={2.5} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', md: 'center' }}>
-                                      <Box>
-                                        <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1, fontWeight: '700', color: '#1e293b' }}>
-                                          <StarBorder fontSize="small" sx={{ color: '#ffb300' }} />
-                                          Avalie este atendimento
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontSize: '0.85rem' }}>
-                                          Sua opinião ajuda outros clientes a escolherem cuidadores qualificados.
-                                        </Typography>
-                                      </Box>
-                                      <Button
-                                        variant="contained"
-                                        size="medium"
-                                        startIcon={<RateReview />}
-                                        onClick={() => abrirAvaliacaoModal(registro.cuidadorId, registro.cuidadorNome, registro.agendamentoId)}
-                                        sx={{
-                                          borderRadius: 2,
-                                          textTransform: 'none',
-                                          fontWeight: 'bold',
-                                          bgcolor: '#0f766e',
-                                          color: '#ffffff',
-                                          boxShadow: '0 4px 12px rgba(15, 118, 110, 0.15)',
-                                          '&:hover': {
-                                            bgcolor: '#0d625b',
-                                            boxShadow: '0 6px 16px rgba(15, 118, 110, 0.25)',
-                                          }
-                                        }}
-                                      >
-                                        Avaliar agora
-                                      </Button>
-                                    </Stack>
-                                  );
-                                }
-                              })()}
-                            </Paper>
-                          )}
-
                           {/* Metadados */}
                           <Divider />
                           <Typography variant="caption" sx={{ color: '#94a3b8', display: 'block', textAlign: 'right', fontWeight: '500' }}>
@@ -690,18 +617,6 @@ export function HistoricoAtendimentosPage() {
             </Card>
           ))}
         </Stack>
-      )}
-
-      {/* Modal de Avaliação */}
-      {selectedCuidador && (
-        <AvaliacaoModal
-          open={avaliacaoModalOpen}
-          onClose={fecharAvaliacaoModal}
-          cuidadorId={selectedCuidador.id}
-          cuidadorNome={selectedCuidador.nome}
-          clienteId={userId || 0}
-          initialAgendamentoId={selectedAgendamentoId || undefined}
-        />
       )}
     </Box>
   );

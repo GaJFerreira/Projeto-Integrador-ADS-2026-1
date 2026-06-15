@@ -8,6 +8,7 @@ package br.pucgo.ads.projetointegrador.carehub.repository;
  */
 public interface CuidadorProjection {
     Long getId();
+    Long getPlatformUserId();
     String getName();
     String getEmail();
     String getPhone();

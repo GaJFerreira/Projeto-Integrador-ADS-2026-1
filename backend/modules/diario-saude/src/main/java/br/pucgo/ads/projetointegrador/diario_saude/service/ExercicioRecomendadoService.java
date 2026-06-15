@@ -1,5 +1,6 @@
 package br.pucgo.ads.projetointegrador.diario_saude.service;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +11,6 @@ import br.pucgo.ads.projetointegrador.diario_saude.entity.ExercicioRecomendadoEn
 import br.pucgo.ads.projetointegrador.diario_saude.entity.PrescricaoMedicaEntity;
 import br.pucgo.ads.projetointegrador.diario_saude.repository.ExercicioRecomendadoRepository;
 import br.pucgo.ads.projetointegrador.diario_saude.repository.PrescricaoMedicaRepository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ExercicioRecomendadoService {
@@ -41,12 +41,7 @@ public class ExercicioRecomendadoService {
         exercicioRepo.deleteById(id);
     }
 
-    @Transactional(readOnly = true) // Garante que a transação esteja ativa
-    public java.util.List<ExercicioRecomendadoEntity> listarPorPrescricao(Long idPrescricao) {
-        
-        PrescricaoMedicaEntity prescricao = prescricaoRepo.findByIdWithExercicios(idPrescricao)
-            .orElseThrow(() -> new RuntimeException("Prescrição não encontrada"));
-
-        return new java.util.ArrayList<>(prescricao.getExerciciosRecomendados());
+    public List<ExercicioRecomendadoEntity> listarPorPrescricao(Long idPrescricao) {
+        return exercicioRepo.findByPrescricaoId(idPrescricao);
     }
 }

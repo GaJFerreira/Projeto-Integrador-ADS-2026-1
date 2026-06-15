@@ -116,6 +116,7 @@ export type PrescricaoExame = {
 
 export type Prescricao = {
   id_prescricao: number;
+  id_usuario: number;
   data_prescricao: string;
   nomeMedico: string;
   observacoes?: string;

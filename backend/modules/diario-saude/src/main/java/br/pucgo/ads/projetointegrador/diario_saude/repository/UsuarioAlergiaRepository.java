@@ -16,9 +16,11 @@ public interface UsuarioAlergiaRepository extends JpaRepository<UsuarioAlergiaEn
     Optional<UsuarioAlergiaEntity> findByUsuario_IdUsuarioAndAlergia_Id(Long usuarioId, Long alergiaId);
 
     @Query("""
-        SELECT ua FROM UsuarioAlergiaEntity ua
-        JOIN FETCH ua.alergia a
-        WHERE ua.usuario.idUsuario = :idUsuario
-    """)
+                SELECT ua FROM UsuarioAlergiaEntity ua
+                JOIN FETCH ua.alergia a
+                WHERE ua.usuario.idUsuario = :idUsuario
+            """)
     List<UsuarioAlergiaEntity> listarAlergiasPorUsuario(Long idUsuario);
+
+    void deleteByAlergia_Id(Long alergiaId);
 }
