@@ -40,10 +40,21 @@ public class ListaController {
       @Valid @RequestBody ListaCreateRequestDTO dto
   ) {
     Long usuarioId = JwtClaimsUtils.getUserId(authorization);
-    if (Boolean.TRUE.equals(dto.getIsTemplate()) && "ROLE_IDOSO".equals(JwtClaimsUtils.getRole(authorization))) {
+    String role = JwtClaimsUtils.getRole(authorization);
+
+    if (Boolean.TRUE.equals(dto.getIsTemplate()) && "ROLE_IDOSO".equals(role)) {
       throw new AccessDeniedException("Usuarios com perfil Idoso nao podem criar templates.");
     }
-    ListaResponseDTO resposta = listaService.criarComItens(usuarioId, dto);
+
+    // Template personalizado: somente ADMIN pode associar o template a outro usuario.
+    Long donoId = usuarioId;
+    if (Boolean.TRUE.equals(dto.getIsTemplate())
+        && dto.getUsuarioAlvoId() != null
+        && "ROLE_ADMIN".equals(role)) {
+      donoId = dto.getUsuarioAlvoId();
+    }
+
+    ListaResponseDTO resposta = listaService.criarComItens(donoId, dto);
     return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
   }
 

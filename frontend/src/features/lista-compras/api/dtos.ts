@@ -27,6 +27,8 @@ export type ListaDeComprasDTO = {
     }[];
     isTemplate?: boolean;
     patologiaId?: number;
+    /** ADMIN: cria um template personalizado de posse deste usuario (ex.: idoso). */
+    usuarioAlvoId?: number;
 };
 
 export type ListaDeComprasSalva = ListaDeComprasDTO & {

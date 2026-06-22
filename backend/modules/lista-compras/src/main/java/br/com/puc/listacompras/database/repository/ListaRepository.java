@@ -31,6 +31,9 @@ public interface ListaRepository extends JpaRepository<Lista, Long> {
 
   List<Lista> findByTemplateTrueAndPatologiaIsNullOrderByTituloAsc();
 
+  /** Templates personalizados (de posse de um usuario especifico). */
+  List<Lista> findByTemplateTrueAndUsuarioIdOrderByTituloAsc(Long usuarioId);
+
   @Query("""
       select l
       from Lista l

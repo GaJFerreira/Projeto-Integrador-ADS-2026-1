@@ -18,7 +18,9 @@ import br.com.puc.listacompras.dto.ListaResponseDTO;
 import br.com.puc.listacompras.exception.model.ResourceNotFoundException;
 import br.com.puc.listacompras.exception.model.ServiceException;
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -146,7 +148,16 @@ public class ListaService {
         ? listaRepository.findByTemplateTrueAndPatologiaIsNullOrderByTituloAsc()
         : listaRepository.buscarTemplatesPorPatologiasOuGenericos(patologiaIds);
 
-    return listas.stream().map(this::toResponseDTO).toList();
+    // Templates personalizados criados especificamente para este usuario (dono).
+    List<Lista> personalizados =
+        listaRepository.findByTemplateTrueAndUsuarioIdOrderByTituloAsc(usuarioId);
+
+    // Mescla sem duplicar (preserva ordem; chaveia por id).
+    Map<Long, Lista> porId = new LinkedHashMap<>();
+    listas.forEach(l -> porId.put(l.getId(), l));
+    personalizados.forEach(l -> porId.put(l.getId(), l));
+
+    return porId.values().stream().map(this::toResponseDTO).toList();
   }
 
   @Transactional

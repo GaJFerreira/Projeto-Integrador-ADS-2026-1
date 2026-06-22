@@ -127,9 +127,11 @@ export function AppRoutes() {
         {/* Perfil do usuário logado */}
         <Route path="perfil" element={<ProfilePage />} />
 
+        {/* AdminPage (tela de cards) liberada para todos os usuarios autenticados */}
+        <Route path="admin" element={<AdminPage />} />
+
         {/* Rotas administrativas globais protegidas */}
         <Route element={<AdminRoute />}>
-          <Route path="admin" element={<AdminPage />} />
           <Route path="admin/usuarios" element={<AdminUsuariosPage />} />
           <Route path="admin/usuarios/novo" element={<AdminUsuarioCreatePage />} />
           <Route path="admin/permissoes" element={<AdminPermissoesPage />} />

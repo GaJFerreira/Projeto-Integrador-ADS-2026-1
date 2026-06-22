@@ -28,6 +28,13 @@ public class PatologiaService {
   }
 
   @Transactional(readOnly = true)
+  public List<PatologiaResponseDTO> listarTodas() {
+    return patologiaRepository.findAll().stream()
+        .map(this::toResponseDTO)
+        .toList();
+  }
+
+  @Transactional(readOnly = true)
   public List<PatologiaResponseDTO> listarPorUsuario(Long usuarioId) {
     List<Long> patologiaIds = usuarioPatologiaRepository.findPatologiaIdsByUsuarioId(usuarioId);
     if (patologiaIds == null || patologiaIds.isEmpty()) {

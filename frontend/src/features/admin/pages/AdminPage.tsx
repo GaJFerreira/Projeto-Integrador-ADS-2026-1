@@ -40,6 +40,15 @@ export default function AdminPage() {
 
         <Grid size={{ xs: 12, sm: 6, md: 4 }}>
           <AdminModuleCard
+            title="Patologias"
+            description="Cadastrar patologias para a nutrição"
+            to="/admin/patologias"
+            icon={<BiotechIcon color="primary" fontSize="large" />}
+          />
+        </Grid>
+
+        <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+          <AdminModuleCard
             title="Conquistas"
             description="Cadastrar conquistas do sistema para o modulo Remember"
             to="/admin/conquistas"

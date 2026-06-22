@@ -19,4 +19,10 @@ public class ListaCreateRequestDTO {
   private List<ListaItemCreateDTO> itens;
   private Boolean isTemplate;
   private Long patologiaId;
+
+  /**
+   * Opcional. Quando um ADMIN cria um template, pode informar o ID de um usuario
+   * (ex.: um idoso) para gerar um template personalizado, de posse daquele usuario.
+   */
+  private Long usuarioAlvoId;
 }
